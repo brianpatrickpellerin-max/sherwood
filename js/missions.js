@@ -595,7 +595,7 @@
       reward: 100,
       tips: [
         { id: 'letter', when: 'start', text: 'Pick up the letter by the cart. The carrier keeps full speed. Deliver it by walking up to the boatman and tapping him.' },
-        { id: 'nokill', when: 'time6', text: 'No killing tonight: arrows can kill. Use Scarlet\u2019s sling, John\u2019s nets, Tuck\u2019s ale and knockouts instead.' },
+        { id: 'nokill', when: 'time6', text: 'No killing tonight. Swords strike with the flat of the blade, but an arrow kills: use Scarlet\u2019s sling, John\u2019s nets, Tuck\u2019s ale and knockouts instead.' },
       ],
       map: [
         'TTTTTTTTTTTTTTTTTTTTwwwwwwww',

@@ -491,7 +491,7 @@
       if (d > 2) { const s = Math.min(d, heroSpeed(h) * dt); const nx = h.x + dx / d * s, ny = h.y + dy / d * s; if (RH.isWalk(G.grid, tileOf(nx), tileOf(ny))) { h.x = nx; h.y = ny; } h.dir = Math.atan2(dy, dx); h.moving = true; }
     }
   }
-  const lethalOf = (h) => h.def.weapon === 'sword' && !h.staff;
+  const lethalOf = (h) => h.def.weapon === 'sword' && !h.staff && !G.objs.some((o) => o.k === 'nokill'); // on no-kill nights the band fights with the flat of the blade
 
   function updHero(h, dt) {
     h.atkCd -= dt; h.bowT -= dt; h.hurtT -= dt; if (h.flash > 0) h.flash -= dt;
@@ -926,7 +926,7 @@
 
   // ---------- Guards ----------
   function knockOut(g, t) {
-    g.state = 'ko'; g.koT = G.kind === 'defense' ? 999 : t; g.path = null; g.sus = 0; g.target = null; g.icon = ''; g.found = false;
+    g.state = 'ko'; g.seeing = null; g.koT = G.kind === 'defense' ? 999 : t; g.path = null; g.sus = 0; g.target = null; g.icon = ''; g.found = false;
     G.stats.ko++; sfx('ko'); fx('stars', g.x, g.y - 20);
   }
   game.knockOut = knockOut;
@@ -1342,11 +1342,11 @@
       const p = h.listen;
       if (!p) continue;
       if (h.down || h.task || h.moving || p.used || (h.x - p.x) ** 2 + (h.y - p.y) ** 2 > (TILE * 1.4) ** 2) { h.listen = null; continue; }
-      const seen = G.guards.some((g) => g.seeing === h || (g.state === 'alert' && g.target === h));
+      const seen = G.guards.some((g) => active(g) && (g.seeing === h || (g.state === 'alert' && g.target === h)));
       if (seen) { p.t = Math.max(0, (p.t || 0) - dt * 2); continue; }
       p.t = (p.t || 0) + dt;
       if (Math.floor(p.t * 2) !== Math.floor((p.t - dt) * 2)) fx('text', p.x + (Math.random() - 0.5) * 30, p.y - 50, '\u2026', '#e8dcc0', 0.8);
-      if (p.t >= (p.dur || 4)) { p.used = true; h.listen = null; sfx('charm'); RH.ui && RH.ui.tip('👂 ' + (p.say || 'You hear enough.')); }
+      if (p.t >= (p.dur || 4) - 1e-6) { p.used = true; h.listen = null; sfx('charm'); RH.ui && RH.ui.tip('👂 ' + (p.say || 'You hear enough.')); }
     }
   }
 

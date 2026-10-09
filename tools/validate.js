@@ -30,7 +30,7 @@ function check(m, label) {
   for (const [x, y] of m.nobles || []) add('noble', x, y);
   for (const [x, y] of m.gold || []) add('gold', x, y);
   for (const c of m.climbs || []) { add('climb a', c[0], c[1]); add('climb b', c[2], c[3]); }
-  if (m.exit) add('exit', m.exit.x, m.exit.y);
+  if (m.exit && m.exit.x >= 0) add('exit', m.exit.x, m.exit.y);
   // reachability from first hero, with climbs, planks and gates open
   const start = Object.values(m.heroes || {})[0] || [0, 0];
   const seen = new Uint8Array(g.w * g.h); const q = [start];

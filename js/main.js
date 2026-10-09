@@ -8,60 +8,92 @@
   const KEY = 'sherwood.save.v1';
 
   // ---------- Profile / save ----------
-  // v2 adds popularity, recruits, camp jobs, training and the day counter. v1 saves are migrated in place.
+  // v2 added popularity, recruits, camp jobs and training. v3 (the long campaign) adds the hero roster,
+  // new supplies (purses, nets, apples, ale, hives), roadside offers, blazons, the King's ransom and treasures.
   const KEY2 = 'sherwood.save.v2';
+  const KEY3 = 'sherwood.save.v3';
+  const NM = () => RH.MISSIONS.length;
+  RH.RANSOM = 500;
+  // which named heroes have joined after each story mission is won
+  const JOINS = { 1: ['john'], 2: ['scarlet'], 3: ['marian'], 5: ['tuck'] };
   function freshProfile() {
     return {
-      v: 2, gold: 30, arrows: 10, potions: 1, up: {}, unlocked: 1, stars: [0, 0, 0, 0, 0], best: {}, muted: true, started: false,
+      v: 3, gold: 30, arrows: 10, potions: 1, purses: 2, nets: 1, apples: 2, ale: 0, hives: 0,
+      up: {}, unlocked: 1, stars: new Array(NM()).fill(0), best: {}, muted: true, started: false,
       pop: 0, given: 0, day: 1, recruits: [], nextRid: 1, train: {}, band: [], log: [],
+      heroes: ['robin'], offers: [], blazons: 0, ransom: 0, ransomOpen: false, treasures: [],
+      defenseOpen: false, defenseDone: false, ambushes: 0, seen: {},
     };
   }
   RH.profile = freshProfile();
   RH.migrate = function (o) {
     const p = Object.assign(freshProfile(), o || {});
     if (!o || !o.v || o.v < 2) {
-      // v1 -> v2: keep gold, stars, upgrades, supplies; grant popularity for what was already won
+      // v1 -> v2: grant popularity for what was already won
       const won = (p.stars || []).filter((x) => x > 0).length;
       p.pop = won * 8; p.day = 1 + won; p.v = 2;
-      if (won >= 2) { p.recruits.push(RH.makeRecruit('r' + p.nextRid, p.nextRid)); p.nextRid++; }
+      if (won >= 2) { p.recruits = (p.recruits || []).concat([RH.makeRecruit('r' + p.nextRid, p.nextRid)]); p.nextRid++; }
     }
-    if (!Array.isArray(p.recruits)) p.recruits = [];
-    if (!Array.isArray(p.band)) p.band = [];
+    if (p.v < 3) {
+      // v2 -> v3: the 5-mission campaign maps onto the first missions of the new 12
+      p.legacyStars = (o && o.stars) || [];
+      p.unlocked = Math.min(Math.max(1, p.unlocked | 0), 6);
+      p.stars = new Array(NM()).fill(0);
+      for (let i = 0; i < p.unlocked - 1; i++) p.stars[i] = Math.max(1, Math.min(3, p.legacyStars[i] | 0));
+      p.heroes = ['robin'];
+      for (let i = 0; i < p.unlocked - 1; i++) for (const k of JOINS[i] || []) if (!p.heroes.includes(k)) p.heroes.push(k);
+      p.ransomOpen = p.unlocked > 5; p.defenseOpen = p.unlocked > 6;
+      p.v = 3;
+    }
+    if (!Array.isArray(p.stars)) p.stars = [];
+    while (p.stars.length < NM()) p.stars.push(0);
+    for (const k of ['recruits', 'band', 'log', 'heroes', 'offers', 'treasures']) if (!Array.isArray(p[k])) p[k] = [];
+    if (!p.heroes.includes('robin')) p.heroes.unshift('robin');
     if (!p.train || typeof p.train !== 'object') p.train = {};
-    if (!Array.isArray(p.log)) p.log = [];
-    p.recruits.forEach((r) => { if (!RH.JOBS.some((j) => j.id === r.job)) r.job = 'rest'; r.train = r.train | 0; });
+    if (!p.up || typeof p.up !== 'object') p.up = {};
+    for (const k of ['gold', 'arrows', 'potions', 'purses', 'nets', 'apples', 'ale', 'hives', 'blazons', 'ransom', 'pop', 'given', 'day']) p[k] = Math.max(0, +p[k] || 0);
+    p.recruits.forEach((r, i) => {
+      if (!RH.JOBS.some((j) => j.id === r.job)) r.job = 'rest';
+      r.train = r.train | 0;
+      if (!RH.CLASSES[r.cls]) r.cls = RH.CLASS_ORDER[i % 3];
+    });
     return p;
   };
   RH.loadProfile = function () {
     try {
-      const raw = localStorage.getItem(KEY2) || localStorage.getItem(KEY);
+      const raw = localStorage.getItem(KEY3) || localStorage.getItem(KEY2) || localStorage.getItem(KEY);
       if (raw) RH.profile = RH.migrate(JSON.parse(raw));
     } catch (e) { RH.profile = freshProfile(); }
   };
   RH.saveProfile = function () {
-    try { localStorage.setItem(KEY2, JSON.stringify(RH.profile)); } catch (e) { /* ignore */ }
+    try { localStorage.setItem(KEY3, JSON.stringify(RH.profile)); } catch (e) { /* ignore */ }
   };
   RH.hasSave = () => !!RH.profile.started;
   RH.resetProfile = function () {
     const muted = RH.audio.muted;
     RH.profile = freshProfile(); RH.profile.muted = muted; RH.profile.started = true; RH.saveProfile();
   };
-  RH.rosterUnlocked = function () {
-    const u = RH.profile.unlocked;
-    const r = ['robin', 'john'];
-    if (u >= 2) r.push('marian');
-    if (u >= 4) r.push('tuck', 'scarlet');
-    return r;
-  };
+  RH.rosterUnlocked = () => RH.profile.heroes.slice();
   RH.buy = function (id) {
     const P = RH.profile, it = RH.SHOP.find((x) => x.id === id);
     if (!it || P.gold < it.cost) return false;
+    if (it.need === 'blazonsOpen' && !(P.defenseOpen && !P.defenseDone)) return false;
     if (it.kind === 'up') { if (P.up[id]) return false; P.up[id] = true; }
     else if (id === 'arrows') P.arrows += 5;
     else if (id === 'potion') P.potions += 1;
+    else if (id === 'net') P.nets += 1;
+    else if (id === 'blazon') P.blazons += 1;
     P.gold -= it.cost; RH.audio.play('coin'); RH.saveProfile();
     return true;
   };
+  RH.payRansom = function (amount) {
+    const P = RH.profile;
+    amount = Math.min(amount, P.gold, RH.RANSOM - P.ransom);
+    if (!P.ransomOpen || amount <= 0) return 0;
+    P.gold -= amount; P.ransom += amount; RH.audio.play('coin'); RH.saveProfile();
+    return amount;
+  };
+  RH.ransomPaid = () => RH.profile.ransom >= RH.RANSOM;
   // Popularity: each step reached brings a volunteer to camp
   RH.popLevel = (pop) => RH.POP_STEPS.filter((s) => pop >= s).length;
   RH.nextPopStep = (pop) => RH.POP_STEPS.find((s) => s > pop) || null;
@@ -89,46 +121,82 @@
   };
   RH.setJob = function (rid, job) {
     const r = RH.profile.recruits.find((x) => x.id === rid);
-    if (!r || !RH.JOBS.some((j) => j.id === job)) return false;
+    const j = RH.JOBS.find((x) => x.id === job);
+    if (!r || !j || (j.need && !RH.profile.heroes.includes(j.need))) return false;
     r.job = job; RH.saveProfile(); return true;
   };
-  // A day passes in camp after each mission won: men at work bring in supplies
+  // A day passes in camp after each mission: men at work bring in supplies
   RH.campDay = function (exclude) {
-    const P = RH.profile, got = { arrows: 0, potions: 0, gold: 0, trained: [] };
+    const P = RH.profile, got = { arrows: 0, potions: 0, gold: 0, purses: 0, nets: 0, apples: 0, ale: 0, hives: 0, blazons: 0, trained: [] };
+    let scouts = 0;
     for (const r of P.recruits) {
       if (exclude && exclude.includes(r.id)) continue;
-      if (r.job === 'arrows') got.arrows += 3;
-      else if (r.job === 'potions') got.potions += 1;
-      else if (r.job === 'hunt') got.gold += 12;
-      else if (r.job === 'train' && r.train < 4) { r.train++; got.trained.push(r.name.split(' ')[0]); }
+      switch (r.job) {
+        case 'arrows': got.arrows += 3; break;
+        case 'potions': got.potions += 1; break;
+        case 'purses': got.purses += 1; break;
+        case 'nets': got.nets += 1; break;
+        case 'apples': got.apples += 2; break;
+        case 'ale': got.ale += 1; break;
+        case 'hives': got.hives += 1; break;
+        case 'hunt': got.gold += 12; break;
+        case 'scout': scouts++; break;
+        case 'train': if (r.train < 4) { r.train++; got.trained.push(r.name.split(' ')[0]); } break;
+      }
     }
-    P.arrows += got.arrows; P.potions += got.potions; P.gold += got.gold; P.day++;
+    if (P.defenseOpen && !P.defenseDone) got.blazons = Math.floor(scouts / 3);
+    for (const k of ['arrows', 'potions', 'purses', 'nets', 'apples', 'ale', 'hives', 'blazons']) P[k] += got[k];
+    P.gold += got.gold; P.day++;
     return got;
   };
+  function keepSupplies(P) {
+    P.arrows = Math.max(G.inv.arrows, 3);
+    for (const k of ['potions', 'purses', 'nets', 'apples', 'ale', 'hives']) P[k] = Math.max(0, G.inv[k] | 0);
+    if (P.up.pouch) { P.purses = Math.max(0, P.purses - 1); P.hives = Math.max(0, P.hives - 1); }
+  }
   RH.commitWin = function (res) {
-    const P = RH.profile, i = G.idx;
-    const reward = G.m.reward + res.stats.gold + res.stars * 15;
-    if (!G.committed) {
-      G.committed = true;
+    const P = RH.profile, i = G.idx, kind = G.kind;
+    if (G.committed) return G.committedReward;
+    G.committed = true;
+    let reward;
+    const used = G.heroes.filter((h) => h.rid).map((h) => h.rid);
+    for (const rec of G.newRecruits || []) if (!P.recruits.some((r) => r.id === rec.id)) { P.recruits.push(rec); P.nextRid = Math.max(P.nextRid, +rec.id.slice(1) + 1); }
+    keepSupplies(P);
+    for (const t of res.stats.treasures || []) if (!P.treasures.includes(t)) P.treasures.push(t);
+    let popGain;
+    if (kind === 'ambush') {
+      reward = res.stats.gold - G.spent;
+      const loot = G.m.loot || {};
+      for (const k of Object.keys(loot)) P[k] = (P[k] || 0) + loot[k];
+      P.offers = P.offers.filter((o) => !(o.kind === G.m.akind && o.seed === G.m.seed));
+      P.ambushes++;
+      popGain = 2 + (res.stats.kills === 0 ? 1 : 0);
       P.gold += reward;
-      P.arrows = Math.max(G.inv.arrows, 3);
-      P.potions = G.inv.potions;
+    } else if (kind === 'defense') {
+      reward = G.m.reward + res.stars * 10 + res.stats.gold - G.spent;
+      P.defenseDone = true; P.blazons = 0; P.gold += reward;
+      popGain = 8;
+    } else {
+      reward = G.m.reward + res.stats.gold - G.spent + res.stars * 15;
+      P.gold += reward;
       const first = !(P.stars[i] > 0);
       P.stars[i] = Math.max(P.stars[i] || 0, res.stars);
-      P.unlocked = Math.max(P.unlocked, Math.min(RH.MISSIONS.length, i + 2));
+      P.unlocked = Math.max(P.unlocked, Math.min(NM(), i + 2));
       const b = P.best[i];
       if (!b || res.stats.time < b) P.best[i] = Math.round(res.stats.time);
-      // freed captives join the band at camp
-      for (const rec of G.newRecruits || []) if (!P.recruits.some((r) => r.id === rec.id)) { P.recruits.push(rec); P.nextRid = Math.max(P.nextRid, +rec.id.slice(1) + 1); }
-      // word of the deed spreads: popularity for winning, sparing lives and returning taxes
-      const popGain = (first ? 6 : 2) + (res.stats.kills === 0 ? 3 : 0) + (G.chest ? 3 : 0);
-      const volunteers = RH.raisePop(popGain);
-      const used = G.heroes.filter((h) => h.rid).map((h) => h.rid);
-      const day = RH.campDay(used);
-      G.campNews = { popGain, volunteers, day, joined: (G.newRecruits || []).slice() };
-      P.started = true;
-      RH.saveProfile();
+      for (const k of (G.joined || []).concat(JOINS[i] || [])) if (RH.HEROES[k] && !RH.HEROES[k].npc && !P.heroes.includes(k)) P.heroes.push(k);
+      if (i >= 4) P.ransomOpen = true;
+      if (i >= 5 && !P.defenseDone) P.defenseOpen = true;
+      if (i < NM() - 1) P.offers = RH.makeOffers(P);
+      popGain = (first ? 6 : 2) + (res.stats.kills === 0 ? 3 : 0) + (G.chest ? 3 : 0);
     }
+    popGain += Math.floor((G.stats.alms || 0) / 10);
+    const volunteers = RH.raisePop(popGain);
+    const day = RH.campDay(used);
+    G.campNews = { popGain, volunteers, day, joined: (G.newRecruits || []).slice() };
+    P.started = true;
+    G.committedReward = reward;
+    RH.saveProfile();
     return reward;
   };
 
@@ -164,17 +232,38 @@
   }
 
   // ---------- Flow ----------
-  main.begin = function (i, band) {
-    if (band) { RH.profile.band = band.slice(); }
-    const m = RH.MISSIONS[i];
-    const pick = (band || RH.profile.band || []).filter((id) => RH.profile.recruits.some((r) => r.id === id)).slice(0, m.slots || 0);
-    RH.game.start(i, pick);
+  // spec: a story index, or { type: 'ambush', kind, seed } / { type: 'defense' } / { type: 'base' }
+  main.missionFor = function (spec) {
+    if (typeof spec === 'number') return RH.MISSIONS[spec];
+    const rank = Math.min(3, Math.floor((RH.profile.unlocked - 1) / 3));
+    if (spec.type === 'ambush') return RH.ambush.make(spec.kind, spec.seed, rank);
+    if (spec.type === 'defense') return RH.defenseMission(rank);
+    return RH.baseMission();
+  };
+  main.begin = function (spec, band, picks) {
+    const P = RH.profile;
+    if (band) P.band = band.slice();
+    const m = main.missionFor(spec);
+    const heroes = Object.keys(m.heroes).filter((k) => (P.heroes.includes(k) || (m.need || []).includes(k)) && (!picks || picks.includes(k) || (m.need || []).includes(k)));
+    let pick;
+    if (m.kind === 'base') pick = P.recruits.map((r) => r.id);
+    else {
+      const room = m.kind === 'defense' ? 8 : Math.max(0, Math.min(m.slots != null ? m.slots : 5, 5 - heroes.length));
+      pick = (band || P.band || []).filter((id) => P.recruits.some((r) => r.id === id)).slice(0, room);
+    }
+    if (m.kind === 'base') {
+      // each man waits at his work station
+      for (const r of P.recruits) { const at = RH.JOBPOS[r.job] || RH.JOBPOS.rest; r.at = [at[0], at[1] + 1]; }
+    }
+    RH.game.start(typeof spec === 'number' ? spec : m, pick, heroes);
+    G.spec = spec; G.picks = heroes.slice();
+    if (m.kind === 'base') for (const r of P.recruits) delete r.at;
     RH.render.buildStatic();
     G.cam.z = defaultZoom();
-    const hs = G.heroes;
+    const hs = G.heroes.filter((h) => !h.rid).length ? G.heroes.filter((h) => !h.rid) : G.heroes;
     const cx = hs.reduce((a, h) => a + h.x, 0) / hs.length, cy = hs.reduce((a, h) => a + h.y, 0) / hs.length;
     main.centerOn(cx - TILE, cy - TILE);
-    RH.profile.started = true; RH.saveProfile();
+    P.started = true; RH.saveProfile();
     RH.ui.enterGame();
     lastT = performance.now();
   };
@@ -245,7 +334,7 @@
       return { n, workAvg: w.reduce((a, b) => a + b, 0) / (n || 1), workP50: q(w, 0.5), workP95: q(w, 0.95), workMax: w[n - 1] || 0, frameP50: q(iv, 0.5), frameP95: q(iv, 0.95) };
     },
     resetPerf: () => { perf.wi = 0; },
-    begin: (i, band) => main.begin(i, band),
+    begin: (i, band, picks) => main.begin(i, band, picks),
     step: (sec) => { const n = Math.round(sec * 30); for (let i = 0; i < n && !G.over; i++) RH.game.update(1 / 30); return !!G.over; },
     tileToScreen: (tx, ty) => { const o = RH.render.toScreen(T(tx), T(ty), { x: 0, y: 0 }); return o; },
     worldToScreen: (x, y) => RH.render.toScreen(x, y, { x: 0, y: 0 }),
@@ -256,7 +345,8 @@
     order: (key, type, guardIdx) => { const h = G.heroes.find((x) => x.key === key); const g = G.guards[guardIdx]; return RH.game.orderAction(type, { kind: RH.game.isBody(g) ? 'body' : 'guard', e: g }, [h]); },
     guards: () => G.guards.map((g, i) => ({ i, tx: Math.floor(g.x / TILE), ty: Math.floor(g.y / TILE), state: g.state, sus: +g.sus.toFixed(2), tied: g.tied, dir: +g.dir.toFixed(2) })),
     profile: () => RH.profile,
-    save: () => localStorage.getItem(KEY2),
+    save: () => localStorage.getItem(KEY3),
+    key3: KEY3,
     screen: () => RH.ui.screen(),
   };
 

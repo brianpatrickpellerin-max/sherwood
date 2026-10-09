@@ -131,7 +131,12 @@
       <li><b>🧗 Climbing:</b> scuffed hand-holds on a wall mark a spot Robin can climb. Tap it with Robin selected. Once he is up he lets down a rope, and the rest of the band can follow.</li>
       <li><b>Captured outlaws</b> (🔗) are held in some missions. Cut them loose and they join your band. Give gold to the poor at camp to win popularity: volunteers come to join you.</li>
       <li><b>Camp jobs:</b> men who stay in camp fletch arrows, brew draughts, hunt or train while you’re away.</li>
-      <li>Each outlaw has a special skill on the action bar. Robin: bow. Little John: long knockouts and fast carrying. Marian: charm. Tuck: heal and beehives. Will Scarlet: coin purses.</li>
+      <li><b>Skills</b> sit on the action bar. Robin: 🏹 bow and 💰 coin purses (greedy guards brawl over them). Little John: one-blow knockouts on anyone, 🕸 nets that pin guards down, 🎵 a whistle that draws guards to look. Marian: 🌹 charm and a bow. Tuck: ✚ heal and revive, 🐝 beehives, 🍺 sleeping ale (any guard walks over, drinks and dozes off). Will Scarlet: 🪨 a sling that knocks out from afar and 🍎 apples that turn a guard’s head.</li>
+      <li><b>Guards:</b> soldiers grab purses; caped officers and halberdiers don’t. Officers and knights need two blows; knights in great helms shrug off arrows. Archers shoot from afar. Black guards hold their posts. Gentlemen in fine clothes run to fetch the guard if they see you. Guards who find a fallen friend wake him and untie him.</li>
+      <li><b>Beggars</b> (🪙) sell what they know: pay them and a parchment, a person or another beggar appears.</li>
+      <li><b>Roadside ambushes</b> appear on the map after each story mission and are gone once you play the next. They end the moment you have the silver. Pits and trap nets help; Robin fights with a quarterstaff on the road.</li>
+      <li><b>Merry men</b> come in three kinds: 🔨 strongmen, 🌿 herbalists and 🏹 trappers. Men in camp work at a job while you’re away: walk the camp to set them.</li>
+      <li><b>The King’s ransom:</b> once you learn of it, pay gold into the ransom chest at camp. The last mission opens when it is paid.</li>
       <li><b>⏸ Pause</b> any time. You can give orders while paused.</li>
       <li>Earn ★ for finishing, staying unseen and sparing lives. Spend gold at camp.</li>
     </ul></div>
@@ -153,22 +158,24 @@
     let fields = '';
     for (let i = 0; i < 9; i++) { const x = 64 + r() * 28, y = 30 + r() * 18; fields += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${(4 + r() * 4).toFixed(1)}" height="${(2.5 + r() * 2).toFixed(1)}" fill="${r() < 0.5 ? '#c8b06a' : '#a8a05a'}" opacity="0.55" transform="rotate(${(r() * 30 - 15).toFixed(0)} ${x.toFixed(1)} ${y.toFixed(1)})"/>`; }
     let nodes = '', lines = '';
+    const seal = (x, y, act, arg, fill, txt, sub, pulse) => `<g data-act="${act}" data-arg="${arg}" style="cursor:pointer">
+        <circle cx="${x}" cy="${y}" r="7" fill="transparent"/>
+        ${pulse ? `<circle cx="${x}" cy="${y}" r="6.2" fill="none" stroke="#e8a417" stroke-width="0.8"><animate attributeName="r" values="5.2;7;5.2" dur="1.6s" repeatCount="indefinite"/></circle>` : ''}
+        <circle cx="${x}" cy="${y}" r="4.4" fill="${fill}" stroke="#3a1a08" stroke-width="0.7"/>
+        <circle cx="${x}" cy="${y}" r="3.3" fill="none" stroke="#f0c060" stroke-width="0.3"/>
+        <text x="${x}" y="${y + 1.5}" text-anchor="middle" font-size="${txt.length > 1 ? 3.4 : 4.2}" font-weight="800" font-family="Georgia" fill="#fff4d0">${txt}</text>
+        ${sub ? `<text x="${x}" y="${y + 8.8}" text-anchor="middle" font-size="2.9" fill="#7a3a08">${sub}</text>` : ''}
+      </g>`;
     RH.MISSIONS.forEach((m, i) => {
       const [x, y] = m.mapPos;
-      if (i > 0) { const [px, py] = RH.MISSIONS[i - 1].mapPos; lines += `<path d="M${px} ${py} Q${(px + x) / 2 + 4} ${(py + y) / 2 + 6} ${x} ${y}" stroke="#7a1f14" stroke-width="0.8" stroke-dasharray="1.6 1.4" fill="none" opacity="${i < P.unlocked ? 0.85 : 0.25}"/>`; }
-      const open = i < P.unlocked;
+      if (i > 0) { const [px, py] = RH.MISSIONS[i - 1].mapPos; lines += `<path d="M${px} ${py} Q${(px + x) / 2 + 4} ${(py + y) / 2 + 6} ${x} ${y}" stroke="#7a1f14" stroke-width="0.7" stroke-dasharray="1.6 1.4" fill="none" opacity="${i < P.unlocked ? 0.8 : 0.2}"/>`; }
+      const open = i < P.unlocked && !(m.needRansom && !RH.ransomPaid());
       const st = P.stars[i] || 0;
-      const starTxt = open ? '★'.repeat(st) + '☆'.repeat(3 - st) : '';
-      const next = open && !st;
-      nodes += `<g data-act="${open ? 'brief' : 'locked'}" data-arg="${i}" style="cursor:pointer">
-        <circle cx="${x}" cy="${y}" r="7.5" fill="transparent"/>
-        ${next ? `<circle cx="${x}" cy="${y}" r="6.6" fill="none" stroke="#e8a417" stroke-width="0.8"><animate attributeName="r" values="5.6;7.4;5.6" dur="1.6s" repeatCount="indefinite"/></circle>` : ''}
-        <circle cx="${x}" cy="${y}" r="4.8" fill="${open ? (st ? '#2f6a1e' : '#9a1f12') : '#8a7a5a'}" stroke="#3a1a08" stroke-width="0.7"/>
-        <circle cx="${x}" cy="${y}" r="3.6" fill="none" stroke="${open ? '#f0c060' : '#b0a080'}" stroke-width="0.35"/>
-        <text x="${x}" y="${y + 1.6}" text-anchor="middle" font-size="4.4" font-weight="800" font-family="Georgia" fill="#fff4d0">${open ? i + 1 : '?'}</text>
-        <text x="${x}" y="${y + 9.6}" text-anchor="middle" font-size="3.4" fill="#7a3a08">${starTxt}</text>
-      </g>`;
+      nodes += seal(x, y, open ? 'brief' : 'locked', i, open ? (st ? '#2f6a1e' : '#9a1f12') : '#8a7a5a', open ? String(i + 1) : '?', open ? '★'.repeat(st) + '☆'.repeat(3 - st) : '', open && !st);
     });
+    const spots = [[34, 26], [40, 60], [46, 34]];
+    (P.offers || []).forEach((o, k) => { const [x, y] = spots[k % spots.length]; nodes += seal(x, y, 'amb', k, '#6a4a1a', RH.ambush.KINDS[o.kind].ic, 'today', true); });
+    if (P.defenseOpen && !P.defenseDone) nodes += seal(14, 64, 'defense', 0, '#2a3a6a', '🛡', 'defend!', true);
     return `<svg class="map" viewBox="0 0 100 78" role="img" aria-label="Campaign map">
       <defs>
         <radialGradient id="pg" cx="50%" cy="45%" r="70%"><stop offset="0" stop-color="#f0dfae"/><stop offset="0.75" stop-color="#ddc184"/><stop offset="1" stop-color="#b8945a"/></radialGradient>
@@ -210,6 +217,7 @@
   }
 
   const jobName = (id) => (RH.JOBS.find((j) => j.id === id) || RH.JOBS[0]);
+  const jobsFor = () => RH.JOBS.filter((j) => !j.need || RH.profile.heroes.includes(j.need));
   ui.showCamp = function (note) {
     screenName = 'camp';
     $('hud').classList.add('hidden');
@@ -219,74 +227,109 @@
       const d = RH.HEROES[k]; const has = roster.includes(k);
       return `<div class="member ${has ? '' : 'locked'}"><canvas data-por="${k}" width="72" height="72"></canvas><div>${has ? esc(d.name) : '???'}</div></div>`;
     }).join('');
-    const shop = RH.SHOP.map((it) => {
+    const shop = RH.SHOP.filter((it) => !it.need || (P.defenseOpen && !P.defenseDone)).map((it) => {
       const owned = it.kind === 'up' && P.up[it.id];
       const can = !owned && P.gold >= it.cost;
-      const extra = it.id === 'arrows' ? ` (have ${P.arrows})` : it.id === 'potion' ? ` (have ${P.potions})` : '';
-      return `<div class="shopitem"><div class="d"><b>${esc(it.name)}</b>${extra}<br>${esc(it.desc)}</div>
+      const have = { arrows: P.arrows, potion: P.potions, net: P.nets, blazon: P.blazons }[it.id];
+      return `<div class="shopitem"><div class="d"><b>${esc(it.name)}</b>${have != null ? ` (have ${have})` : ''}<br>${esc(it.desc)}</div>
         <button data-act="buy" data-arg="${it.id}" ${can ? '' : 'disabled'}>${owned ? 'Owned' : '£ ' + it.cost}</button></div>`;
     }).join('');
     const next = Math.min(P.unlocked, RH.MISSIONS.length) - 1;
     const allDone = P.stars.filter((s) => s > 0).length >= RH.MISSIONS.length;
-    const list = RH.MISSIONS.map((m, i) => i < P.unlocked
-      ? `<button class="btn ${i === next && !P.stars[i] ? 'prim' : ''}" data-act="brief" data-arg="${i}">${i + 1}. ${esc(m.title)} <span style="color:#f2c94c">${'★'.repeat(P.stars[i] || 0)}</span></button>`
-      : `<button class="btn" disabled>🔒 ${i + 1}. ???</button>`).join('');
-    // popularity
+    const list = RH.MISSIONS.map((m, i) => {
+      if (i >= P.unlocked) return `<button class="btn" disabled>🔒 ${i + 1}. ???</button>`;
+      if (m.needRansom && !RH.ransomPaid()) return `<button class="btn" data-act="locked" data-arg="ransom">🔒 ${i + 1}. ${esc(m.title)} (pay the King’s ransom first)</button>`;
+      return `<button class="btn ${i === next && !P.stars[i] ? 'prim' : ''}" data-act="brief" data-arg="${i}">${i + 1}. ${esc(m.title)} <span style="color:#f2c94c">${'★'.repeat(P.stars[i] || 0)}</span></button>`;
+    }).join('');
+    const offers = (P.offers || []).map((o, k) => { const K = RH.ambush.KINDS[o.kind]; return `<button class="btn" data-act="amb" data-arg="${k}">${K.ic} ${esc(K.name)} <small>· today only</small></button>`; }).join('');
     const nxt = RH.nextPopStep(P.pop);
     const prev = [0].concat(RH.POP_STEPS).filter((s) => s <= P.pop).pop() || 0;
     const k = nxt ? (P.pop - prev) / (nxt - prev) : 1;
     const alms = [10, 25, 50].map((v) => `<button class="btn" data-act="alms" data-arg="${v}" ${P.gold >= v ? '' : 'disabled'}>£ ${v}</button>`).join('');
-    // merry men and their camp jobs
     const men = P.recruits.length ? P.recruits.map((rc) => {
       const d = RH.recruitDef(rc);
       return `<div class="recruit"><canvas data-por="outlaw" data-rid="${rc.id}" width="52" height="52"></canvas>
-        <div class="info"><b>${esc(rc.name)}</b><small>Health ${d.hp}${rc.train ? ' (trained +' + rc.train + ')' : ''} · ${esc(jobName(rc.job).name)}: ${esc(jobName(rc.job).desc)}</small>
-        <div class="jobs">${RH.JOBS.map((j) => `<button class="${rc.job === j.id ? 'on' : ''}" data-act="job" data-arg="${rc.id}:${j.id}" aria-label="${esc(j.name)}" title="${esc(j.name)}">${j.ic}</button>`).join('')}</div></div></div>`;
+        <div class="info"><b>${esc(rc.name)}</b> <small>${d.icon} ${esc(d.clsName)}</small><small>Health ${d.hp}${rc.train ? ' (trained +' + rc.train + ')' : ''} · ${esc(jobName(rc.job).name)}: ${esc(jobName(rc.job).desc)}</small>
+        <div class="jobs">${jobsFor().map((j) => `<button class="${rc.job === j.id ? 'on' : ''}" data-act="job" data-arg="${rc.id}:${j.id}" aria-label="${esc(j.name)}" title="${esc(j.name)}">${j.ic}</button>`).join('')}</div></div></div>`;
     }).join('') : '<p class="small-note">No outlaws have joined yet. Free captured men on missions, or give to the poor until volunteers come.</p>';
+    const ransom = P.ransomOpen ? `<div class="card scroll"><h2>👑 The King’s Ransom</h2>
+        <p class="small-note">King Richard is held for ransom abroad, and the Prince will never pay it. Every penny paid in here brings him home. The last mission opens once it is paid.</p>
+        <div class="popbar"><i style="width:${Math.round(100 * Math.min(1, P.ransom / RH.RANSOM))}%"></i></div>
+        <div class="small-note">£ ${P.ransom} of £ ${RH.RANSOM}${RH.ransomPaid() ? ' · paid in full!' : ''}</div>
+        ${RH.ransomPaid() ? '' : `<div class="alms">${[25, 50, 100].map((v) => `<button class="btn" data-act="ransom" data-arg="${v}" ${P.gold >= 1 ? '' : 'disabled'}>£ ${v}</button>`).join('')}</div>`}</div>` : '';
+    const defense = P.defenseOpen && !P.defenseDone ? `<div class="card scroll"><h2>🛡 The Defence of Sherwood</h2>
+        <p class="small-note">The Sheriff is gathering men to raid the camp. Each blazon you hold turns 2 of his men away before the fight. Buy them below, or set 3 men to 👁 Scout the roads for one a day.</p>
+        <div class="small-note">Blazons: <b>${P.blazons}</b></div>
+        <button class="btn prim" data-act="defense">🛡 Defend the camp</button></div>` : '';
+    const treasures = P.treasures.length ? `<div class="card"><h2>Royal treasures (${P.treasures.length}/5)</h2><div class="small-note">${P.treasures.map((t) => '👑 ' + esc(t)).join(' · ')}</div></div>` : '';
     show(`<div class="hdr"><h1>Sherwood Camp</h1><div class="pills"><div class="goldpill">£ ${P.gold}</div><div class="goldpill">♥ ${Math.floor(P.pop)}</div><div class="goldpill">Day ${P.day}</div></div></div>
       ${note ? `<div class="card"><p>${note}</p></div>` : ''}
-      ${allDone ? '<div class="card"><p><b>Every mission is won!</b> Replay any of them to earn more stars and gold.</p></div>' : ''}
+      ${allDone ? '<div class="card"><p><b>The legend is complete!</b> Replay any mission to earn more stars and gold.</p></div>' : ''}
       <div class="mapwrap">${mapSVG()}</div>
       <div style="margin-top:6px">${list}</div>
+      ${offers ? `<div class="card"><h2>On the roads today</h2><p class="small-note">Ambushes for gold and men. They’re gone once you play the next story mission.</p>${offers}</div>` : ''}
+      ${defense}${ransom}
       <div class="card scroll"><h2>The poor of the shire</h2>
         <p class="small-note">Give gold to the villagers to raise your popularity. Every so often word spreads and a volunteer walks into camp.</p>
         <div class="popbar"><i style="width:${Math.round(RH.clamp(k, 0, 1) * 100)}%"></i></div>
         <div class="small-note">Popularity ${Math.floor(P.pop)}${nxt ? ` · next volunteer at ${nxt}` : ' · the whole shire is with you'} · given so far £ ${P.given}</div>
         <div class="alms">${alms}</div></div>
-      <div class="card scroll"><h2>Merry men</h2><p class="small-note">Men left in camp work while the band is away. Their work is done each time you win a mission.</p>${men}</div>
+      <div class="card scroll"><h2>Merry men</h2><p class="small-note">Men left in camp work while the band is away; their work is done once for each mission you play.</p>${men}
+        ${P.recruits.length ? '<button class="btn" data-act="base">🏕 Walk the camp</button>' : ''}</div>
       <div class="card"><h2>The band</h2><div class="band">${band}</div></div>
-      <div class="card"><h2>Supplies</h2><div class="small-note">Arrows ${P.arrows} · Healing draughts ${P.potions}</div>${shop}</div>
+      ${treasures}
+      <div class="card"><h2>Supplies</h2><div class="small-note">🏹 ${P.arrows} · 🧪 ${P.potions} · 💰 ${P.purses} · 🕸 ${P.nets} · 🍎 ${P.apples} · 🍺 ${P.ale} · 🐝 ${P.hives}</div>${shop}</div>
       <div class="row"><button class="btn" data-act="howto" data-arg="camp">📜 How to play</button><button class="btn" data-act="sound" data-sound>🔇</button></div>
       <button class="btn" data-act="title">◀ Title screen</button>`);
   };
 
-  let briefPick = [];
-  ui.showBrief = function (i, keep) {
+  let briefPick = [], heroPick = null, briefSpec = 0;
+  const OBJ_TEXT = {
+    steal: 'Steal the tax chest', convoy: 'Stop the cart and take its chest', sheriff: 'Capture the Sheriff alive (knock out and tie up)',
+    exit: 'Bring everyone to the exit', noalarm: 'Don’t let the alarm be raised', nokill: 'Kill no one', deliver: 'Deliver the letter',
+    contest: 'Win the archery contest', blazons: 'Take the blazon points', defend: 'Keep the Sheriff’s men from the camp fire', boss: 'Defeat the captain',
+  };
+  function briefObjs(m) {
+    return (m.objectives || []).map((o) => {
+      if (typeof o === 'object') return o.text || OBJ_TEXT[o.k] || o.k;
+      const [k, id] = o.split(':');
+      if (k === 'free') { const pr = (m.prisoners || []).find((x) => x.id === id); return 'Free ' + (pr && pr.name || (RH.HEROES[id] ? RH.HEROES[id].name : id)); }
+      if (k === 'meet') { const c = (m.contacts || []).find((x) => x.id === id); return 'Meet ' + (c ? c.name : id); }
+      if (k === 'use') { const pr = (m.props || []).find((x) => x.id === id); return pr ? ({ banner: 'Raise the banner', bell: 'Ring the bell', winch: 'Work the winch', lever: 'Open the gate' }[pr.kind] || 'Use it') : id; }
+      if (k === 'listen') return 'Overhear the council from the listening spot';
+      if (k === 'boss') { const b = (m.guards || []).find((g) => g.boss); return 'Defeat ' + (b ? b.name : 'the captain'); }
+      return OBJ_TEXT[k] || k;
+    });
+  }
+  ui.showBrief = function (spec, keep) {
     screenName = 'brief';
-    const m = RH.MISSIONS[i];
+    briefSpec = spec;
+    const m = RH.main.missionFor(spec);
     const P = RH.profile;
-    const roster = Object.keys(m.heroes);
-    const objText = {
-      rescue: m.prisoner && m.prisoner.id === 'tuck' ? 'Free Friar Tuck from his cell' : 'Free Hob from the pen',
-      steal: 'Steal the tax chest', convoy: 'Stop the cart and take its chest', sheriff: 'Capture the Sheriff alive',
-      exit: 'Bring everyone to the exit', noalarm: 'Don’t let the alarm be raised',
-    };
-    const slots = m.slots || 0;
+    const avail = Object.keys(m.heroes).filter((k) => P.heroes.includes(k) || (m.need || []).includes(k));
+    if (!keep) heroPick = avail.slice(0, m.kind === 'defense' ? 5 : 5);
+    heroPick = heroPick.filter((k) => avail.includes(k));
+    for (const k of m.need || []) if (avail.includes(k) && !heroPick.includes(k)) heroPick.unshift(k);
+    const slots = m.kind === 'defense' ? 8 : Math.max(0, Math.min(m.slots != null ? m.slots : 5, 5 - heroPick.length));
     if (!keep) {
-      briefPick = (P.band || []).filter((id) => P.recruits.some((r) => r.id === id)).slice(0, slots);
-      for (const r of P.recruits) { if (briefPick.length >= slots) break; if (!briefPick.includes(r.id) && r.job === 'rest') briefPick.push(r.id); }
+      briefPick = (P.band || []).filter((id) => P.recruits.some((r) => r.id === id));
+      for (const r of P.recruits) { if (!briefPick.includes(r.id) && r.job === 'rest') briefPick.push(r.id); }
     }
+    briefPick = briefPick.slice(0, slots);
     const men = slots && P.recruits.length ? `<h3>Merry men (${briefPick.length}/${slots})</h3>
-      <div class="band">${P.recruits.map((rc) => `<div class="member pick ${briefPick.includes(rc.id) ? 'on' : ''}" data-act="pick" data-arg="${i}:${rc.id}"><canvas data-por="outlaw" data-rid="${rc.id}" width="72" height="72"></canvas><div>${esc(rc.name.split(' ')[0])}</div></div>`).join('')}</div>
-      <p class="small-note">Tap to bring a man along. Men on a mission don’t work in camp that day.</p>` : '';
-    show(`<div class="card scroll"><div class="place">${esc(m.place)}${m.night ? ' · Night' : ''}</div><h2>${i + 1}. ${esc(m.title)}</h2>
+      <div class="band">${P.recruits.map((rc) => `<div class="member pick ${briefPick.includes(rc.id) ? 'on' : ''}" data-act="pick" data-arg="${rc.id}"><canvas data-por="outlaw" data-rid="${rc.id}" width="72" height="72"></canvas><div>${RH.recruitDef(rc).icon} ${esc(rc.name.split(' ')[0])}</div></div>`).join('')}</div>
+      <p class="small-note">Tap to bring a man along (at most 5 in the band). Men on a mission don’t work in camp that day.</p>` : '';
+    const num = typeof spec === 'number' ? (spec + 1) + '. ' : '';
+    const sky = m.night ? ' · Night' : m.weather === 'fog' ? ' · Fog' : m.weather === 'snow' ? ' · Snow' : ' · Day';
+    show(`<div class="card scroll"><div class="place">${esc(m.place)}${sky} · ${esc(m.type || '')}</div><h2>${num}${esc(m.title)}</h2>
       <p>${esc(m.intro)}</p>
-      <h3>Objectives</h3><ul class="objs">${m.objectives.map((o) => `<li>${esc(objText[o])}</li>`).join('')}${m.captive ? '<li><i>Optional:</i> free a captured outlaw. He’ll join the band</li>' : ''}</ul>
-      <h3>Your band</h3><div class="band">${roster.map((k) => `<div class="member"><canvas data-por="${k}" width="72" height="72"></canvas><div>${esc(RH.HEROES[k].name)}</div></div>`).join('')}</div>
+      <h3>Objectives</h3><ul class="objs">${briefObjs(m).map((o) => `<li>${esc(o)}</li>`).join('')}${m.captive ? '<li><i>Optional:</i> free a captured outlaw. He’ll join the band</li>' : ''}${m.treasure && !P.treasures.includes(m.treasure.id) ? '<li><i>Optional:</i> a royal treasure is hidden here</li>' : ''}</ul>
+      <h3>Your band</h3><div class="band">${avail.map((k) => `<div class="member pick ${heroPick.includes(k) ? 'on' : ''}" data-act="hpick" data-arg="${k}"><canvas data-por="${k}" width="72" height="72"></canvas><div>${esc(RH.HEROES[k].name)}${(m.need || []).includes(k) ? ' ✦' : ''}</div></div>`).join('') || '<p class="small-note">None of the named heroes can come.</p>'}</div>
       ${men}
       ${m.climbs && m.climbs.length ? '<p class="small-note">🧗 There is a place here where Robin can climb the wall.</p>' : ''}
+      ${m.kind === 'defense' ? `<p class="small-note">🛡 Blazons held: ${P.blazons}. Each turns 2 raiders away.</p>` : ''}
       <p class="small-note">★ Finish · ★ Never spotted, no alarm · ★ Nobody killed</p></div>
-      <button class="btn prim" data-act="begin" data-arg="${i}">⚔️ Begin mission</button>
+      <button class="btn prim" data-act="begin">⚔️ Begin mission</button>
       <button class="btn" data-act="camp">◀ Back to camp</button>`);
   };
 
@@ -312,23 +355,25 @@
     screenName = 'end';
     closeCtx(); setMode(null);
     const st = res.stats;
-    const i = G.idx;
+    const amb = G.kind === 'ambush';
     if (res.win) {
       const reward = RH.commitWin(res);
       const stars = [0, 1, 2].map((k) => `<span class="${k < res.stars ? '' : 'off'}">★</span>`).join('');
-      show(`<div class="card" style="text-align:center"><div class="place">Mission complete</div><h2>${esc(G.m.title)}</h2>
-        <div class="stars">${stars}</div>
+      const outro = G.m.outro || 'The silver is shared out in the villages by nightfall, and the story of it travels faster than the Sheriff\u2019s riders.';
+      show(`<div class="card" style="text-align:center"><div class="place">${amb ? 'Ambush complete' : 'Mission complete'}</div><h2>${esc(G.m.title)}</h2>
+        ${amb ? '' : `<div class="stars">${stars}</div>`}
         <div style="text-align:left">
-        <div class="stat"><span>Finished</span><b>★</b></div>
+        ${amb ? '' : `<div class="stat"><span>Finished</span><b>★</b></div>
         <div class="stat"><span>Never spotted, no alarm</span><b>${!st.spotted && !st.alarm ? '★' : '—'}</b></div>
-        <div class="stat"><span>Nobody killed</span><b>${st.kills === 0 ? '★' : '—'}</b></div>
-        <div class="stat"><span>Gold found</span><b>£ ${st.gold}</b></div>
+        <div class="stat"><span>Nobody killed</span><b>${st.kills === 0 ? '★' : '—'}</b></div>`}
+        <div class="stat"><span>Gold taken</span><b>£ ${st.gold}</b></div>
+        ${st.alms ? `<div class="stat"><span>Given to beggars</span><b>£ ${st.alms}</b></div>` : ''}
         <div class="stat"><span>Knocked out / slain</span><b>${st.ko} / ${st.kills}</b></div>
         <div class="stat"><span>Time</span><b>${fmtTime(st.time)}</b></div>
-        <div class="stat"><span>Reward</span><b>£ ${reward}</b></div>
-        </div>${newsHTML(G.campNews)}<p style="text-align:left">${esc(G.m.outro)}</p></div>
+        <div class="stat"><span>${amb ? 'Into the camp chest' : 'Reward'}</span><b>£ ${reward}</b></div>
+        </div>${newsHTML(G.campNews)}<p style="text-align:left">${esc(outro)}</p></div>
         <button class="btn" data-act="camp">🏕 Back to camp</button>
-        <button class="btn sec" data-act="retry">↻ Play again for more stars</button>`, true);
+        ${amb || G.kind === 'defense' ? '' : '<button class="btn sec" data-act="retry">↻ Play again for more stars</button>'}`, true);
     } else {
       show(`<div class="card" style="text-align:center"><div class="place">Mission failed</div><h2>${esc(G.m.title)}</h2>
         <p>${esc(res.reason || '')}</p><p class="small-note">Try sneaking (🦶), hiding in bushes and tying up every guard you knock out.</p></div>
@@ -343,7 +388,9 @@
     for (const r of n.joined) bits.push(`<b>${esc(r.name)}</b> has joined the band.`);
     for (const r of n.volunteers) bits.push(`A volunteer, <b>${esc(r.name)}</b>, walks into camp.`);
     const d = n.day, w = [];
-    if (d.arrows) w.push(`${d.arrows} arrows`); if (d.potions) w.push(`${d.potions} draught${d.potions > 1 ? 's' : ''}`); if (d.gold) w.push(`£${d.gold}`);
+    const NAMES = { arrows: 'arrows', potions: 'draughts', purses: 'purses', nets: 'nets', apples: 'apples', ale: 'mugs of ale', hives: 'beehives', blazons: 'blazons' };
+    for (const k of Object.keys(NAMES)) if (d[k]) w.push(`${d[k]} ${NAMES[k]}`);
+    if (d.gold) w.push(`£${d.gold}`);
     if (w.length) bits.push(`The men in camp made ${w.join(', ')}.`);
     if (d.trained.length) bits.push(`${esc(d.trained.join(', '))} trained hard (+1 health).`);
     return `<div class="news">${bits.join(' ')}</div>`;
@@ -362,13 +409,18 @@
           return;
         }
         RH.resetProfile(); ui.showBrief(0); break;
+      case 'amb': { const o = RH.profile.offers[+arg]; if (o) ui.showBrief({ type: 'ambush', kind: o.kind, seed: o.seed }); break; }
+      case 'defense': ui.showBrief({ type: 'defense' }); break;
+      case 'base': RH.main.begin({ type: 'base' }); break;
+      case 'ransom': { const n = RH.payRansom(+arg); const y = $('screen').scrollTop; ui.showCamp(n ? `£ ${n} paid toward the King’s ransom.` + (RH.ransomPaid() ? ' <b>The ransom is paid! King Richard is coming home, and the last mission is open.</b>' : '') : ''); $('screen').scrollTop = y; break; }
+      case 'hpick': { if (heroPick.includes(arg)) heroPick = heroPick.filter((k) => k !== arg); else heroPick.push(arg); const y = $('screen').scrollTop; ui.showBrief(briefSpec, true); $('screen').scrollTop = y; break; }
       case 'howto': ui.showHowto(arg); break;
       case 'title': ui.showTitle(); break;
       case 'camp': RH.main.toCamp(); break;
       case 'sound': toggleSound(); break;
       case 'brief': ui.showBrief(+arg); break;
-      case 'locked': ui.toastScreen('Finish the earlier missions first'); break;
-      case 'begin': RH.main.begin(+arg, briefPick.slice()); break;
+      case 'locked': ui.toastScreen(arg === 'ransom' ? 'Pay the King’s ransom at camp first' : 'Finish the earlier missions first'); break;
+      case 'begin': RH.main.begin(briefSpec, briefPick.slice(), heroPick.slice()); break;
       case 'buy': RH.buy(arg); ui.showCamp(); break;
       case 'alms': {
         const joined = RH.giveAlms(+arg);
@@ -377,15 +429,14 @@
       }
       case 'job': { const [rid, job] = arg.split(':'); RH.setJob(rid, job); const y = $('screen').scrollTop; ui.showCamp(); $('screen').scrollTop = y; break; }
       case 'pick': {
-        const [mi, rid] = arg.split(':'); const m = RH.MISSIONS[+mi];
-        if (briefPick.includes(rid)) briefPick = briefPick.filter((x) => x !== rid);
-        else { briefPick.push(rid); if (briefPick.length > (m.slots || 0)) briefPick.shift(); }
-        const y = $('screen').scrollTop; ui.showBrief(+mi, true); $('screen').scrollTop = y; break;
+        const rid = arg;
+        if (briefPick.includes(rid)) briefPick = briefPick.filter((x) => x !== rid); else briefPick.push(rid);
+        const y = $('screen').scrollTop; ui.showBrief(briefSpec, true); $('screen').scrollTop = y; break;
       }
       case 'resume': hideScreen(); G.paused = false; ui.refresh(true); break;
       case 'plan': hideScreen(); G.paused = true; ui.refresh(true); break;
       case 'pause': ui.showPause(); break;
-      case 'restart': case 'retry': RH.main.begin(G.idx, G.heroes.filter((h) => h.rid && !h.fresh).map((h) => h.rid)); break;
+      case 'restart': case 'retry': RH.main.begin(G.spec != null ? G.spec : G.idx, G.heroes.filter((h) => h.rid && !h.fresh).map((h) => h.rid), G.picks); break;
       case 'quit': RH.main.toCamp(); break;
     }
   }
@@ -469,7 +520,7 @@
     const all = $('porAll');
     if (all) all.classList.toggle('sel', G.sel.length > 1);
     // money readout + minimap
-    const money = RH.profile.gold + G.stats.gold;
+    const money = RH.game.money();
     const mv = $('moneyv'); if (mv.textContent !== String(money)) mv.textContent = money;
     RH.render.drawMinimap($('minimap'));
     // objectives
@@ -486,27 +537,32 @@
     $('pausedbar').classList.toggle('hidden', !(G.paused && !screenName) || !!G.mode);
   };
 
+  const MODE_OF = { bow: 'shoot' };
   function buildActions(force) {
     const box = $('actions');
     const hs = G.sel.filter((h) => !h.down);
     const h = hs.length === 1 ? hs[0] : null;
     const inv = G.inv;
     const list = [];
-    if (hs.length) {
+    if (G.kind === 'base') list.push({ id: 'done', ic: '✔', t: 'Done' });
+    if (hs.length && G.kind !== 'base') {
       const sneakOn = hs.every((x) => x.sneak);
       list.push({ id: 'sneak', ic: '🦶', t: 'Sneak', on: sneakOn });
     }
-    if (h && !h.npc) {
-      if (h.key === 'robin') list.push({ id: 'shoot', ic: '🏹', t: 'Bow', cnt: inv.arrows, dis: inv.arrows <= 0 });
-      if (h.key === 'marian') list.push({ id: 'charm', ic: '🌹', t: G.cdMarian > 0 ? Math.ceil(G.cdMarian) + 's' : 'Charm', dis: G.cdMarian > 0 });
-      if (h.key === 'tuck') {
-        list.push({ id: 'heal', ic: '✚', t: G.cdTuck > 0 ? Math.ceil(G.cdTuck) + 's' : 'Heal', dis: G.cdTuck > 0 });
-        list.push({ id: 'hive', ic: '🐝', t: 'Hive', cnt: inv.hives, dis: inv.hives <= 0 });
+    if (h && !h.npc && G.kind !== 'base') {
+      for (const ab of h.def.abil || []) {
+        const A = RH.game.ABIL[ab]; if (!A) continue;
+        const id = MODE_OF[ab] || ab;
+        const it = { id, ic: A.ic, t: A.t };
+        if (A.item) { it.cnt = inv[A.item] | 0; it.dis = it.cnt <= 0; }
+        if (ab === 'charm' && G.cdMarian > 0) { it.t = Math.ceil(G.cdMarian) + 's'; it.dis = true; }
+        if (ab === 'heal') { if (h.key === 'tuck') { if (G.cdTuck > 0) { it.t = Math.ceil(G.cdTuck) + 's'; it.dis = true; } } else { it.cnt = inv.potions; it.dis = inv.potions <= 0; } }
+        if (ab === 'whistle' && h.cd > 0) { it.t = Math.ceil(h.cd) + 's'; it.dis = true; }
+        list.push(it);
       }
-      if (h.key === 'scarlet') list.push({ id: 'purse', ic: '💰', t: 'Purse', cnt: inv.purses, dis: inv.purses <= 0 });
     }
     if (h && h.carry) list.push({ id: 'drop', ic: '⬇️', t: 'Drop' });
-    if (h && !h.npc && inv.potions > 0 && h.hp < h.maxhp) list.push({ id: 'potion', ic: '🧪', t: 'Potion', cnt: inv.potions });
+    if (h && !h.npc && inv.potions > 0 && h.hp < h.maxhp && G.kind !== 'base') list.push({ id: 'potion', ic: '🧪', t: 'Potion', cnt: inv.potions });
     const sig = list.map((a) => a.id + a.t + (a.on ? 1 : 0) + (a.cnt != null ? a.cnt : '') + (a.dis ? 'd' : '') + (G.mode === a.id ? 'A' : '')).join('|');
     if (sig === actSig && !force) return;
     actSig = sig;
@@ -526,20 +582,21 @@
     sfx('tap');
     closeCtx();
     switch (id) {
-      case 'sneak': { const on = RH.game.toggleSneak(); ui.toast(on ? '🦶 Sneaking — slower, much harder to spot' : 'Walking normally'); break; }
+      case 'sneak': { const on = RH.game.toggleSneak(); ui.toast(on ? '🦶 Sneaking: slower, much harder to spot' : 'Walking normally'); break; }
       case 'drop': RH.game.drop(); break;
       case 'potion': RH.game.usePotion(); break;
-      case 'shoot': case 'charm': case 'hive': case 'purse': case 'heal':
-        setMode(G.mode === id ? null : id); break;
+      case 'done': RH.saveProfile(); RH.main.toCamp(); return;
+      case 'whistle': { const n = RH.game.whistle(G.sel[0]); if (n === false) break; ui.toast(n ? `🎵 ${n} guard${n > 1 ? 's' : ''} turn${n > 1 ? '' : 's'} to look` : '🎵 Nobody close enough to hear'); break; }
+      default: setMode(G.mode === id ? null : id);
     }
     ui.refresh(true);
   }
 
-  const MODE_TEXT = { shoot: '🏹 Tap a guard to shoot', charm: '🌹 Tap a guard to charm', hive: '🐝 Tap where to throw', purse: '💰 Tap where to toss coins', heal: '✚ Tap a friend (or a portrait)' };
+  const MODE_TEXT = { shoot: '🏹 Tap a guard or a target to shoot', sling: '🪨 Tap a guard to sling a stone', charm: '🌹 Tap a guard to charm', hive: '🐝 Tap where to throw the hive', purse: '💰 Tap where to toss the coins', net: '🕸 Tap where to throw the net', apple: '🍎 Tap where to throw the apple', ale: '🍺 Tap where to set down the ale', heal: '✚ Tap a friend (or a portrait)' };
   function setMode(m) {
     G.mode = m;
     $('target').classList.toggle('hidden', !m);
-    if (m) $('targettext').textContent = MODE_TEXT[m];
+    if (m) $('targettext').textContent = MODE_TEXT[m] || '';
     actSig = '';
     if (G.m) ui.refresh(true);
   }
@@ -553,14 +610,14 @@
     const acts = RH.game.contextActions(hit, h);
     if (!acts.length) return;
     const m = $('ctxmenu');
-    const name = { guard: hit.e.sheriff ? 'The Sheriff' : 'Guard', body: hit.e.tied ? 'Tied-up guard' : (hit.e.state === 'dead' ? 'Fallen guard' : 'Unconscious guard'), prisoner: 'Prisoner', chest: 'Tax chest', cart: 'Treasure cart', carter: 'The carter', captive: 'Captured outlaw', climb: hit.e.rope ? 'Rope over the wall' : 'Climbing spot' }[hit.kind];
+    const TN = { archer: 'Archer', officer: 'Officer', halberd: 'Halberdier', knight: 'Knight', black: 'Black guard', collector: 'Tax collector', boss: hit.e.name || 'Captain' };
+    const name = { guard: hit.e.sheriff ? 'The Sheriff' : (TN[hit.e.type] || 'Guard'), noble: 'Gentleman', beggar: 'Beggar', scroll: 'Parchment', contact: hit.e.name || 'Stranger', prop: hit.e.name || ({ banner: 'Banner', bell: 'Bell', winch: 'Winch', lever: 'Gate lever', listen: 'Listening spot', target: 'Target', station: 'Work station' }[hit.e.kind] || 'Thing'), body: hit.e.tied ? 'Tied-up guard' : (hit.e.state === 'dead' ? 'Fallen guard' : 'Unconscious guard'), prisoner: 'Prisoner', chest: 'Tax chest', cart: 'Treasure cart', carter: 'The carter', captive: 'Captured outlaw', climb: hit.e.rope ? 'Rope over the wall' : 'Climbing spot' }[hit.kind];
     m.innerHTML = `<div class="ttl">${esc(name)} — ${esc(h.name)}</div>` + acts.map((a) => `<button data-id="${a.id}">${esc(a.label)}</button>`).join('');
     m.querySelectorAll('button').forEach((b) => b.addEventListener('click', (e) => {
       e.stopPropagation(); closeCtx(); sfx('tap');
       const id = b.dataset.id;
       const heroes = [h];
-      if (id === 'shoot') RH.game.orderAction('shoot', hit, G.heroes);
-      else if (id === 'charm') RH.game.orderAction('charm', hit, G.heroes);
+      if (id === 'shoot' || id === 'charm' || id === 'sling') RH.game.orderAction(id, hit, G.sel.length ? G.sel.concat(G.heroes.filter((x) => !G.sel.includes(x))) : G.heroes);
       else RH.game.orderAction(id, hit, id === 'attack' ? G.sel : heroes);
     }));
     m.classList.remove('hidden');
@@ -581,9 +638,10 @@
     const r = pickRadius();
     const mode = G.mode;
     if (mode) {
-      if (mode === 'shoot' || mode === 'charm') {
+      if (mode === 'shoot' || mode === 'charm' || mode === 'sling') {
         const hit = RH.game.entityAt(tw.x, tw.y, r * 1.3);
-        if (hit && hit.kind === 'guard') { RH.game.orderAction(mode, hit, G.heroes); setMode(null); }
+        const pref = G.sel.concat(G.heroes.filter((x) => !G.sel.includes(x)));
+        if (hit && (hit.kind === 'guard' || (mode === 'shoot' && hit.kind === 'prop' && hit.e.kind === 'target'))) { RH.game.orderAction(mode, hit, G.sel.some((x) => RH.game.has(x, mode === 'shoot' ? 'bow' : mode)) ? G.sel : pref); setMode(null); }
         else ui.toast('Tap a guard (they have red circles)');
       } else if (mode === 'heal') {
         const h = RH.game.heroAt(tw.x, tw.y, r * 1.3);
@@ -595,7 +653,7 @@
       return;
     }
     const hero = RH.game.heroAt(tw.x, tw.y, r);
-    if (hero && !(G.sel.length && hero.down && G.sel.some((x) => x.key === 'tuck'))) {
+    if (hero && !(G.sel.length && hero.down && G.sel.some((x) => RH.game.has(x, 'heal')))) {
       onPortrait(hero);
       return;
     }
