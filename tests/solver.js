@@ -99,7 +99,7 @@
         tpNear(h, p); game.orderAction('use', { kind: 'prop', e: p }, [h]); waitTask(h, 4);
       }
       for (const b of g.blazons) if (!b.cap) { koAll(); place(h, b.x, b.y); step(3.5); }
-      if (g.chest && !g.chest.taken && !g.chest.onCart) { tpNear(h, g.chest); game.orderAction('loot', { kind: 'chest', e: g.chest }, [h]); waitTask(h, 3); }
+      if (g.chest && !g.chest.done && !g.chest.carrier && !g.chest.onCart) { tpNear(h, g.chest); game.orderAction('loot', { kind: 'chest', e: g.chest }, [h]); waitTask(h, 3); }
       if (g.cart && g.chest && g.chest.onCart) {
         const c = g.cart.carter;
         if (c.state === 'ok') { tpNear(h, c); game.orderAction('ko', { kind: 'carter', e: c }, [h]); waitTask(h, 4); }
@@ -123,6 +123,7 @@
       if (g.treasure && !g.treasure.taken) { place(h, g.treasure.x, g.treasure.y); step(0.3); }
       koAll();
       step(0.5);
+      if (g.chest && g.chest.taken && !g.chest.done && !g.chest.carrier) continue;
       if (g.exitReady) exitAll();
       step(0.5);
     }
