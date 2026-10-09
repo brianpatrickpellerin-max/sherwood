@@ -451,6 +451,11 @@
     const h = G.sel.find((x) => has(x, type)) || G.heroes.find((x) => has(x, type));
     if (!h) return false;
     if (a.item && G.inv[a.item] <= 0) { toast('None left: make more in camp'); return false; }
+    if (type === 'snare') { // snap the snare onto the nearest open ground
+      const n = RH.nearestWalk(G.grid, tileOf(wx), tileOf(wy));
+      if (n < 0 || RH.dist(tcx(n % G.grid.w), tcx((n / G.grid.w) | 0), wx, wy) > TILE * 1.5) { toast('Set the snare on open ground'); return false; }
+      wx = tcx(n % G.grid.w); wy = tcx((n / G.grid.w) | 0);
+    }
     h.task = { type: 'throw', item: type, x: wx, y: wy, t: 0 };
     h.path = null; h.repathT = 0;
     return true;
@@ -695,7 +700,7 @@
       }
       case 'throw': {
         const a = ABIL[t.item];
-        if (!inRange(h, t.x, t.y, a.range()) || !(h.roof || RH.los(G.grid, h.x, h.y, t.x, t.y))) { approach(h, t.x, t.y, dt); return; }
+        if (!inRange(h, t.x, t.y, a.range()) || !(h.roof || RH.los(G.grid, h.x, h.y, t.x, t.y))) { t.t += dt; if (t.t > 12) { h.task = null; toast('Can\u2019t get there'); return; } approach(h, t.x, t.y, dt); return; }
         h.path = null; h.moving = false; h.dir = Math.atan2(t.y - h.y, t.x - h.x);
         if (a.item) { if (G.inv[a.item] <= 0) { h.task = null; return; } G.inv[a.item]--; }
         h.crimeT = 3;
@@ -954,7 +959,7 @@
     G.swipes++;
     if (e.state !== 'alert' && !passive(e)) spot(e, h, true);
     if (stroke === 'parry') { h.parryT = 0.8; fx('text', h.x, h.y - 36, 'Parry', '#cfe8ff', 0.7); sfx('tap'); return 'parry'; }
-    const open = e.stagger > 0 || passive(e);
+    const open = e.stagger > 0 || passive(e) || (e.duel && e.duel.need === stroke);
     const block = st.block * (e.type === 'knight' || e.boss ? 1.5 : 1);
     if (!open && Math.random() < block) {
       e.atkCd = Math.max(e.atkCd, 0.25); sfx('clang');
@@ -1071,7 +1076,7 @@
     let best = 0, bh = null;
     const targets = G.allies.length ? G.heroes.concat(G.allies) : G.heroes;
     for (const h of targets) {
-      if (h.down || h.inside) continue;
+      if (h.down || h.inside || (h.climbing && h.task && h.task.type === 'drop')) continue;
       if (h.def && h.def.social && !h.carry && !(h.crimeT > 0) && !(st === 'alert' && g.target === h)) continue; // Marian walks freely
       let R = R0;
       if (G.night && litAt(h.x, h.y)) R = 7.5 * TILE;
@@ -1784,6 +1789,7 @@
     const hs = h.inside; if (!hs) return;
     h.inside = null; h.x = hs.door.x; h.y = hs.door.y; fx('text', h.x, h.y - 34, 'Out!', '#e8dcc0', 0.8); sfx('tap');
   }
+  game.leaveHouse = (h) => leaveHouse(h);
   function enterHouse(h, hs) {
     h.inside = hs; h.x = hs.door.x; h.y = hs.door.y; h.moving = false; h.path = null; h.sneak = false;
     fx('text', h.x, h.y - 34, 'Hidden indoors', '#cfe8a0', 1); sfx('tie');
@@ -1840,7 +1846,7 @@
     if (k < 1) return;
     h.climbZ = 0; h.climbing = false; h.roof = null;
     // dropping onto an unaware guard knocks him flat
-    for (const g of G.guards) if (active(g) && g.state !== 'alert' && !g.boss && !g.sheriff && d2(g, h) < (TILE * 1.25) ** 2) {
+    for (const g of G.guards) if (active(g) && !g.boss && !g.sheriff && g.type !== 'knight' && d2(g, h) < (TILE * 1.3) ** 2) {
       knockOut(g, 45); G.stats.drops++; fx('text', g.x, g.y - 40, 'From above!', '#ffe08a', 1.2); h.crimeT = 3; break;
     }
     const then = t.then;
@@ -1934,7 +1940,7 @@
       if (!r || !active(r) || (r.state !== 'tohorn' && r.state !== 'horn')) {
         H.runner = null;
         let best = null, bd = (16 * TILE) ** 2;
-        for (const g of G.guards) { if (!active(g) || passive(g) || g.boss || g.sheriff || g.coward || g.type === 'collector' || g.type === 'knight' || g.state === 'tohorn') continue; const dd = d2(g, H); if (dd < bd) { bd = dd; best = g; } }
+        for (const g of G.guards) { if (!active(g) || passive(g) || g.boss || g.sheriff || g.coward || g.rescue || g.state === 'shaking' || g.type === 'collector' || g.type === 'knight' || g.state === 'tohorn') continue; const dd = d2(g, H); if (dd < bd) { bd = dd; best = g; } }
         if (best && (!H.nextRunT || G.time > H.nextRunT)) {
           H.runner = best; H.nextRunT = G.time + 4;
           best.state = 'tohorn'; best.path = null; best.target = null; best.icon = '📯'; best.iconT = 99;
@@ -1953,7 +1959,7 @@
           if (n < 0) break;
           const tx = n % G.grid.w, ty = (n / G.grid.w) | 0;
           const g = mkGuard(tx, ty, k ? (G.m.rank >= 2 ? 'archer' : 'soldier') : (G.m.rank >= 2 ? 'officer' : 'soldier'), G.m.rank);
-          g.route = [{ tx, ty, x: g.x, y: g.y, wait: 0 }]; g.looks = [S, W, N, E]; g.home = { x: to.x, y: to.y }; g.reinf = true;
+          g.route = [{ tx, ty, x: g.x, y: g.y, wait: 0 }]; g.looks = [S, Math.PI, N, 0]; g.home = { x: to.x, y: to.y }; g.reinf = true;
           g.state = 'investigate'; g.lx = to.x; g.ly = to.y; g.sus = 0.7; g.faceTo = g.dir; g.icon = '!'; g.iconT = 2;
           G.guards.push(g); G.stats.reinf++;
         }
@@ -1964,6 +1970,12 @@
   // boss duels: he winds up a blow from one side; swipe the same way to counter it
   const DUEL_DIRS = ['slash', 'heavy', 'thrust'];
   function duelStep(g, t, dt) {
+    const D0 = g.duel;
+    if (D0 && t.lastStroke === D0.need && t.lastStrokeAt >= D0.start - 0.1) {
+      g.duel = null; g.stagger = Math.max(g.stagger, 1.7); g.atkCd = 1.0; g.flash = 0.2; G.stats.counters++;
+      sfx('clang'); fx('text', g.x, g.y - 48, 'Countered!', '#9affa0', 1.1); fx('spark', (t.x + g.x) / 2, (t.y + g.y) / 2 - 14);
+      return;
+    }
     if (g.stagger > 0) { g.stagger -= dt; g.duel = null; return; }
     if (!g.duel) {
       if (g.atkCd > 0) return;
@@ -1976,12 +1988,6 @@
     }
     const D = g.duel;
     D.t -= dt;
-    if (t.lastStroke === D.need && t.lastStrokeAt >= D.start - 0.1 && !D.done) {
-      D.done = true; g.duel = null; g.stagger = 1.7; g.atkCd = 1.0; g.hp -= 1; g.flash = 0.2; G.stats.counters++;
-      sfx('clang'); fx('text', g.x, g.y - 48, 'Countered!', '#9affa0', 1.1); fx('spark', (t.x + g.x) / 2, (t.y + g.y) / 2 - 14);
-      if (g.hp <= 0) defeat(g, false);
-      return;
-    }
     if (D.t > 0) return;
     g.duel = null; g.atkCd = 0.6; g.swingT = 0.3;
     if (t.parryT > 0) { t.parryT = 0; g.stagger = 1.2; sfx('clang'); fx('text', t.x, t.y - 40, 'Parried!', '#cfe8ff', 0.9); }

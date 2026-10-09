@@ -258,6 +258,8 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-user
 .stars .off { opacity: 0.25; filter: grayscale(1); }
 .stat { display: flex; justify-content: space-between; font-family: var(--serif); font-size: 17px; padding: 6px 0; border-top: 1px solid rgba(90,60,20,0.25); }
 .stat b { font-weight: 800; }
+.stat.big { font-size: 20px; padding: 8px 0; }
+.stat.big b { color: #7a1a0a; }
 .news { font-family: var(--serif); font-size: 15px; background: rgba(255,250,230,0.45); border-radius: 6px; padding: 8px 10px; margin-top: 8px; border: 1px solid rgba(90,60,20,0.3); }
 .objs li { font-family: var(--serif); font-size: 17px; margin: 4px 0; }
 .small-note { font-family: var(--serif); font-size: 14px; color: #6a4a22; }

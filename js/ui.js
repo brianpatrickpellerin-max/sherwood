@@ -123,18 +123,22 @@
     show(`<div class="card scroll"><h2>How to play</h2><ul class="help">
       <li><b>Tap a portrait</b> to choose an outlaw. Tap it again (or 👥 All) to move the whole band.</li>
       <li><b>Tap the ground</b> to walk. <b>Drag</b> to look around, <b>pinch</b> to zoom.</li>
-      <li><b>Red wedges</b> are what guards see. Yellow means suspicious (?), bright red means you’ve been spotted (!).</li>
+      <li><b>Green wedges</b> are what guards see; they sweep as the guard turns his head. Yellow means suspicious (?), flashing red means you’ve been spotted (!). On the minimap your band are green dots, guards red.</li>
       <li><b>🦶 Sneak</b> makes you much harder to spot. <b>Bushes and hay</b> hide you.</li>
-      <li><b>Tap a guard</b> from behind to knock him out. <b>Tap the body</b> to tie him up before he wakes.</li>
+      <li><b>Tap a guard</b> from behind to knock him out. <b>Tap the body</b> to tie him up, or a guard who finds him will shake him awake. Then <b>tap the body again</b> to carry it, and <b>tap a house door</b> to stuff it inside, out of sight for good.</li>
+      <li><b>🏠 Houses:</b> tap a door to hide inside (the roof fades so you can see who’s in). Tap ‘Come out’ or the ground to leave.</li>
+      <li><b>🌿 Ivy</b> on a house wall leads to the roof. Robin, Marian and Will climb it; walk along the rooftops, shoot from above, and jump down onto an unwary guard to flatten him.</li>
+      <li><b>📯 The alarm horn:</b> when the alarm goes up a guard runs for the horn. If he blows it, soldiers keep marching in until the alarm dies down. Knock him out first, or stuff the horn with moss before you start trouble.</li>
+      <li><b>Duels:</b> captains and the Sheriff wind up big blows: swipe across them the way the arrow shows to counter.</li>
       <li><b>Long-press</b> a guard or body for more choices: carry, shoot, charm…</li>
       <li><b>Sword fights: swipe across a guard.</b> Sideways ↔ is a quick slash. Downward ↓ is a heavy overhead blow that leaves him reeling, but it is often blocked. Upward ↑ is a thrust that can’t be blocked. A quick back-and-forth ↺ parries his next blow and leaves him open.</li>
       <li><b>🧗 Climbing:</b> scuffed hand-holds on a wall mark a spot Robin can climb. Tap it with Robin selected. Once he is up he lets down a rope, and the rest of the band can follow.</li>
       <li><b>Captured outlaws</b> (🔗) are held in some missions. Cut them loose and they join your band. Give gold to the poor at camp to win popularity: volunteers come to join you.</li>
       <li><b>Camp jobs:</b> men who stay in camp fletch arrows, brew draughts, hunt or train while you’re away.</li>
-      <li><b>Skills</b> sit on the action bar. Robin: 🏹 bow and 💰 coin purses (greedy guards brawl over them). Little John: one-blow knockouts on anyone, 🕸 nets that pin guards down, 🎵 a whistle that draws guards to look. Marian: 🌹 charm and a bow. Tuck: ✚ heal and revive, 🐝 beehives, 🍺 sleeping ale (any guard walks over, drinks and dozes off). Will Scarlet: 🪨 a sling that knocks out from afar and 🍎 apples that turn a guard’s head.</li>
+      <li><b>Skills</b> sit on the action bar. Robin: 🏹 bow and 💰 coin purses (two guards reaching one purse come to blows over it). Little John: one-blow knockouts on anyone, 🕸 nets that pin guards down, 🪢 net snares that hoist whoever steps in up into the trees, 🎵 a whistle that draws guards to look. Marian: walks freely among guards (unless they see her fight or carry a body), 🌹 charm and a bow. Tuck: ✚ heal and revive, 🐝 beehives (everyone near them panics and runs), 🍺 sleeping ale (any guard walks over, drinks and dozes off). Will Scarlet: 🪨 a sling that knocks out from afar and 🍎 apples that turn a guard’s head.</li>
       <li><b>Guards:</b> soldiers grab purses; caped officers and halberdiers don’t. Officers and knights need two blows; knights in great helms shrug off arrows. Archers shoot from afar. Black guards hold their posts. Gentlemen in fine clothes run to fetch the guard if they see you. Guards who find a fallen friend wake him and untie him.</li>
       <li><b>Beggars</b> (🪙) sell what they know: pay them and a parchment, a person or another beggar appears.</li>
-      <li><b>Roadside ambushes</b> appear on the map after each story mission and are gone once you play the next. They end the moment you have the silver. Pits and trap nets help; Robin fights with a quarterstaff on the road.</li>
+      <li><b>Roadside ambushes</b> appear on the map after each story mission and are gone once you play the next. Rob the cart and its silver spills across the road: walk over the coins to scoop them up. Pits, trap nets and snares help; Robin fights with a quarterstaff on the road.</li>
       <li><b>Merry men</b> come in three kinds: 🔨 strongmen, 🌿 herbalists and 🏹 trappers. Men in camp work at a job while you’re away: walk the camp to set them.</li>
       <li><b>The King’s ransom:</b> once you learn of it, pay gold into the ransom chest at camp. The last mission opens when it is paid.</li>
       <li><b>⏸ Pause</b> any time. You can give orders while paused.</li>
@@ -366,10 +370,12 @@
         ${amb ? '' : `<div class="stat"><span>Finished</span><b>★</b></div>
         <div class="stat"><span>Never spotted, no alarm</span><b>${!st.spotted && !st.alarm ? '★' : '—'}</b></div>
         <div class="stat"><span>Nobody killed</span><b>${st.kills === 0 ? '★' : '—'}</b></div>`}
-        <div class="stat"><span>Gold taken</span><b>£ ${st.gold}</b></div>
+        <div class="stat big"><span>Money</span><b>£ ${st.gold}</b></div>
+        <div class="stat big"><span>Spared lives</span><b>${st.spared != null ? st.spared : 100}%</b></div>
         ${st.alms ? `<div class="stat"><span>Given to beggars</span><b>£ ${st.alms}</b></div>` : ''}
         <div class="stat"><span>Knocked out / slain</span><b>${st.ko} / ${st.kills}</b></div>
-        <div class="stat"><span>Time</span><b>${fmtTime(st.time)}</b></div>
+        <div class="stat big"><span>Time</span><b>${fmtTime(st.time)}</b></div>
+        ${st.hidden ? `<div class="stat"><span>Bodies hidden indoors</span><b>${st.hidden}</b></div>` : ''}${st.snared ? `<div class="stat"><span>Hoisted in snares</span><b>${st.snared}</b></div>` : ''}${st.reinf ? `<div class="stat"><span>Reinforcements called</span><b>${st.reinf}</b></div>` : ''}
         <div class="stat"><span>${amb ? 'Into the camp chest' : 'Reward'}</span><b>£ ${reward}</b></div>
         </div>${newsHTML(G.campNews)}<p style="text-align:left">${esc(outro)}</p></div>
         <button class="btn" data-act="camp">🏕 Back to camp</button>
@@ -561,6 +567,8 @@
         list.push(it);
       }
     }
+    if (h && h.inside) list.push({ id: 'out', ic: '🚪', t: 'Come out' });
+    if (h && h.roof && !h.climbing) list.push({ id: 'jump', ic: '⤵️', t: 'Jump down' });
     if (h && h.carry) list.push({ id: 'drop', ic: '⬇️', t: 'Drop' });
     if (h && !h.npc && inv.potions > 0 && h.hp < h.maxhp && G.kind !== 'base') list.push({ id: 'potion', ic: '🧪', t: 'Potion', cnt: inv.potions });
     const sig = list.map((a) => a.id + a.t + (a.on ? 1 : 0) + (a.cnt != null ? a.cnt : '') + (a.dis ? 'd' : '') + (G.mode === a.id ? 'A' : '')).join('|');
@@ -586,13 +594,15 @@
       case 'drop': RH.game.drop(); break;
       case 'potion': RH.game.usePotion(); break;
       case 'done': RH.saveProfile(); RH.main.toCamp(); return;
+      case 'out': RH.game.leaveHouse(G.sel[0]); break;
+      case 'jump': { const h = G.sel[0]; if (h && h.roof) RH.game.startDrop(h, h.x + 40, h.y + 40, null); break; }
       case 'whistle': { const n = RH.game.whistle(G.sel[0]); if (n === false) break; ui.toast(n ? `🎵 ${n} guard${n > 1 ? 's' : ''} turn${n > 1 ? '' : 's'} to look` : '🎵 Nobody close enough to hear'); break; }
       default: setMode(G.mode === id ? null : id);
     }
     ui.refresh(true);
   }
 
-  const MODE_TEXT = { shoot: '🏹 Tap a guard or a target to shoot', sling: '🪨 Tap a guard to sling a stone', charm: '🌹 Tap a guard to charm', hive: '🐝 Tap where to throw the hive', purse: '💰 Tap where to toss the coins', net: '🕸 Tap where to throw the net', apple: '🍎 Tap where to throw the apple', ale: '🍺 Tap where to set down the ale', heal: '✚ Tap a friend (or a portrait)' };
+  const MODE_TEXT = { snare: '🪢 Tap the path where the snare should go', shoot: '🏹 Tap a guard or a target to shoot', sling: '🪨 Tap a guard to sling a stone', charm: '🌹 Tap a guard to charm', hive: '🐝 Tap where to throw the hive', purse: '💰 Tap where to toss the coins', net: '🕸 Tap where to throw the net', apple: '🍎 Tap where to throw the apple', ale: '🍺 Tap where to set down the ale', heal: '✚ Tap a friend (or a portrait)' };
   function setMode(m) {
     G.mode = m;
     $('target').classList.toggle('hidden', !m);
@@ -611,7 +621,7 @@
     if (!acts.length) return;
     const m = $('ctxmenu');
     const TN = { archer: 'Archer', officer: 'Officer', halberd: 'Halberdier', knight: 'Knight', black: 'Black guard', collector: 'Tax collector', boss: hit.e.name || 'Captain' };
-    const name = { guard: hit.e.sheriff ? 'The Sheriff' : (TN[hit.e.type] || 'Guard'), noble: 'Gentleman', beggar: 'Beggar', scroll: 'Parchment', contact: hit.e.name || 'Stranger', prop: hit.e.name || ({ banner: 'Banner', bell: 'Bell', winch: 'Winch', lever: 'Gate lever', listen: 'Listening spot', target: 'Target', station: 'Work station' }[hit.e.kind] || 'Thing'), body: hit.e.tied ? 'Tied-up guard' : (hit.e.state === 'dead' ? 'Fallen guard' : 'Unconscious guard'), prisoner: 'Prisoner', chest: 'Tax chest', cart: 'Treasure cart', carter: 'The carter', captive: 'Captured outlaw', climb: hit.e.rope ? 'Rope over the wall' : 'Climbing spot' }[hit.kind];
+    const name = { guard: hit.e.sheriff ? 'The Sheriff' : (TN[hit.e.type] || 'Guard'), noble: 'Gentleman', beggar: 'Beggar', scroll: 'Parchment', contact: hit.e.name || 'Stranger', prop: hit.e.name || ({ banner: 'Banner', bell: 'Bell', winch: 'Winch', lever: 'Gate lever', listen: 'Listening spot', target: 'Target', station: 'Work station' }[hit.e.kind] || 'Thing'), body: hit.e.tied ? 'Tied-up guard' : (hit.e.state === 'dead' ? 'Fallen guard' : 'Unconscious guard'), prisoner: 'Prisoner', chest: 'Tax chest', cart: 'Treasure cart', carter: 'The carter', captive: 'Captured outlaw', climb: hit.e.rope ? 'Rope over the wall' : 'Climbing spot', house: hit.e.bodies ? `House (${hit.e.bodies} hidden)` : 'House', ivy: 'Ivy on the wall' }[hit.kind];
     m.innerHTML = `<div class="ttl">${esc(name)} — ${esc(h.name)}</div>` + acts.map((a) => `<button data-id="${a.id}">${esc(a.label)}</button>`).join('');
     m.querySelectorAll('button').forEach((b) => b.addEventListener('click', (e) => {
       e.stopPropagation(); closeCtx(); sfx('tap');

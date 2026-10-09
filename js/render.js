@@ -18,8 +18,20 @@
     const m = G.m;
     scene = RH.iso.buildScene(G.grid, { theme: m.theme || 'forest', night: G.night, torches: G.torches, seed: 1234 + G.idx * 77 });
     R.scene = scene;
+    for (const o of scene.objs) if (o.hrect) { const hs = (G.houses || []).find((q) => o.hrect.x >= q.x && o.hrect.x < q.x + q.w && o.hrect.y >= q.y && o.hrect.y < q.y + q.h); o.houseId = hs ? hs.id : -1; }
     R.buildMinimap();
     if (!glowSprite) glowSprite = RH.iso.glow('rgba(255,170,80,0.55)', 'rgba(255,120,40,0)');
+  };
+  // standing height on a pitched roof at a tile (ridge highest)
+  R.roofZ = function (tx, ty) {
+    if (!scene || !scene.roofs) return 0;
+    for (const r of scene.roofs) {
+      if (tx < r.x || ty < r.y || tx >= r.x + r.w || ty >= r.y + r.h) continue;
+      const span = r.alongX ? r.h : r.w, pos = r.alongX ? ty - r.y : tx - r.x;
+      const k = span <= 1 ? 0.5 : 1 - Math.abs((pos + 0.5) - span / 2) / (span / 2);
+      return r.hw + r.rh * RH.clamp(k, 0, 1) * 0.92 + 2;
+    }
+    return 0;
   };
   R.sceneInfo = () => scene && { dyn: scene.objs.length, total: scene.nObjs, w: scene.ground.width, h: scene.ground.height };
 
@@ -68,13 +80,15 @@
     for (const gd of G.guards) {
       if (gd.carried) continue;
       const [x, y] = P(gd.x, gd.y);
-      c.fillStyle = gd.state === 'dead' ? '#5a3a30' : gd.state === 'ko' ? '#8a7a60' : gd.state === 'alert' ? '#ff2a1a' : '#b8281a';
-      c.beginPath(); c.arc(x, y, 1.9, 0, 7); c.fill();
+      if (gd.state === 'gone') continue;
+      const blink = gd.state === 'alert' && Math.sin(now * 12) > 0;
+      c.fillStyle = gd.state === 'dead' ? '#5a3a30' : gd.state === 'ko' ? '#8a7a60' : blink ? '#ffd0c0' : '#e0261a';
+      c.beginPath(); c.arc(x, y, gd.state === 'alert' ? 2.4 : 2.0, 0, 7); c.fill();
     }
     for (const h of G.heroes) {
       const [x, y] = P(h.x, h.y);
-      c.fillStyle = h.down ? '#666' : '#1f6a1a'; c.strokeStyle = '#e8ffd0'; c.lineWidth = 0.8;
-      c.beginPath(); c.arc(x, y, 2.3, 0, 7); c.fill(); c.stroke();
+      c.fillStyle = h.down ? '#666' : '#2ee82a'; c.strokeStyle = '#0a3a08'; c.lineWidth = 0.8;
+      c.beginPath(); c.arc(x, y, 2.5, 0, 7); c.fill(); c.stroke();
     }
     for (const pr of G.prisoners) if (!pr.freed) { const [x, y] = P(pr.x, pr.y); c.fillStyle = '#e0b020'; c.beginPath(); c.arc(x, y, 2.4, 0, 7); c.fill(); }
     const vis = RH.game.visible;
@@ -433,7 +447,11 @@
     // ---- depth-merged sprites + entities ----
     isoT();
     ents.length = 0;
-    for (const h of G.heroes) if (inView(h.x, h.y, 60)) { h._dz = 0; ents.push(h); }
+    for (const h of G.heroes) if (!h.inside && inView(h.x, h.y, 60)) { const rf = h.roof || (h.task && h.task.type === 'roof' && h.task.up ? h.task.target.house : null) || (h.task && h.task.type === 'drop' && !(h.task.fall >= 0.6) ? h.roof : null); h._dz = rf ? (rf.x + rf.w + rf.y + rf.h) * TILE - (h.x + h.y) + 3 : 0; ents.push(h); }
+    for (const hs of G.houses || []) { hs.occ = false; if (hs.door && inView(hs.door.x, hs.door.y, 60)) { hs._door = true; ents.push(hs.door); hs.door._house = hs; } }
+    for (const h of G.heroes) if (h.inside) h.inside.occ = true;
+    for (const iv of G.ivy || []) if (inView(iv.x, iv.y, 90)) ents.push(iv);
+    for (const sn of G.snares || []) if ((sn.armed || G.time - sn.sprung < 0.6) && inView(sn.x, sn.y, 30)) { sn._sn = true; ents.push(sn); }
     for (const g of G.guards) if (!g.carried && inView(g.x, g.y, 60)) { g._dz = 0; ents.push(g); }
     for (const c of G.civs) if (!c.carriedBy && inView(c.x, c.y, 60)) { c._dz = 0; ents.push(c); }
     for (const gd of G.gold) if (!gd.taken && inView(gd.x, gd.y, 30)) ents.push(gd);
@@ -464,7 +482,8 @@
       // occlusion: fade trees/walls/towers in front of a hero; otherwise mark for a silhouette
       const cx0 = o.X + o.w * 0.18, cx1 = o.bx1 - o.w * 0.18, cy0 = o.Y + o.h * 0.12, cy1 = o.by1 - o.h * 0.08;
       let fade = false;
-      if (o.height > 16) for (let k = 0; k < drawn.length; k++) {
+      if (o.houseId >= 0 && G.houses[o.houseId] && G.houses[o.houseId].occ) fade = 'roof';
+      else if (o.height > 16) for (let k = 0; k < drawn.length; k++) {
         const u = drawn[k];
         if (u.kind !== 'hero' && u.kind !== 'guard') continue;
         const X = u.x - u.y, Y = (u.x + u.y) / 2;
@@ -473,10 +492,31 @@
         }
       }
       if (!R.flags.noStatic) {
-        if (fade) ctx.globalAlpha = 0.42;
+        if (fade) ctx.globalAlpha = fade === 'roof' ? 0.22 : 0.42;
         ctx.drawImage(o.img, o.sx, o.sy, o.sw, o.sh, o.X, o.Y, o.w, o.h);
         if (fade) ctx.globalAlpha = 1;
       }
+    }
+    // heroes hiding indoors show through the faded roof
+    for (const hs of G.houses || []) {
+      if (!hs.occ) continue;
+      const ins = G.heroes.filter((h) => h.inside === hs);
+      ins.forEach((h, i) => {
+        const ox = h.x, oy = h.y, om = h.moving;
+        h.x = hs.cx + (i - (ins.length - 1) / 2) * 12; h.y = hs.cy + (i % 2) * 8; h.moving = false;
+        ctx.globalAlpha = 0.9; drawEnt(ctx, h, 0); ctx.globalAlpha = 1;
+        h.x = ox; h.y = oy; h.moving = om;
+      });
+    }
+    // bee swarms
+    for (const sw of G.swarms || []) {
+      if (!inView(sw.x, sw.y, 80)) continue;
+      const X = sw.x - sw.y, Y = (sw.x + sw.y) / 2, k = Math.min(1, sw.t / 2);
+      ctx.fillStyle = `rgba(255,210,58,${0.25 * k})`; ctx.beginPath(); ctx.ellipse(X, Y - 8, sw.r * 1.0, sw.r * 0.5, 0, 0, 7); ctx.fill();
+      ctx.fillStyle = '#2a1a06';
+      for (let i = 0; i < 26; i++) { const a = now * (2 + i % 4) + i * 0.73, rr = (0.25 + (i % 5) * 0.16) * sw.r; ctx.fillRect(X + Math.cos(a) * rr, Y - 12 + Math.sin(a * 1.4) * rr * 0.45 - (i % 3) * 5, 2, 2); }
+      ctx.fillStyle = '#ffd23a';
+      for (let i = 0; i < 26; i++) { const a = now * (2 + i % 4) + i * 0.73 + 0.08, rr = (0.25 + (i % 5) * 0.16) * sw.r; ctx.fillRect(X + Math.cos(a) * rr + 0.6, Y - 12 + Math.sin(a * 1.4) * rr * 0.45 - (i % 3) * 5, 1.2, 1.2); }
     }
     // projectiles
     for (const p of G.projs) {
@@ -602,6 +642,15 @@
       if (g.carried || !inView(g.x, g.y, 60)) continue;
       R.toScreen(g.x, g.y, tmp);
       const top = tmp.y - (g.sheriff ? 40 : 35) * z;
+      if (g.hoisted || g.state === 'gone') continue;
+      if (g.duel) {
+        const D = g.duel, k = RH.clamp(D.t / D.T, 0, 1), cy = top - 30;
+        ctx.fillStyle = 'rgba(240,222,170,0.95)'; ctx.strokeStyle = '#5a2a10'; ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.arc(tmp.x, cy, 17, 0, 7); ctx.fill(); ctx.stroke();
+        ctx.strokeStyle = k < 0.35 ? '#ff3b2e' : '#c8281e'; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.arc(tmp.x, cy, 21, -Math.PI / 2, -Math.PI / 2 + k * Math.PI * 2); ctx.stroke();
+        label(ctx, D.need === 'slash' ? '↔' : D.need === 'heavy' ? '↓' : '↑', tmp.x, cy + 1, 22, '#7a1a0a');
+        label(ctx, 'SWIPE!', tmp.x, cy + 30, 11, '#ffe0a0');
+      }
       if (g.state === 'ko') {
         if (!g.tied) {
           const k = RH.clamp(g.koT / 55, 0, 1);
@@ -629,6 +678,8 @@
       R.toScreen(h.x, h.y, tmp);
       const top = tmp.y - 37 * z;
       if (h.down) { label(ctx, '✚', tmp.x, tmp.y - 16 * z, 17, '#ff6a5a'); continue; }
+      if (h.inside) { if (G.sel.includes(h)) { R.toScreen(h.inside.cx, h.inside.cy, tmp); label(ctx, '🏠 ' + h.name, tmp.x, tmp.y + 6, 11, '#bff5a0'); } continue; }
+      if (h.roof) tmp.y -= (h.climbZ || 0) * z;
       if (h.hp < h.maxhp || G.sel.includes(h)) hpBar(ctx, tmp.x, top, h.hp / h.maxhp, '#5adc4a');
       if (h.climbing) label(ctx, '🧗', tmp.x + 14, top - 10 - (h.climbZ || 0) * z, 15, '#fff');
       else if (h.busy > 0) label(ctx, '…', tmp.x, top - 14, 18, '#fff');
@@ -665,7 +716,7 @@
         continue;
       }
       if (pp.kind === 'target' && pp.used) continue;
-      const ic = { banner: '🚩', bell: '🔔', winch: '⚙️', lever: '⚙️', target: '🎯' }[pp.kind];
+      const ic = { banner: '🚩', bell: '🔔', winch: '⚙️', lever: '⚙️', target: '🎯', horn: '📯' }[pp.kind];
       if (ic) label(ctx, ic, tmp.x, tmp.y - 50 * z - bob, 15, '#fff');
     }
     for (const bz of G.blazons) { if (!inView(bz.x, bz.y, 60)) continue; R.toScreen(bz.x, bz.y, tmp); label(ctx, bz.cap ? '✔ ' + bz.label : bz.label, tmp.x, tmp.y + 14, 11, bz.cap ? '#b8ffb0' : '#ffe0a0'); }
@@ -710,6 +761,9 @@
 
   function drawEnt(c, u, dt) {
     const X = u.x - u.y, Y = (u.x + u.y) / 2;
+    if (u._house) return drawDoor(c, u._house);
+    if (u.ivy) return drawIvy(c, u);
+    if (u._sn) return drawSnare(c, u, X, Y);
     if (u.kind === 'hero') {
       if (u.swingT > 0) u.swingT -= dt;
       const L = heroLook(u);
@@ -726,8 +780,11 @@
       if (u.swingT > 0) u.swingT -= dt;
       if (u.state === 'gone') return;
       const L = guardLook(u);
+      if (u.hoisted) return drawHoisted(c, u);
+      if (u.state === 'panic') { c.save(); c.translate(X, Y); c.rotate(Math.sin(u.flail || 0) * 0.18); figure(c, 0, 0, u, L); c.restore(); return; }
       if (u.inPit) { c.fillStyle = 'rgba(10,6,2,0.9)'; c.beginPath(); c.ellipse(X, Y, 14, 7, 0, 0, 7); c.fill(); c.save(); c.beginPath(); c.rect(X - 20, Y - 40, 40, 40); c.clip(); figure(c, X, Y + 16, u, L); c.restore(); return; }
-      if (u.state === 'ko' || u.state === 'dead') lying(c, X, Y, u, L, u.state);
+      if (u.state === 'ko' || u.state === 'dead') { const j = u.shook && G.time - u.shook < 0.15 ? Math.sin(now * 60) * 1.6 : 0; lying(c, X + j, Y, u, L, u.state); }
+      else if (u.state === 'shaking') { c.save(); c.translate(X, Y); c.rotate(Math.sin(now * 18) * 0.12 + 0.15); figure(c, 0, 0, u, L); c.restore(); }
       else figure(c, X, Y, u, L);
       if (u.flash > 0) { c.fillStyle = 'rgba(255,255,255,0.5)'; c.beginPath(); c.arc(X, Y - 14, 9, 0, 7); c.fill(); }
     } else if (u.kind === 'ally') {
@@ -756,7 +813,13 @@
     else if (u === G.log) drawLog(c, u);
     else if (u.prisoner || u.captive) drawPrisoner(c, u, X, Y);
     else if (u.v != null) { // gold
-      const b = Math.sin(now * 3 + u.x) * 1.2;
+      let b = Math.sin(now * 3 + u.x) * 1.2;
+      if (u.spill != null && G.time - u.spill < 0.6) { // tumbling out of the cart
+        const k = (G.time - u.spill) / 0.6, fx0 = u.fromX - u.fromY, fy0 = (u.fromX + u.fromY) / 2;
+        const px = RH.lerp(fx0, X, k), py = RH.lerp(fy0, Y, k) - Math.sin(k * Math.PI) * 26;
+        c.fillStyle = '#ffd84a'; c.strokeStyle = OUT; c.lineWidth = 0.7; c.beginPath(); c.arc(px, py - 6, 3.4, 0, 7); c.fill(); c.stroke();
+        return;
+      }
       c.fillStyle = 'rgba(0,0,0,0.25)'; c.beginPath(); c.ellipse(X, Y + 1, 5, 2.2, 0, 0, 7); c.fill();
       c.fillStyle = '#8a5a22'; c.strokeStyle = OUT; c.lineWidth = 0.8;
       c.beginPath(); c.arc(X, Y - 4 + b, 4.6, 0, 7); c.fill(); c.stroke();
@@ -765,6 +828,50 @@
     }
   }
 
+  // a dark doorway in the house's front face
+  function drawDoor(c, hs) {
+    const d = hs.door, s = d.face === 's';
+    const fx0 = s ? d.x : d.x - TILE / 2, fy0 = s ? d.y - TILE / 2 : d.y;
+    const a = s ? [fx0 - 6, fy0] : [fx0, fy0 - 6], b = s ? [fx0 + 6, fy0] : [fx0, fy0 + 6];
+    const A = [a[0] - a[1], (a[0] + a[1]) / 2], B = [b[0] - b[1], (b[0] + b[1]) / 2];
+    c.fillStyle = hs.occ ? 'rgba(255,190,90,0.9)' : '#1a0e06'; c.strokeStyle = '#5a3a1a'; c.lineWidth = 1.4;
+    c.beginPath(); c.moveTo(A[0], A[1]); c.lineTo(A[0], A[1] - 15); c.quadraticCurveTo((A[0] + B[0]) / 2, (A[1] + B[1]) / 2 - 22, B[0], B[1] - 15); c.lineTo(B[0], B[1]); c.closePath(); c.fill(); c.stroke();
+    if (hs.bodies) { c.fillStyle = 'rgba(255,230,160,0.9)'; c.font = '700 7px system-ui'; c.textAlign = 'center'; c.fillText('×' + hs.bodies, (A[0] + B[0]) / 2, (A[1] + B[1]) / 2 - 24); }
+  }
+  // ivy climbing a house wall up to the eaves
+  function drawIvy(c, iv) {
+    const s = iv.face === 's';
+    const wx = s ? iv.x : iv.x - TILE / 2, wy = s ? iv.y - TILE / 2 : iv.y;
+    const X = wx - wy, Y = (wx + wy) / 2, Z = R.roofZ(Math.floor(iv.rx / TILE), Math.floor(iv.ry / TILE)) || 40;
+    const r = RH.rng(iv.tx * 31 + iv.ty * 7);
+    c.lineWidth = 1.3; c.strokeStyle = '#3a5a1a';
+    for (let k = 0; k < 4; k++) { const ox = (k - 1.5) * 4; c.beginPath(); c.moveTo(X + ox, Y); for (let z = 0; z <= Z; z += 6) c.lineTo(X + ox + Math.sin(z * 0.3 + k) * 2.4 * (s ? 1 : -1), Y - z + (s ? ox * 0.5 : -ox * 0.5)); c.stroke(); }
+    for (let i = 0; i < 34; i++) {
+      const z = r() * Z, ox = (r() - 0.5) * 18;
+      c.fillStyle = ['#4f8a2a', '#3e7420', '#6aa438', '#2f5e18'][i % 4];
+      c.beginPath(); c.ellipse(X + ox, Y - z + (s ? ox * 0.5 : -ox * 0.5), 3, 2.2, r() * 3, 0, 7); c.fill();
+    }
+  }
+  function drawSnare(c, sn, X, Y) {
+    if (!sn.armed) { const k = (G.time - sn.sprung) / 0.6; c.strokeStyle = 'rgba(220,205,150,0.9)'; c.lineWidth = 1; c.beginPath(); c.moveTo(X, Y); c.lineTo(X, Y - 60 * k); c.stroke(); return; }
+    c.strokeStyle = 'rgba(200,180,120,0.75)'; c.lineWidth = 1; c.setLineDash([2, 2]);
+    c.beginPath(); c.ellipse(X, Y, 15, 7.5, 0, 0, 7); c.stroke(); c.setLineDash([]);
+    c.fillStyle = 'rgba(90,120,40,0.85)'; for (let i = 0; i < 6; i++) { const a = i * 1.05; c.beginPath(); c.ellipse(X + Math.cos(a) * 9, Y + Math.sin(a) * 4.5, 3, 1.6, a, 0, 7); c.fill(); }
+  }
+  // a guard hoisted upside down in a net bag, swinging from a branch
+  function drawHoisted(c, g) {
+    const X = g.hx - g.hy, Y = (g.hx + g.hy) / 2, k = g.hoistT || 1, h = 34 * k;
+    const sw = Math.sin(now * 2 + g.id) * 0.12;
+    c.fillStyle = 'rgba(0,0,0,0.22)'; c.beginPath(); c.ellipse(X, Y, 9, 3.6, 0, 0, 7); c.fill();
+    c.strokeStyle = '#c8b480'; c.lineWidth = 1; c.beginPath(); c.moveTo(X, Y - h - 40); c.lineTo(X + Math.sin(sw) * 10, Y - h - 12); c.stroke();
+    c.save(); c.translate(X + Math.sin(sw) * 12, Y - h - 4); c.rotate(Math.PI + sw);
+    figure(c, 0, -2, Object.assign({}, g, { moving: false, swingT: 0, drawT: 0, dir: 0.8 }), guardLook(g));
+    c.restore();
+    const bx = X + Math.sin(sw) * 12, by = Y - h - 10;
+    c.strokeStyle = 'rgba(225,210,160,0.95)'; c.lineWidth = 0.8; c.beginPath();
+    for (let i = -3; i <= 3; i++) { c.moveTo(bx - 11, by + i * 4); c.lineTo(bx + 11, by + i * 4 + 1); c.moveTo(bx + i * 3.4, by - 13); c.lineTo(bx + i * 3.4 + 1, by + 13); }
+    c.stroke();
+  }
   function label(ctx, t, x, y, size, col) {
     ctx.font = `800 ${size}px system-ui, -apple-system, sans-serif`;
     ctx.lineWidth = 3.5; ctx.strokeStyle = 'rgba(15,10,5,0.85)';
@@ -780,8 +887,8 @@
   function coneGrads(ctx) {
     const mk = (a0, a1, rgb) => { const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 1); g.addColorStop(0, `rgba(${rgb},${a0})`); g.addColorStop(0.75, `rgba(${rgb},${(a0 + a1) / 2})`); g.addColorStop(1, `rgba(${rgb},${a1})`); return g; };
     CONE_G = {
-      norm: mk(0.22, 0.04, '255,96,60'), sus: mk(0.42, 0.12, '255,206,60'), alert: mk(0.5, 0.16, '255,30,20'), charm: mk(0.28, 0.06, '255,130,190'),
-      normN: mk(0.2, 0.05, '255,120,80'),
+      norm: mk(0.24, 0.04, '96,214,84'), sus: mk(0.4, 0.1, '255,206,60'), alert: mk(0.52, 0.16, '255,34,20'), charm: mk(0.28, 0.06, '255,130,190'),
+      normN: mk(0.22, 0.05, '120,226,120'),
     };
   }
   function drawCones(ctx, inView, worldT) {
@@ -789,26 +896,27 @@
     if (!CONE_G) coneGrads(ctx);
     const NR = RH.game.NRAYS;
     for (const g of G.guards) {
-      if (!RH.game.isActive(g) || g.state === 'stunned' || g.state === 'counting' || g.state === 'netted' || g.state === 'drinking' || g.state === 'watch' || g.state === 'flee') continue;
+      if (!RH.game.isActive(g) || g.state === 'panic' || g.state === 'brawl' || g.state === 'stunned' || g.state === 'counting' || g.state === 'netted' || g.state === 'drinking' || g.state === 'watch' || g.state === 'flee') continue;
       const range = RH.game.guardRange(g);
       if (!inView(g.x, g.y, range * 1.5 + 30)) continue;
       RH.game.computeCone(g);
       let fill, line, lw = 1;
-      if (g.state === 'alert') { fill = CONE_G.alert; line = 'rgba(255,40,20,0.8)'; lw = 1.6; }
+      let flash = 1;
+      if (g.state === 'alert' || g.state === 'tohorn' || g.state === 'horn') { fill = CONE_G.alert; line = 'rgba(255,40,20,0.85)'; lw = 1.7; flash = 0.55 + 0.45 * Math.abs(Math.sin(now * 9 + g.id)); }
       else if (g.state === 'charmed') { fill = CONE_G.charm; line = 'rgba(255,140,190,0.55)'; }
       else if (g.sus > 0.25 || g.state === 'investigate' || g.state === 'search') { fill = CONE_G.sus; line = 'rgba(255,214,60,0.85)'; lw = 1.5; }
-      else { fill = G.night ? CONE_G.normN : CONE_G.norm; line = 'rgba(255,110,70,0.55)'; }
+      else { fill = G.night ? CONE_G.normN : CONE_G.norm; line = 'rgba(130,255,120,0.5)'; }
       const half = g.fov / 2, ox = g.x, oy = g.y;
       worldT();
       ctx.translate(ox, oy); ctx.scale(range, range);
       ctx.beginPath(); ctx.moveTo(0, 0);
       for (let i = 0; i < NR; i++) {
-        const a = g.dir - half + (g.fov * i) / (NR - 1);
+        const a = (g.vd != null ? g.vd : g.dir) - half + (g.fov * i) / (NR - 1);
         const d = g.cone[i] / range;
         ctx.lineTo(Math.cos(a) * d, Math.sin(a) * d);
       }
       ctx.closePath();
-      ctx.fillStyle = fill; ctx.fill();
+      ctx.globalAlpha = flash; ctx.fillStyle = fill; ctx.fill(); ctx.globalAlpha = 1;
       ctx.strokeStyle = line; ctx.lineWidth = lw / (range * G.cam.z); ctx.stroke();
     }
   }
@@ -895,6 +1003,16 @@
           c.fillStyle = '#b8241c'; c.beginPath(); c.moveTo(X + 1, Y - 55); c.lineTo(X + 22, Y - 53 + w); c.lineTo(X + 21, Y - 38 + w); c.lineTo(X + 1, Y - 40); c.closePath(); c.fill(); c.stroke();
           c.fillStyle = '#f0c840'; c.font = 'bold 10px serif'; c.textAlign = 'center'; c.fillText('♛', X + 11, Y - 44 + w / 2);
         } else { c.fillStyle = '#8a7a5a'; c.fillRect(X + 1, Y - 12, 6, 10); c.strokeRect(X + 1, Y - 12, 6, 10); }
+        break;
+      }
+      case 'horn': {
+        sh(); c.fillStyle = '#4a3420'; c.fillRect(X - 1.5, Y - 34, 3, 34); c.fillRect(X - 6, Y - 34, 12, 2.5);
+        const blow = p.blown && G.alarmT > 0 ? Math.sin(now * 10) * 0.08 : 0;
+        c.save(); c.translate(X + 1, Y - 28); c.rotate(-0.5 + blow);
+        c.fillStyle = p.used ? '#7a6a4a' : '#e8d8a8'; c.beginPath(); c.moveTo(0, -1.5); c.quadraticCurveTo(9, -4, 15, -8); c.lineTo(17, -2); c.quadraticCurveTo(9, 1, 0, 1.5); c.closePath(); c.fill(); c.stroke();
+        c.fillStyle = '#c89a3a'; c.fillRect(-1, -2, 3, 4);
+        if (p.used) { c.fillStyle = '#5a8a2a'; c.beginPath(); c.arc(16, -5, 3, 0, 7); c.fill(); }
+        c.restore();
         break;
       }
       case 'bell': {

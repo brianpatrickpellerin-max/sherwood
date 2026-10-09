@@ -7,7 +7,7 @@
   RH.MISSIONS = [
     // 1 ─ find an ally in a town (solo)
     {
-      id: 'm1', rank: 0, theme: 'town', title: 'A Friend in Lockwood', place: 'Lockwood village', mapPos: [20, 62], kind: 'story',
+      id: 'm1', rank: 0, theme: 'town', title: 'A Friend in Lockwood', place: 'Lockwood village', mapPos: [20, 62], kind: 'story', horn: false,
       type: 'Find an ally', captive: [2, 19], climbs: [[13, 8, 13, 6]],
       intro: 'Home from the Crusade, Robin of Locksley finds his lands seized and his name on a warrant. Only one man in Lockwood still owes him a kindness: old Wat, the steward of the manor.\n\nThe Sheriff\u2019s men hold the manor now. Get inside the yard and find Wat. Beggars hear everything; a coin may loosen a tongue.',
       outro: 'Gisela wipes the flour from her hands. \u201cThey will hang him at the Gallows Cross on market day, him and two of your old company. If you mean to stop it, go tonight.\u201d\n\nRobin pulls up his hood. Sherwood, then, and Nottingham after.',

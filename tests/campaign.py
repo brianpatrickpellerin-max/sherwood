@@ -42,6 +42,8 @@ with sync_playwright() as p:
         win = bool(r['over'] and r['over']['win'])
         ok('win ' + label, win and E("__sherwood.screen()") == 'end', json.dumps(r)[:200])
         if winshot: shot(winshot + '_end')
+        txt = E("document.body.innerText")
+        ok(label + ' end stats (Money, Spared lives, Time)', all(k in txt for k in ['Money', 'Spared lives', 'Time']))
         tap('[data-act=camp]')
         ok(label + ' -> camp', E("__sherwood.screen()") == 'camp')
 

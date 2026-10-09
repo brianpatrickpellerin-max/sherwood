@@ -106,6 +106,7 @@
         koAll();
         tpNear(h, g.cart); game.orderAction('loot', { kind: 'cart', e: g.cart }, [h]); waitTask(h, 4);
       }
+      for (const c of g.gold) if (!c.taken && c.spill != null) { step(0.7); place(h, c.x, c.y); step(0.1); }
       for (const coll of g.guards.filter((x) => x.type === 'collector')) {
         if (game.isActive(coll)) fight(coll);
         if (game.isBody(coll) && !coll.searched) { tpNear(h, coll); game.orderAction('search', { kind: 'body', e: coll }, [h]); waitTask(h, 3); }

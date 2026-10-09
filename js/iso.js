@@ -473,7 +473,7 @@
       }
     });
     spr.absX = 0; spr.absY = 0; // sprite coords are absolute iso
-    spr.height = Hw + Rh;
+    spr.height = Hw + Rh; spr.hw = Hw; spr.rh = Rh;
     return spr;
   }
   function chimney(c, P, x, y, z0, h, style) {
@@ -881,6 +881,7 @@
       add(spr, ax, ay, (x + y + 1) * T, x, y, h, { fade: 1 });
     }
     // buildings from 'r' rectangles
+    const roofs = [];
     const used = new Uint8Array(W * H);
     for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
       if (at(x, y) !== 'r' || used[y * W + x]) continue;
@@ -895,6 +896,7 @@
       for (const b of segs) {
         let front = false; for (let k = 0; k < b.w; k++) if (walkable(b.x + k, b.y + b.h)) front = true;
         const spr = building(s, b, theme === 'castle' ? 'castle' : 'town', r, front);
+        roofs.push({ x: b.x - M, y: b.y - M, w: b.w, h: b.h, z: spr.height, hw: spr.hw, rh: spr.rh, alongX: b.w >= b.h });
         castShadow(b.x * T, b.y * T, b.w * T, b.h * T, spr.height * 0.7);
         // depth strips
         const kmin = b.x - (b.y + b.h - 1) - 1, kmax = (b.x + b.w - 1) - b.y;
@@ -1028,7 +1030,8 @@
     const dyn = objs.filter((o) => o.dyn);
     const dY = M * T, dD = 2 * M * T;
     for (const o of dyn) { o.Y -= dY; o.d -= dD; o.bx1 = o.X + o.w; o.by1 = o.Y + o.h; }
-    return { ground, pat, s, X0, Y0: Y0 - dY, objs: dyn, nObjs: objs.length, isoW, isoH, top: opts.keepTop ? top : null };
+    for (const o of dyn) if (o.bld) o.hrect = { x: o.bld.x - M, y: o.bld.y - M, w: o.bld.w, h: o.bld.h };
+    return { ground, pat, s, X0, Y0: Y0 - dY, objs: dyn, nObjs: objs.length, isoW, isoH, top: opts.keepTop ? top : null, roofs, M };
   };
 
   // shared sprites for the renderer (glow)

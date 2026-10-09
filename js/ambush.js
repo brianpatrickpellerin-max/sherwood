@@ -60,7 +60,7 @@
     };
     ['robin', 'john', 'marian', 'tuck', 'scarlet'].forEach((k, i) => { m.heroes[k] = [hx - 2 + i, hy]; });
     // leaf-covered pits on the road and a trap net on a post
-    for (const y of [5 + Math.floor(r() * 5), 18 + Math.floor(r() * 6)]) m.traps.push({ kind: 'pit', x: road(y) + (r() < 0.5 ? 0 : 1), y });
+    [5 + Math.floor(r() * 5), 18 + Math.floor(r() * 6)].forEach((y, i) => m.traps.push({ kind: i ? 'snare' : 'pit', x: road(y) + (r() < 0.5 ? 0 : 1), y }));
     const ny = 9 + Math.floor(r() * 3);
     const postX = road(ny) + (hx > road(ny) ? 3 : -2);
     setc(rows, postX, ny, '.');
@@ -90,9 +90,9 @@
       m.objectives = [{ k: 'gold', n: value, text: kind === 'supply' ? 'Take the supply cart\u2019s silver' : 'Take the strongbox' }];
       if (kind === 'supply') m.loot = { arrows: 8, ale: 1, potions: 1 };
       m.intro = (kind === 'supply' ? 'A supply cart for the garrison rolls along ' : 'A wagon with a strongbox for the Prince rolls along ') + place + '. We have felled a tree across the road; the carter will have to stop.\n\nKnock out the carter and take the box. The ambush ends the moment the silver is ours.';
-      m.tips.push({ id: 'wagon', when: 'start', text: 'The wagon stops at the felled tree for a while. Knock out the carter (tap him), then tap the wagon to take the box. On the road Robin fights with a quarterstaff: his blows don\u2019t kill.' });
+      m.tips.push({ id: 'wagon', when: 'start', text: 'The wagon stops at the felled tree for a while. Knock out the carter (tap him), then tap the wagon: the box bursts and the silver spills across the road. Walk over the coins to scoop them up. On the road Robin fights with a quarterstaff: his blows don\u2019t kill.' });
     }
-    m.tips.push({ id: 'traps', when: 'time10', text: 'Leaf-covered pits on the road swallow any soldier who walks over them. Shoot the target on the post to drop a net on the road beside it.' });
+    m.tips.push({ id: 'traps', when: 'time10', text: 'Leaf-covered pits on the road swallow any soldier who walks over them, and the rope snare (a ring of leaves) hoists whoever steps in up into the branches. Little John can set more snares (🪢). Shoot the target on the post to drop a net on the road beside it.' });
     if (r() < 0.45) {
       const y = 3 + Math.floor(r() * 4), x = road(y) + (r() < 0.5 ? -1 : 2);
       setc(rows, x, y, '.'); m.captive = [x, y];
