@@ -367,14 +367,14 @@
       show(`<div class="card" style="text-align:center"><div class="place">${amb ? 'Ambush complete' : 'Mission complete'}</div><h2>${esc(G.m.title)}</h2>
         ${amb ? '' : `<div class="stars">${stars}</div>`}
         <div style="text-align:left">
+        <div class="stat big"><span>Money</span><b>£ ${st.gold}</b></div>
+        <div class="stat big"><span>Spared lives</span><b>${st.spared != null ? st.spared : 100}%</b></div>
+        <div class="stat big"><span>Time</span><b>${fmtTime(st.time)}</b></div>
+        ${st.alms ? `<div class="stat"><span>Given to beggars</span><b>£ ${st.alms}</b></div>` : ''}
+        <div class="stat"><span>Knocked out / slain</span><b>${st.ko} / ${st.kills}</b></div>
         ${amb ? '' : `<div class="stat"><span>Finished</span><b>★</b></div>
         <div class="stat"><span>Never spotted, no alarm</span><b>${!st.spotted && !st.alarm ? '★' : '—'}</b></div>
         <div class="stat"><span>Nobody killed</span><b>${st.kills === 0 ? '★' : '—'}</b></div>`}
-        <div class="stat big"><span>Money</span><b>£ ${st.gold}</b></div>
-        <div class="stat big"><span>Spared lives</span><b>${st.spared != null ? st.spared : 100}%</b></div>
-        ${st.alms ? `<div class="stat"><span>Given to beggars</span><b>£ ${st.alms}</b></div>` : ''}
-        <div class="stat"><span>Knocked out / slain</span><b>${st.ko} / ${st.kills}</b></div>
-        <div class="stat big"><span>Time</span><b>${fmtTime(st.time)}</b></div>
         ${st.hidden ? `<div class="stat"><span>Bodies hidden indoors</span><b>${st.hidden}</b></div>` : ''}${st.snared ? `<div class="stat"><span>Hoisted in snares</span><b>${st.snared}</b></div>` : ''}${st.reinf ? `<div class="stat"><span>Reinforcements called</span><b>${st.reinf}</b></div>` : ''}
         <div class="stat"><span>${amb ? 'Into the camp chest' : 'Reward'}</span><b>£ ${reward}</b></div>
         </div>${newsHTML(G.campNews)}<p style="text-align:left">${esc(outro)}</p></div>

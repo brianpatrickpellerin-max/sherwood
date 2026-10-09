@@ -644,12 +644,12 @@
       const top = tmp.y - (g.sheriff ? 40 : 35) * z;
       if (g.hoisted || g.state === 'gone') continue;
       if (g.duel) {
-        const D = g.duel, k = RH.clamp(D.t / D.T, 0, 1), cy = top - 30;
+        const D = g.duel, k = RH.clamp(D.t / D.T, 0, 1), cy = top - 44;
         ctx.fillStyle = 'rgba(240,222,170,0.95)'; ctx.strokeStyle = '#5a2a10'; ctx.lineWidth = 2.5;
         ctx.beginPath(); ctx.arc(tmp.x, cy, 17, 0, 7); ctx.fill(); ctx.stroke();
         ctx.strokeStyle = k < 0.35 ? '#ff3b2e' : '#c8281e'; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.arc(tmp.x, cy, 21, -Math.PI / 2, -Math.PI / 2 + k * Math.PI * 2); ctx.stroke();
         label(ctx, D.need === 'slash' ? '↔' : D.need === 'heavy' ? '↓' : '↑', tmp.x, cy + 1, 22, '#7a1a0a');
-        label(ctx, 'SWIPE!', tmp.x, cy + 30, 11, '#ffe0a0');
+        label(ctx, 'SWIPE!', tmp.x - 36, cy, 11, '#ffe0a0');
       }
       if (g.state === 'ko') {
         if (!g.tied) {
@@ -666,7 +666,7 @@
         ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(tmp.x - 15, top - 3, 30, 6);
         ctx.fillStyle = g.sus > 0.6 ? '#ff8a2a' : '#ffd23a'; ctx.fillRect(tmp.x - 14, top - 2, 28 * Math.min(1, g.sus), 4);
       }
-      if (g.icon) {
+      if (g.icon && !g.duel) {
         const col = g.icon === '!' ? '#ff3b2e' : g.icon === '?' ? '#ffd23a' : g.icon === '♥' ? '#ff7aa8' : '#ffe08a';
         label(ctx, g.icon, tmp.x, top - 15 - Math.abs(Math.sin(now * 6)) * 3, 21, col);
       }
@@ -676,10 +676,10 @@
     for (const h of G.heroes) {
       if (!inView(h.x, h.y, 60)) continue;
       R.toScreen(h.x, h.y, tmp);
+      if (h.roof && !h.inside) tmp.y -= (h.climbZ || 0) * z;
       const top = tmp.y - 37 * z;
       if (h.down) { label(ctx, '✚', tmp.x, tmp.y - 16 * z, 17, '#ff6a5a'); continue; }
       if (h.inside) { if (G.sel.includes(h)) { R.toScreen(h.inside.cx, h.inside.cy, tmp); label(ctx, '🏠 ' + h.name, tmp.x, tmp.y + 6, 11, '#bff5a0'); } continue; }
-      if (h.roof) tmp.y -= (h.climbZ || 0) * z;
       if (h.hp < h.maxhp || G.sel.includes(h)) hpBar(ctx, tmp.x, top, h.hp / h.maxhp, '#5adc4a');
       if (h.climbing) label(ctx, '🧗', tmp.x + 14, top - 10 - (h.climbZ || 0) * z, 15, '#fff');
       else if (h.busy > 0) label(ctx, '…', tmp.x, top - 14, 18, '#fff');
@@ -868,6 +868,7 @@
     figure(c, 0, -2, Object.assign({}, g, { moving: false, swingT: 0, drawT: 0, dir: 0.8 }), guardLook(g));
     c.restore();
     const bx = X + Math.sin(sw) * 12, by = Y - h - 10;
+    c.fillStyle = 'rgba(150,120,70,0.28)'; c.beginPath(); c.ellipse(bx, by, 12, 15, 0, 0, 7); c.fill();
     c.strokeStyle = 'rgba(225,210,160,0.95)'; c.lineWidth = 0.8; c.beginPath();
     for (let i = -3; i <= 3; i++) { c.moveTo(bx - 11, by + i * 4); c.lineTo(bx + 11, by + i * 4 + 1); c.moveTo(bx + i * 3.4, by - 13); c.lineTo(bx + i * 3.4 + 1, by + 13); }
     c.stroke();
