@@ -900,8 +900,8 @@
       if (o === 'steal') { const d = G.chest.taken; out.push({ text: 'Steal the tax chest', done: d }); main = main && d; }
       if (o === 'convoy') {
         const d = G.chest.taken, c = G.cart;
-        const extra = d ? '' : c.state === 'log' ? ` (stopped: ${Math.ceil(c.waitT)}s)` : c.state === 'stopped' ? ' (cart stopped!)' : '';
-        out.push({ text: 'Stop the cart, take its chest' + extra, done: d }); main = main && d;
+        const extra = d ? '' : c.state === 'log' ? ` · oak ${Math.ceil(c.waitT)}s` : c.state === 'stopped' ? ' · stopped!' : '';
+        out.push({ text: 'Stop the cart, take the chest' + extra, done: d }); main = main && d;
       }
       if (o === 'sheriff') { const s = G.sheriff; const d = s.state === 'ko' && s.tied; out.push({ text: 'Knock out & tie up the Sheriff', done: d }); main = main && d; }
       if (o === 'noalarm') out.push({ text: 'Don\u2019t raise the alarm', done: !G.alarmed, neg: true });

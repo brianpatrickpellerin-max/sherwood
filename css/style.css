@@ -168,7 +168,8 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-user
 .shopitem .d b { font-size: 16px; }
 .shopitem button { min-width: 92px; min-height: 48px; border-radius: 12px; border: 0; background: #3f6d2a; color: #fff; font-weight: 800; font-size: 16px; }
 .shopitem button[disabled] { background: #9a8a6a; }
-.stars { font-size: 40px; letter-spacing: 6px; text-align: center; margin: 4px 0; }
+.stars { font-size: 44px; letter-spacing: 8px; text-align: center; margin: 4px 0; color: #e8a417; text-shadow: 0 2px 0 #7a4a10; }
+.stat b { color: #5a3a0a; }
 .stars .off { opacity: 0.25; filter: grayscale(1); }
 .stat { display: flex; justify-content: space-between; font-size: 17px; padding: 6px 0; border-top: 1px solid rgba(90,60,20,0.2); }
 .stat b { font-weight: 800; }

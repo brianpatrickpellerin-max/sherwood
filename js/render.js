@@ -211,11 +211,15 @@
     c.lineCap = 'butt';
   }
   function hay(c, px, py, r) {
-    c.fillStyle = '#d9b44a'; c.strokeStyle = '#7a5a18'; c.lineWidth = 1.3;
-    c.beginPath(); c.ellipse(px + 16, py + 18, 15, 12, 0, 0, 7); c.fill(); c.stroke();
-    c.strokeStyle = 'rgba(120,80,20,0.6)'; c.lineWidth = 1;
-    for (let i = 0; i < 7; i++) { const a = r() * 6.28, l = 4 + r() * 8; c.beginPath(); c.moveTo(px + 16, py + 17); c.lineTo(px + 16 + Math.cos(a) * l, py + 17 + Math.sin(a) * l * 0.8); c.stroke(); }
-    c.fillStyle = 'rgba(255,240,170,0.4)'; c.beginPath(); c.ellipse(px + 12, py + 12, 6, 4, 0, 0, 7); c.fill();
+    // a loose heap of hay with a bale on top
+    c.fillStyle = 'rgba(0,0,0,0.25)'; c.beginPath(); c.ellipse(px + 17, py + 25, 15, 5, 0, 0, 7); c.fill();
+    c.fillStyle = '#c99a32'; c.strokeStyle = '#6a4a12'; c.lineWidth = 1.3;
+    c.beginPath(); c.moveTo(px + 1, py + 26); c.quadraticCurveTo(px + 3, py + 6, px + 16, py + 5); c.quadraticCurveTo(px + 30, py + 6, px + 31, py + 26); c.closePath(); c.fill(); c.stroke();
+    c.strokeStyle = 'rgba(255,230,140,0.75)'; c.lineWidth = 1;
+    for (let i = 0; i < 9; i++) { const x0 = px + 4 + r() * 24, y0 = py + 9 + r() * 15; c.beginPath(); c.moveTo(x0, y0); c.lineTo(x0 + (r() - 0.5) * 7, y0 - 3 - r() * 3); c.stroke(); }
+    c.fillStyle = '#e2bb52'; c.strokeStyle = '#6a4a12'; c.lineWidth = 1.2;
+    c.beginPath(); c.roundRect(px + 8, py + 2, 17, 10, 2); c.fill(); c.stroke();
+    c.strokeStyle = '#8a3a1a'; c.lineWidth = 1.2; c.beginPath(); c.moveTo(px + 13, py + 2); c.lineTo(px + 13, py + 12); c.moveTo(px + 20, py + 2); c.lineTo(px + 20, py + 12); c.stroke();
   }
   function bush(c, px, py, r) {
     c.strokeStyle = '#17300f'; c.lineWidth = 1.5;

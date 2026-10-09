@@ -38,7 +38,11 @@
   ui.updateSoundBtn = updateSoundBtn;
 
   // ---------- Toasts / tips ----------
+  let lastToast = '', lastToastT = 0;
   ui.toast = function (text, kind) {
+    const now = performance.now();
+    if (text === lastToast && now - lastToastT < 2500) return;
+    lastToast = text; lastToastT = now;
     const box = $('toasts');
     const d = document.createElement('div');
     d.className = 'toast' + (kind ? ' ' + kind : '');
