@@ -4,7 +4,7 @@ URL='http://localhost:18431/index.html'
 with sync_playwright() as p:
     for eng in ('webkit',):
         b = p.webkit.launch()
-        for (w,h) in ((375,667),(844,390),(667,375)):
+        for (w,h) in ((390,844),(375,667),(844,390),(667,375)):
             ctx=b.new_context(viewport={'width':w,'height':h}, device_scale_factor=2, has_touch=True)
             pg=ctx.new_page(); errs=[]
             pg.on('pageerror', lambda e: errs.append(str(e)))
