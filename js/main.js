@@ -62,7 +62,7 @@
   RH.loadProfile = function () {
     try {
       const raw = localStorage.getItem(KEY3) || localStorage.getItem(KEY2) || localStorage.getItem(KEY);
-      if (raw) RH.profile = RH.migrate(JSON.parse(raw));
+      if (raw) { RH.profile = RH.migrate(JSON.parse(raw)); if (!localStorage.getItem(KEY3)) RH.saveProfile(); }
     } catch (e) { RH.profile = freshProfile(); }
   };
   RH.saveProfile = function () {

@@ -159,7 +159,7 @@
     for (let i = 0; i < 9; i++) { const x = 64 + r() * 28, y = 30 + r() * 18; fields += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${(4 + r() * 4).toFixed(1)}" height="${(2.5 + r() * 2).toFixed(1)}" fill="${r() < 0.5 ? '#c8b06a' : '#a8a05a'}" opacity="0.55" transform="rotate(${(r() * 30 - 15).toFixed(0)} ${x.toFixed(1)} ${y.toFixed(1)})"/>`; }
     let nodes = '', lines = '';
     const seal = (x, y, act, arg, fill, txt, sub, pulse) => `<g data-act="${act}" data-arg="${arg}" style="cursor:pointer">
-        <circle cx="${x}" cy="${y}" r="7" fill="transparent"/>
+        <circle cx="${x}" cy="${y}" r="5.6" fill="transparent"/>
         ${pulse ? `<circle cx="${x}" cy="${y}" r="6.2" fill="none" stroke="#e8a417" stroke-width="0.8"><animate attributeName="r" values="5.2;7;5.2" dur="1.6s" repeatCount="indefinite"/></circle>` : ''}
         <circle cx="${x}" cy="${y}" r="4.4" fill="${fill}" stroke="#3a1a08" stroke-width="0.7"/>
         <circle cx="${x}" cy="${y}" r="3.3" fill="none" stroke="#f0c060" stroke-width="0.3"/>
@@ -173,9 +173,9 @@
       const st = P.stars[i] || 0;
       nodes += seal(x, y, open ? 'brief' : 'locked', i, open ? (st ? '#2f6a1e' : '#9a1f12') : '#8a7a5a', open ? String(i + 1) : '?', open ? '★'.repeat(st) + '☆'.repeat(3 - st) : '', open && !st);
     });
-    const spots = [[34, 26], [40, 60], [46, 34]];
+    const spots = [[34, 26], [38, 64], [44, 33]];
     (P.offers || []).forEach((o, k) => { const [x, y] = spots[k % spots.length]; nodes += seal(x, y, 'amb', k, '#6a4a1a', RH.ambush.KINDS[o.kind].ic, 'today', true); });
-    if (P.defenseOpen && !P.defenseDone) nodes += seal(14, 64, 'defense', 0, '#2a3a6a', '🛡', 'defend!', true);
+    if (P.defenseOpen && !P.defenseDone) nodes += seal(10, 40, 'defense', 0, '#2a3a6a', '🛡', 'defend!', true);
     return `<svg class="map" viewBox="0 0 100 78" role="img" aria-label="Campaign map">
       <defs>
         <radialGradient id="pg" cx="50%" cy="45%" r="70%"><stop offset="0" stop-color="#f0dfae"/><stop offset="0.75" stop-color="#ddc184"/><stop offset="1" stop-color="#b8945a"/></radialGradient>

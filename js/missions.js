@@ -7,7 +7,7 @@
   RH.MISSIONS = [
     // 1 ─ find an ally in a town (solo)
     {
-      id: 'm1', rank: 0, theme: 'town', title: 'A Friend in Lockwood', place: 'Lockwood village', mapPos: [22, 60], kind: 'story',
+      id: 'm1', rank: 0, theme: 'town', title: 'A Friend in Lockwood', place: 'Lockwood village', mapPos: [20, 62], kind: 'story',
       type: 'Find an ally', captive: [2, 19], climbs: [[13, 8, 13, 6]],
       intro: 'Home from the Crusade, Robin of Locksley finds his lands seized and his name on a warrant. Only one man in Lockwood still owes him a kindness: old Wat, the steward of the manor.\n\nThe Sheriff\u2019s men hold the manor now. Get inside the yard and find Wat. Beggars hear everything; a coin may loosen a tongue.',
       outro: 'Gisela wipes the flour from her hands. \u201cThey will hang him at the Gallows Cross on market day, him and two of your old company. If you mean to stop it, go tonight.\u201d\n\nRobin pulls up his hood. Sherwood, then, and Nottingham after.',
@@ -72,7 +72,7 @@
     },
     // 2 ─ public execution rescue in the market
     {
-      id: 'm2', rank: 0, theme: 'town', title: 'The Gallows Cross', place: 'Nottingham market', mapPos: [56, 52], kind: 'story',
+      id: 'm2', rank: 0, theme: 'town', title: 'The Gallows Cross', place: 'Nottingham market', mapPos: [52, 58], kind: 'story',
       type: 'Execution rescue', captive: [13, 4], climbs: [[8, 5, 10, 5]],
       intro: 'A gallows stands in Nottingham square, and Little John stands under it with his hands tied, waiting for the Sheriff to finish his breakfast.\n\nTwo officers in capes guard the cross. Officers can\u2019t be bought with coin, and a single punch only dazes them: hit them twice. Cut John loose, then get out by the south gate. One of our old company is locked in the strongroom too.',
       outro: 'John flexes his huge hands. \u201cI\u2019d have broken the rope myself in another minute.\u201d\n\nThat night in Sherwood, old friends light a fire under the great oak. An outlaw band is born. But news comes with the dawn: Will Scarlet, the swordsman, is held at Ravenscar.',
@@ -138,7 +138,7 @@
     },
     // 3 ─ night castle rescue: scale the wall
     {
-      id: 'm3', rank: 0, theme: 'castle', title: 'Lanterns at Ravenscar', place: 'Ravenscar castle', mapPos: [80, 26], night: true, kind: 'story',
+      id: 'm3', rank: 0, theme: 'castle', title: 'Lanterns at Ravenscar', place: 'Ravenscar castle', mapPos: [78, 14], night: true, kind: 'story',
       type: 'Night rescue', captive: [7, 3], climbs: [[11, 18, 11, 16]],
       intro: 'Will Scarlet, the quickest blade in the shire, waits in a cell at Ravenscar for the hangman\u2019s cart.\n\nThe walls are lit with lanterns. Guards see less far in the dark, but anyone in lantern light is plain to see. Robin can scale the wall at the rope mark and let a rope down for John. Archers on the walls shoot from afar.',
       outro: 'Will Scarlet rubs his wrists, then grins and draws a sling from his boot. \u201cThey took my sword. They didn\u2019t think to take this.\u201d\n\nA sling, a short temper and a quick blade: the band is three. In Nottingham, a message waits for Robin at the chapel of St Anne.',
@@ -196,7 +196,7 @@
     },
     // 4 ─ social infiltration via a chain of beggars
     {
-      id: 'm4', rank: 1, theme: 'town', title: 'Vespers', place: 'Nottingham back streets', mapPos: [60, 58], night: true, kind: 'story',
+      id: 'm4', rank: 1, theme: 'town', title: 'Vespers', place: 'Nottingham back streets', mapPos: [64, 68], night: true, kind: 'story',
       type: 'Beggars\u2019 trail', captive: [22, 14],
       intro: 'A note in a lady\u2019s hand: \u201cAt vespers, St Anne\u2019s. Come alone, or come quietly.\u201d No name, only a pressed rose.\n\nThe chapel is somewhere in the back streets, and the Sheriff\u2019s men are thick on the ground. Follow the beggars: each knows a little, and each will point you to the next. Gentlemen out late will run for the watch if they see you.',
       outro: 'Lady Marian of Leaford lowers her hood. \u201cThe Sheriff dines at my father\u2019s table and talks too much. I can be your eyes in his house.\u201d\n\nShe has heard that Prince John meets his barons at Blackmere keep in three days. Whatever he plans, the outlaws mean to hear it.',
@@ -260,7 +260,7 @@
     },
     // 5 ─ fog castle: eavesdrop on the council
     {
-      id: 'm5', rank: 1, theme: 'castle', title: 'The Prince\u2019s Council', place: 'Blackmere keep', mapPos: [84, 54], weather: 'fog', kind: 'story',
+      id: 'm5', rank: 1, theme: 'castle', title: 'The Prince\u2019s Council', place: 'Blackmere keep', mapPos: [92, 38], weather: 'fog', kind: 'story',
       type: 'Eavesdrop', captive: [26, 10], climbs: [[6, 20, 6, 18]],
       intro: 'Prince John has called his barons to Blackmere keep. Fog lies thick on the moat: a gift from God, says Tuck\u2019s cousin, who sold us the plan of the hall.\n\nReach the listening gallery at the east end of the great hall and stand there unseen until you have heard enough. Knights in great helms guard the Prince: arrows glance off them. Halberdiers won\u2019t stoop for coins.',
       outro: '\u201c\u2026and while my brother rots in an Austrian prison, his ransom will rot in my treasury.\u201d\n\nKing Richard is alive and held for ransom, and the Prince means to keep him there. The outlaws will raise the ransom themselves, one stolen purse at a time. Pay into the King\u2019s Ransom chest at camp.',
@@ -319,7 +319,7 @@
     },
     // 6 ─ the friar in a hanging cage
     {
-      id: 'm6', rank: 1, theme: 'castle', title: 'The Hanging Cage', place: 'Ravenscar inner yard', mapPos: [76, 18], night: true, kind: 'story',
+      id: 'm6', rank: 1, theme: 'castle', title: 'The Hanging Cage', place: 'Ravenscar inner yard', mapPos: [62, 24], night: true, kind: 'story',
       type: 'Cage rescue', captive: [2, 4],
       intro: 'Friar Tuck preached against the Prince on Ravenscar\u2019s market cross. Now he hangs in an iron cage over the inner yard, singing hymns loudly enough to annoy the whole garrison.\n\nThe moat is too wide to swim. Shoot through the rope that holds the drawbridge plank. Inside, work the winch to lower the cage, then cut Tuck out.',
       outro: '\u201cMy knees,\u201d groans Tuck, \u201cwere not made for cages.\u201d Then, brightening: \u201cBut I know a brewer in Sherwood who owes me a favour, and my bees will be missing me.\u201d\n\nTuck brings his ale and his beehives to camp. Set men to the brewery and the skeps.',
@@ -379,7 +379,7 @@
     },
     // 7 ─ the archery contest is a trap
     {
-      id: 'm7', rank: 2, theme: 'town', title: 'The Sheriff\u2019s Tourney', place: 'Nottingham lists', mapPos: [52, 44], kind: 'story',
+      id: 'm7', rank: 2, theme: 'town', title: 'The Sheriff\u2019s Tourney', place: 'Nottingham lists', mapPos: [40, 46], kind: 'story',
       type: 'Archery contest', captive: [24, 18],
       intro: 'The Sheriff offers an arrow of silver to the finest archer in England. Every fool in the shire knows it is bait for Robin Hood, and Robin is going anyway, in a borrowed hood.\n\nHit three targets. The aim sways: loose your arrow when the ring is steady. John and Tuck are hidden in the town in case it goes wrong.',
       outro: 'They found the silver arrow afterwards, still quivering in the Sheriff\u2019s own chair. Nobody quite remembers how it got there.\n\nBut there is worse news. Sir Hugo de Vane, the Prince\u2019s man, has claimed Marian\u2019s hand. The wedding is at Blackmere church, and it is tomorrow.',
@@ -446,7 +446,7 @@
     },
     // 8 ─ crash a forced wedding
     {
-      id: 'm8', rank: 2, theme: 'town', title: 'Bells for a Bride', place: 'Blackmere church', mapPos: [88, 46], kind: 'story',
+      id: 'm8', rank: 2, theme: 'town', title: 'Bells for a Bride', place: 'Blackmere church', mapPos: [90, 62], kind: 'story',
       type: 'Wedding rescue', captive: [26, 19],
       intro: 'The bells of Blackmere ring for a wedding nobody wants. Marian stands at the altar beside Sir Hugo de Vane, and half the Prince\u2019s guard stands in the square.\n\nRaise the King\u2019s banner over the east gate: every loyal Prince\u2019s man in the square will run to tear it down. Then storm the church, free Marian and beat Sir Hugo. He is a master swordsman and won\u2019t leave the church: retreat and heal if you must.',
       outro: 'Sir Hugo de Vane is found that evening, still tied to the bell rope, ringing every time he struggles.\n\nMarian is safe. But in the rush, Robin was taken at the church door and dragged to Nottingham gaol. Without him, the band must find its own way.',
@@ -510,7 +510,7 @@
     },
     // 9 ─ the leader is captured: play without him
     {
-      id: 'm9', rank: 2, theme: 'town', title: 'The Captain Taken', place: 'Nottingham gaol', mapPos: [58, 40], weather: 'fog', kind: 'story',
+      id: 'm9', rank: 2, theme: 'town', title: 'The Captain Taken', place: 'Nottingham gaol', mapPos: [54, 38], weather: 'fog', kind: 'story',
       type: 'Escape', captive: [8, 2], climbs: [[5, 10, 5, 8]],
       intro: 'Robin is in Nottingham gaol, and the Sheriff has sent to London for a hangman worthy of him.\n\nWithout Robin, Marian or Will can climb at the rope mark. The sergeant of the watch checks on his gate guard every round: if the man is missing, he rings the alarm. Charm him, slip past him, or leave him standing.',
       outro: '\u201cYou took your time,\u201d says Robin, which Marian points out is her line.\n\nIn the gaol office they find a sealed letter, taken from a royal messenger. It bears King Richard\u2019s own seal, and it must reach the Queen Mother\u2019s boatman at Blackmere docks before dawn.',
@@ -570,7 +570,7 @@
     },
     // 10 ─ carry a letter, no killing
     {
-      id: 'm10', rank: 3, theme: 'town', title: 'The Midnight Letter', place: 'Blackmere docks', mapPos: [92, 62], night: true, kind: 'story',
+      id: 'm10', rank: 3, theme: 'town', title: 'The Midnight Letter', place: 'Blackmere docks', mapPos: [77, 72], night: true, kind: 'story',
       type: 'Courier', captive: [2, 5],
       intro: 'King Richard\u2019s letter must reach the boatman at the end of the north pier tonight. Whoever carries it walks at full speed, but hold on to it: if he falls, it falls with him.\n\nThe Queen Mother has asked one thing. Not a drop of blood tonight: a single death and the boatman will not sail. Use nets, ale, the sling and bare fists.',
       outro: 'The boatman tucks the letter inside his coat and pushes off into the mist without a word.\n\nIn a week, the barons will know the King lives. Some will stay loyal to the Prince. Some will march with us. Robin calls them to Blackmere.',
@@ -630,7 +630,7 @@
     },
     // 11 ─ the march: take the blazon points, ring the bell
     {
-      id: 'm11', rank: 3, theme: 'castle', title: 'The March on Blackmere', place: 'Blackmere walls', mapPos: [86, 36], weather: 'snow', kind: 'story',
+      id: 'm11', rank: 3, theme: 'castle', title: 'The March on Blackmere', place: 'Blackmere walls', mapPos: [80, 48], weather: 'snow', kind: 'story',
       type: 'Siege', captive: [25, 9],
       intro: 'Snow on the road, and two hundred loyal men waiting in the woods for a signal. Blackmere\u2019s banners must come down before they march.\n\nTake the three blazon points (stand on each with no enemy close by), then ring the chapel bell in the inner yard. The King\u2019s men will pour in. Then take the captain of the keep.',
       outro: 'Blackmere falls by nightfall. The Prince\u2019s captains surrender their swords to a ragged band in Lincoln green.\n\nOnly the Sheriff remains, in his keep at Nottingham, sitting on the taxes of three shires. And the King\u2019s ransom is not yet paid.',
@@ -695,7 +695,7 @@
     },
     // 12 ─ the final challenge
     {
-      id: 'm12', rank: 3, theme: 'castle', title: 'The Last Arrow', place: 'The Sheriff\u2019s keep', mapPos: [62, 48], night: true, kind: 'story',
+      id: 'm12', rank: 3, theme: 'castle', title: 'The Last Arrow', place: 'The Sheriff\u2019s keep', mapPos: [67, 50], night: true, kind: 'story',
       type: 'Final challenge', climbs: [[6, 20, 6, 18]], needRansom: true,
       intro: 'The ransom is paid, and King Richard is on the road home. One debt is left to settle.\n\nThe band goes in from two sides: Robin, Marian and Will by the moat, John and Tuck from the hay cart already inside the lower yard. Capture the Sheriff alive and tie him up, take the tax chest from the treasury, and get everyone out over the moat.',
       outro: 'The Sheriff, trussed like a Michaelmas goose, is left on the abbey steps with a note pinned to his cloak, in a hand that every child in the shire now knows.\n\nThe taxes go home. The King comes home. And somewhere in Sherwood an arrow is fitted to a string, just in case.',
