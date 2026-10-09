@@ -16,7 +16,16 @@
 
   ui.init = function (cv) {
     canvas = cv;
+    RH.art && RH.art.init();
     setupInput();
+    $('minibox').addEventListener('click', (e) => {
+      if (!G.m) return;
+      const mm = $('minimap'), r = mm.getBoundingClientRect();
+      if (e.clientY > r.bottom + 2) { $('objbox').classList.toggle('collapsed'); return; }
+      const M = RH.render.mini; if (!M) return;
+      const w = RH.render.miniToWorld((e.clientX - r.left) / r.width * M.w, (e.clientY - r.top) / r.height * M.h);
+      if (w) { RH.main.centerOn(w.x, w.y); sfx('tap'); }
+    });
     $('btnPause').addEventListener('click', () => { sfx('tap'); ui.showPause(); });
     $('btnSound').addEventListener('click', () => { toggleSound(); });
     $('tipok').addEventListener('click', () => ui.closeTip());
@@ -65,24 +74,28 @@
     const s = $('screen');
     s.classList.remove('hidden');
     s.classList.toggle('overlay', !!overlay);
+    const isTitle = screenName === 'title';
+    s.classList.toggle('titlescr', isTitle);
+    $('titlebg').classList.toggle('hidden', !isTitle);
     $('screenInner').innerHTML = html;
     s.scrollTop = 0;
     s.querySelectorAll('[data-act]').forEach((el) => el.addEventListener('click', (e) => { e.stopPropagation(); sfx('tap'); onAct(el.dataset.act, el.dataset.arg, el); }));
-    s.querySelectorAll('canvas[data-por]').forEach((c) => RH.render.portrait(c, c.dataset.por));
+    s.querySelectorAll('canvas[data-por]').forEach((c) => {
+      const rid = c.dataset.rid, rec = rid && RH.profile.recruits.find((r) => r.id === rid);
+      RH.render.portrait(c, c.dataset.por, rec ? RH.recruitDef(rec) : undefined);
+    });
     updateSoundBtn();
   }
-  function hideScreen() { $('screen').classList.add('hidden'); screenName = null; }
+  function hideScreen() { $('screen').classList.add('hidden'); $('titlebg').classList.add('hidden'); screenName = null; }
   ui.screen = () => screenName;
 
   function crestSVG() {
-    return `<svg class="crest" viewBox="0 0 100 100" aria-hidden="true">
-      <defs><radialGradient id="cg" cx="50%" cy="40%" r="60%"><stop offset="0" stop-color="#5f9a3a"/><stop offset="1" stop-color="#1f3a14"/></radialGradient></defs>
-      <path d="M50 4 L90 18 L86 58 Q80 84 50 96 Q20 84 14 58 L10 18 Z" fill="url(#cg)" stroke="#f2c94c" stroke-width="3"/>
-      <path d="M30 70 Q50 18 70 70" fill="none" stroke="#7a4a22" stroke-width="5" stroke-linecap="round"/>
-      <line x1="34" y1="58" x2="66" y2="58" stroke="#efe6c8" stroke-width="1.6"/>
-      <line x1="22" y1="78" x2="78" y2="30" stroke="#e8d8a8" stroke-width="3" stroke-linecap="round"/>
-      <path d="M78 30 l-9 1 l5 5 z" fill="#ddd"/><path d="M22 78 l2 -7 l5 5 z" fill="#c33"/>
-      <path d="M36 30 q8 -14 20 -10 l-26 8 z" fill="#2f5e1f" stroke="#1b140d"/><path d="M38 26 q-6 -8 -12 -6" stroke="#d23b2e" stroke-width="2.5" fill="none"/>
+    return `<svg viewBox="0 0 100 100" aria-hidden="true">
+      <path d="M50 6 Q70 18 66 42 Q62 62 50 70 Q38 62 34 42 Q30 18 50 6 Z" fill="#2f6a1e" stroke="#e8c25a" stroke-width="3"/>
+      <path d="M50 14 L50 66" stroke="#9ad85a" stroke-width="1.6"/>
+      <path d="M50 26 L40 20 M50 36 L38 30 M50 46 L40 42 M50 26 L60 20 M50 36 L62 30 M50 46 L60 42" stroke="#9ad85a" stroke-width="1.4"/>
+      <path d="M18 80 Q50 50 82 80" fill="none" stroke="#7a4a22" stroke-width="5" stroke-linecap="round"/>
+      <path d="M22 92 L78 50" stroke="#efe6c8" stroke-width="2.4" stroke-linecap="round"/><path d="M78 50 l-8 1 l4 5 z" fill="#ddd"/><path d="M24 90 l0 -7 l6 4 z" fill="#c33"/>
     </svg>`;
   }
 
@@ -90,26 +103,34 @@
     screenName = 'title';
     $('hud').classList.add('hidden');
     const has = RH.hasSave();
-    show(`<div class="title">${crestSVG()}
-      <h1>Outlaws of<br>Sherwood</h1>
-      <div class="sub">A Robin Hood stealth adventure</div>
-      ${has ? '<button class="btn" data-act="continue">▶ Continue</button>' : ''}
-      <button class="btn ${has ? 'sec' : ''}" data-act="newgame">${has ? '✦ New game' : '▶ Start the adventure'}</button>
-      <button class="btn sec" data-act="howto">📜 How to play</button>
-      <button class="btn sec" data-act="sound" data-sound>🔇 Sound: off</button>
-      <div class="foot">Best in portrait. Tip: Share → Add to Home Screen to play full screen and offline.</div>
+    show(`<div class="title">
+      <div class="logo">${crestSVG()}<div class="l1">Outlaws</div><div class="l2">of Sherwood</div></div>
+      <div class="sub">Rob the rich. Feed the poor. Never be seen.</div>
+      <div class="titlepanel">
+      ${has ? '<button class="btn prim" data-act="continue">▶ Continue</button>' : ''}
+      <button class="btn ${has ? '' : 'prim'}" data-act="newgame">${has ? '✦ New game' : '▶ Begin the legend'}</button>
+      <div class="row"><button class="btn" data-act="howto">📜 How to play</button><button class="btn" data-act="sound" data-sound>🔇</button></div>
+      <div class="foot">Best in portrait. Share → Add to Home Screen to play full screen and offline.</div>
+      </div>
     </div>`);
+    // paint the backdrop after the menu shows (building the scene takes a moment)
+    setTimeout(() => { if (screenName === 'title') RH.art.drawTitle($('titlebg')); }, 30);
   };
+  window.addEventListener('resize', () => { if (screenName === 'title') RH.art.drawTitle($('titlebg')); });
 
   ui.showHowto = function (back) {
     screenName = 'howto';
-    show(`<div class="card"><h2>How to play</h2><ul class="help">
+    show(`<div class="card scroll"><h2>How to play</h2><ul class="help">
       <li><b>Tap a portrait</b> to choose an outlaw. Tap it again (or 👥 All) to move the whole band.</li>
       <li><b>Tap the ground</b> to walk. <b>Drag</b> to look around, <b>pinch</b> to zoom.</li>
       <li><b>Red wedges</b> are what guards see. Yellow means suspicious (?), bright red means you’ve been spotted (!).</li>
       <li><b>🦶 Sneak</b> makes you much harder to spot. <b>Bushes and hay</b> hide you.</li>
       <li><b>Tap a guard</b> from behind to knock him out. <b>Tap the body</b> to tie him up before he wakes.</li>
       <li><b>Long-press</b> a guard or body for more choices: carry, shoot, charm…</li>
+      <li><b>Sword fights: swipe across a guard.</b> Sideways ↔ is a quick slash. Downward ↓ is a heavy overhead blow that leaves him reeling, but it is often blocked. Upward ↑ is a thrust that can’t be blocked. A quick back-and-forth ↺ parries his next blow and leaves him open.</li>
+      <li><b>🧗 Climbing:</b> scuffed hand-holds on a wall mark a spot Robin can climb. Tap it with Robin selected. Once he is up he lets down a rope, and the rest of the band can follow.</li>
+      <li><b>Captured outlaws</b> (🔗) are held in some missions. Cut them loose and they join your band. Give gold to the poor at camp to win popularity: volunteers come to join you.</li>
+      <li><b>Camp jobs:</b> men who stay in camp fletch arrows, brew draughts, hunt or train while you’re away.</li>
       <li>Each outlaw has a special skill on the action bar. Robin: bow. Little John: long knockouts and fast carrying. Marian: charm. Tuck: heal and beehives. Will Scarlet: coin purses.</li>
       <li><b>⏸ Pause</b> any time. You can give orders while paused.</li>
       <li>Earn ★ for finishing, staying unseen and sparing lives. Spend gold at camp.</li>
@@ -117,50 +138,79 @@
     <button class="btn" data-act="${back || 'title'}">◀ Back</button>`);
   };
 
+  // Parchment campaign map of the shire: forest, river, roads, town, castle and mission seals
   function mapSVG() {
     const P = RH.profile;
     const r = RH.rng(7);
     let trees = '';
-    for (let i = 0; i < 70; i++) {
-      const x = 4 + r() * 50, y = 22 + r() * 50;
-      trees += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(2 + r() * 2).toFixed(1)}" fill="${r() < 0.5 ? '#3f6d2a' : '#2f5a22'}" opacity="0.85"/>`;
+    const tree = (x, y, s, col) => `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${s.toFixed(2)})"><path d="M0 2.4 L0 0.6" stroke="#5a3a1a" stroke-width="0.5"/><path d="M-1.6 1 Q-2 -1.4 0 -2.2 Q2 -1.4 1.6 1 Z" fill="${col}" stroke="#3a2a10" stroke-width="0.25"/></g>`;
+    for (let i = 0; i < 150; i++) {
+      const x = 3 + r() * 52, y = 18 + r() * 56;
+      if ((x - 30) ** 2 / 900 + (y - 48) ** 2 / 900 > 1) continue;
+      trees += tree(x, y, 0.9 + r() * 0.8, r() < 0.15 ? '#9a6a2a' : r() < 0.5 ? '#4a6a2a' : '#3a5a22');
     }
-    for (let i = 0; i < 18; i++) {
-      const x = 60 + r() * 36, y = 52 + r() * 20;
-      trees += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(1.5 + r() * 1.5).toFixed(1)}" fill="#4a7a30" opacity="0.7"/>`;
-    }
+    for (let i = 0; i < 22; i++) { const x = 62 + r() * 34, y = 56 + r() * 16; trees += tree(x, y, 0.7 + r() * 0.4, '#5a7a32'); }
+    let fields = '';
+    for (let i = 0; i < 9; i++) { const x = 64 + r() * 28, y = 30 + r() * 18; fields += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${(4 + r() * 4).toFixed(1)}" height="${(2.5 + r() * 2).toFixed(1)}" fill="${r() < 0.5 ? '#c8b06a' : '#a8a05a'}" opacity="0.55" transform="rotate(${(r() * 30 - 15).toFixed(0)} ${x.toFixed(1)} ${y.toFixed(1)})"/>`; }
     let nodes = '', lines = '';
     RH.MISSIONS.forEach((m, i) => {
       const [x, y] = m.mapPos;
-      if (i > 0) { const [px, py] = RH.MISSIONS[i - 1].mapPos; lines += `<path d="M${px} ${py} Q${(px + x) / 2 + 4} ${(py + y) / 2 + 6} ${x} ${y}" stroke="#7a1f14" stroke-width="0.9" stroke-dasharray="2 1.6" fill="none" opacity="${i < P.unlocked ? 0.9 : 0.3}"/>`; }
+      if (i > 0) { const [px, py] = RH.MISSIONS[i - 1].mapPos; lines += `<path d="M${px} ${py} Q${(px + x) / 2 + 4} ${(py + y) / 2 + 6} ${x} ${y}" stroke="#7a1f14" stroke-width="0.8" stroke-dasharray="1.6 1.4" fill="none" opacity="${i < P.unlocked ? 0.85 : 0.25}"/>`; }
       const open = i < P.unlocked;
       const st = P.stars[i] || 0;
       const starTxt = open ? '★'.repeat(st) + '☆'.repeat(3 - st) : '';
+      const next = open && !st;
       nodes += `<g data-act="${open ? 'brief' : 'locked'}" data-arg="${i}" style="cursor:pointer">
-        <circle cx="${x}" cy="${y}" r="7" fill="transparent"/>
-        <circle cx="${x}" cy="${y}" r="5" fill="${open ? (st ? '#3f6d2a' : '#b8401f') : '#8a7a5a'}" stroke="#2a1a0a" stroke-width="0.8"/>
-        <text x="${x}" y="${y + 1.7}" text-anchor="middle" font-size="5" font-weight="800" fill="#fff">${open ? i + 1 : '🔒'}</text>
-        <text x="${x}" y="${y + 9.5}" text-anchor="middle" font-size="3.6" fill="#7a4a10">${starTxt}</text>
+        <circle cx="${x}" cy="${y}" r="7.5" fill="transparent"/>
+        ${next ? `<circle cx="${x}" cy="${y}" r="6.6" fill="none" stroke="#e8a417" stroke-width="0.8"><animate attributeName="r" values="5.6;7.4;5.6" dur="1.6s" repeatCount="indefinite"/></circle>` : ''}
+        <circle cx="${x}" cy="${y}" r="4.8" fill="${open ? (st ? '#2f6a1e' : '#9a1f12') : '#8a7a5a'}" stroke="#3a1a08" stroke-width="0.7"/>
+        <circle cx="${x}" cy="${y}" r="3.6" fill="none" stroke="${open ? '#f0c060' : '#b0a080'}" stroke-width="0.35"/>
+        <text x="${x}" y="${y + 1.6}" text-anchor="middle" font-size="4.4" font-weight="800" font-family="Georgia" fill="#fff4d0">${open ? i + 1 : '?'}</text>
+        <text x="${x}" y="${y + 9.6}" text-anchor="middle" font-size="3.4" fill="#7a3a08">${starTxt}</text>
       </g>`;
     });
-    return `<svg class="map" viewBox="0 0 100 78">
-      <rect x="0" y="0" width="100" height="78" fill="#ead9a6"/>
-      <path d="M0 6 Q30 2 60 8 T100 4" stroke="#c9b27a" stroke-width="0.6" fill="none"/>
-      ${trees}
-      <path d="M100 30 Q80 36 74 48 T60 78" stroke="#5a8fb0" stroke-width="2.4" fill="none" opacity="0.8"/>
-      <path d="M44 0 L44 78" stroke="#a8875a" stroke-width="1.2" stroke-dasharray="3 1.5" opacity="0.7"/>
-      <g transform="translate(60 33)"><rect x="-6" y="-4" width="12" height="8" fill="#b9a888" stroke="#3a2a1a" stroke-width="0.6"/><path d="M-7 -4 L0 -9 L7 -4 Z" fill="#9a3a24" stroke="#3a2a1a" stroke-width="0.6"/></g>
-      <g transform="translate(82 15)"><rect x="-7" y="-3" width="14" height="8" fill="#a89a80" stroke="#3a2a1a" stroke-width="0.6"/><rect x="-8" y="-7" width="4" height="12" fill="#a89a80" stroke="#3a2a1a" stroke-width="0.6"/><rect x="4" y="-7" width="4" height="12" fill="#a89a80" stroke="#3a2a1a" stroke-width="0.6"/></g>
-      <text x="20" y="18" font-size="4.4" font-family="Georgia" font-style="italic" fill="#2f5a22">Sherwood Forest</text>
-      <text x="60" y="42" text-anchor="middle" font-size="3.6" font-family="Georgia" fill="#5a3a14">Nottingham</text>
-      <g transform="translate(93 50)"><rect x="-3" y="-6" width="6" height="10" fill="#8a7a60" stroke="#3a2a1a" stroke-width="0.5"/><path d="M-4 -6 h8 v-2 h-2 v1 h-1 v-1 h-2 v1 h-1 v-1 h-2 z" fill="#8a7a60" stroke="#3a2a1a" stroke-width="0.4"/></g>
-      <g transform="translate(8 74)"><path d="M-4 3 L0 -4 L4 3 Z" fill="#d8c79e" stroke="#3a2a1a" stroke-width="0.5"/><text x="6" y="2" font-size="3.4" fill="#2f5a22">Our camp</text></g>
+    return `<svg class="map" viewBox="0 0 100 78" role="img" aria-label="Campaign map">
+      <defs>
+        <radialGradient id="pg" cx="50%" cy="45%" r="70%"><stop offset="0" stop-color="#f0dfae"/><stop offset="0.75" stop-color="#ddc184"/><stop offset="1" stop-color="#b8945a"/></radialGradient>
+        <pattern id="hatch" width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><line x1="0" y1="0" x2="0" y2="2" stroke="#8a6a3a" stroke-width="0.25" opacity="0.5"/></pattern>
+      </defs>
+      <rect x="0" y="0" width="100" height="78" fill="url(#pg)"/>
+      <ellipse cx="30" cy="48" rx="29" ry="29" fill="#7a9a4a" opacity="0.18"/>
+      <path d="M58 0 Q64 10 70 8 T86 16" fill="none" stroke="#9a8a6a" stroke-width="0.3"/>
+      <path d="M2 4 Q12 1 24 6 Q30 9 38 5" fill="none" stroke="url(#hatch)" stroke-width="5" opacity="0.6"/>
+      ${fields}${trees}
+      <path d="M100 26 Q84 30 76 44 Q70 56 72 66 T64 78" stroke="#4a7a98" stroke-width="2.6" fill="none" opacity="0.75"/>
+      <path d="M100 26 Q84 30 76 44 Q70 56 72 66 T64 78" stroke="#a8c8d8" stroke-width="0.6" fill="none" opacity="0.7"/>
+      <path d="M36 0 Q38 20 36 32 Q34 50 40 78" stroke="#8a6a3a" stroke-width="1" stroke-dasharray="2.4 1.2" fill="none" opacity="0.8"/>
+      <path d="M36 32 Q48 40 58 48 Q70 54 84 58" stroke="#8a6a3a" stroke-width="0.9" stroke-dasharray="2.4 1.2" fill="none" opacity="0.8"/>
+      <g transform="translate(60 58)">
+        <path d="M-9 -2 L-9 6 L9 6 L9 -2" fill="none" stroke="#5a4a3a" stroke-width="0.6"/>
+        <rect x="-7" y="-1" width="4" height="4" fill="#d8c8a0" stroke="#3a2a1a" stroke-width="0.3"/><path d="M-7.6 -1 L-5 -3.4 L-2.4 -1 Z" fill="#9a3a24" stroke="#3a2a1a" stroke-width="0.3"/>
+        <rect x="-1.5" y="-2" width="4" height="5" fill="#d8c8a0" stroke="#3a2a1a" stroke-width="0.3"/><path d="M-2.1 -2 L0.5 -4.8 L3.1 -2 Z" fill="#8a3420" stroke="#3a2a1a" stroke-width="0.3"/>
+        <rect x="4" y="0" width="3.5" height="3.5" fill="#d8c8a0" stroke="#3a2a1a" stroke-width="0.3"/><path d="M3.4 0 L5.75 -2.4 L8.1 0 Z" fill="#9a3a24" stroke="#3a2a1a" stroke-width="0.3"/>
+      </g>
+      <g transform="translate(70 17)">
+        <rect x="-7" y="-3" width="14" height="8" fill="#b8ac90" stroke="#3a2a1a" stroke-width="0.5"/>
+        <path d="M-7 -3 h2 v-1.2 h1.4 v1.2 h1.6 v-1.2 h1.4 v1.2 h1.6 v-1.2 h1.4 v1.2 h1.6 v-1.2 h1.4 v1.2 h2" fill="none" stroke="#3a2a1a" stroke-width="0.4"/>
+        <rect x="-9" y="-6" width="4" height="11" fill="#b8ac90" stroke="#3a2a1a" stroke-width="0.5"/><path d="M-9.6 -6 L-7 -9.6 L-4.4 -6 Z" fill="#6a5a7a" stroke="#3a2a1a" stroke-width="0.4"/>
+        <rect x="5" y="-6" width="4" height="11" fill="#b8ac90" stroke="#3a2a1a" stroke-width="0.5"/><path d="M4.4 -6 L7 -9.6 L9.6 -6 Z" fill="#6a5a7a" stroke="#3a2a1a" stroke-width="0.4"/>
+        <rect x="-1.4" y="1" width="2.8" height="4" fill="#3a2a1a"/>
+      </g>
+      <g transform="translate(90 60)"><rect x="-3" y="-6" width="6" height="10" fill="#a89a80" stroke="#3a2a1a" stroke-width="0.5"/><path d="M-3.6 -6 L0 -9.6 L3.6 -6 Z" fill="#6a5a7a" stroke="#3a2a1a" stroke-width="0.4"/></g>
+      <g transform="translate(9 72)"><path d="M-3.5 2.5 L0 -3 L3.5 2.5 Z" fill="#e8d8a8" stroke="#3a2a1a" stroke-width="0.4"/><path d="M1 2.5 L4 -1.5 L7 2.5 Z" fill="#d8c898" stroke="#3a2a1a" stroke-width="0.4"/><circle cx="-5" cy="2" r="0.9" fill="#e86a20"/></g>
+      <text x="21" y="16" font-size="5" font-family="Palatino, Georgia" font-style="italic" fill="#2a4a1a" opacity="0.9">Sherwood Forest</text>
+      <text x="60" y="65" text-anchor="middle" font-size="3.6" font-family="Palatino, Georgia" fill="#4a2a10">Nottingham</text>
+      <text x="70" y="26.5" text-anchor="middle" font-size="3" font-family="Palatino, Georgia" fill="#4a2a10">the Castle</text>
+      <text x="88" y="45" font-size="2.8" font-family="Palatino, Georgia" font-style="italic" fill="#2a5a7a" transform="rotate(-50 88 45)">river</text>
+      <text x="14" y="77" font-size="3" font-family="Palatino, Georgia" fill="#2a4a1a">our camp</text>
       ${lines}${nodes}
-      <g transform="translate(92 70)"><circle r="5" fill="none" stroke="#7a5a2a" stroke-width="0.5"/><text y="-5.8" text-anchor="middle" font-size="3" fill="#7a5a2a">N</text><path d="M0 -4 L1.4 0 L0 4 L-1.4 0 Z" fill="#7a5a2a"/></g>
+      <g transform="translate(93 9)"><circle r="5" fill="none" stroke="#6a4a1a" stroke-width="0.5"/><text y="-5.8" text-anchor="middle" font-size="3" fill="#6a4a1a">N</text><path d="M0 -4 L1.4 0 L0 4 L-1.4 0 Z" fill="#6a4a1a"/></g>
+      <rect x="0.6" y="0.6" width="98.8" height="76.8" fill="none" stroke="#6a4a1a" stroke-width="0.6"/>
     </svg>`;
   }
 
-  ui.showCamp = function () {
+  const jobName = (id) => (RH.JOBS.find((j) => j.id === id) || RH.JOBS[0]);
+  ui.showCamp = function (note) {
     screenName = 'camp';
     $('hud').classList.add('hidden');
     const P = RH.profile;
@@ -174,39 +224,70 @@
       const can = !owned && P.gold >= it.cost;
       const extra = it.id === 'arrows' ? ` (have ${P.arrows})` : it.id === 'potion' ? ` (have ${P.potions})` : '';
       return `<div class="shopitem"><div class="d"><b>${esc(it.name)}</b>${extra}<br>${esc(it.desc)}</div>
-        <button data-act="buy" data-arg="${it.id}" ${can ? '' : 'disabled'}>${owned ? 'Owned' : '🪙 ' + it.cost}</button></div>`;
+        <button data-act="buy" data-arg="${it.id}" ${can ? '' : 'disabled'}>${owned ? 'Owned' : '£ ' + it.cost}</button></div>`;
     }).join('');
     const next = Math.min(P.unlocked, RH.MISSIONS.length) - 1;
     const allDone = P.stars.filter((s) => s > 0).length >= RH.MISSIONS.length;
     const list = RH.MISSIONS.map((m, i) => i < P.unlocked
-      ? `<button class="btn ${i === next && !P.stars[i] ? '' : 'sec'}" data-act="brief" data-arg="${i}">${i + 1}. ${esc(m.title)} <span style="color:#f2c94c">${'★'.repeat(P.stars[i] || 0)}</span></button>`
-      : `<button class="btn sec" disabled style="opacity:.45">🔒 ${i + 1}. ???</button>`).join('');
-    show(`<div class="hdr"><h1>Sherwood Camp</h1><div class="goldpill">🪙 ${P.gold}</div></div>
+      ? `<button class="btn ${i === next && !P.stars[i] ? 'prim' : ''}" data-act="brief" data-arg="${i}">${i + 1}. ${esc(m.title)} <span style="color:#f2c94c">${'★'.repeat(P.stars[i] || 0)}</span></button>`
+      : `<button class="btn" disabled>🔒 ${i + 1}. ???</button>`).join('');
+    // popularity
+    const nxt = RH.nextPopStep(P.pop);
+    const prev = [0].concat(RH.POP_STEPS).filter((s) => s <= P.pop).pop() || 0;
+    const k = nxt ? (P.pop - prev) / (nxt - prev) : 1;
+    const alms = [10, 25, 50].map((v) => `<button class="btn" data-act="alms" data-arg="${v}" ${P.gold >= v ? '' : 'disabled'}>£ ${v}</button>`).join('');
+    // merry men and their camp jobs
+    const men = P.recruits.length ? P.recruits.map((rc) => {
+      const d = RH.recruitDef(rc);
+      return `<div class="recruit"><canvas data-por="outlaw" data-rid="${rc.id}" width="52" height="52"></canvas>
+        <div class="info"><b>${esc(rc.name)}</b><small>Health ${d.hp}${rc.train ? ' (trained +' + rc.train + ')' : ''} · ${esc(jobName(rc.job).name)}: ${esc(jobName(rc.job).desc)}</small>
+        <div class="jobs">${RH.JOBS.map((j) => `<button class="${rc.job === j.id ? 'on' : ''}" data-act="job" data-arg="${rc.id}:${j.id}" aria-label="${esc(j.name)}" title="${esc(j.name)}">${j.ic}</button>`).join('')}</div></div></div>`;
+    }).join('') : '<p class="small-note">No outlaws have joined yet. Free captured men on missions, or give to the poor until volunteers come.</p>';
+    show(`<div class="hdr"><h1>Sherwood Camp</h1><div class="pills"><div class="goldpill">£ ${P.gold}</div><div class="goldpill">♥ ${Math.floor(P.pop)}</div><div class="goldpill">Day ${P.day}</div></div></div>
+      ${note ? `<div class="card"><p>${note}</p></div>` : ''}
       ${allDone ? '<div class="card"><p><b>Every mission is won!</b> Replay any of them to earn more stars and gold.</p></div>' : ''}
-      <div style="margin-top:12px">${mapSVG()}</div>
+      <div class="mapwrap">${mapSVG()}</div>
       <div style="margin-top:6px">${list}</div>
+      <div class="card scroll"><h2>The poor of the shire</h2>
+        <p class="small-note">Give gold to the villagers to raise your popularity. Every so often word spreads and a volunteer walks into camp.</p>
+        <div class="popbar"><i style="width:${Math.round(RH.clamp(k, 0, 1) * 100)}%"></i></div>
+        <div class="small-note">Popularity ${Math.floor(P.pop)}${nxt ? ` · next volunteer at ${nxt}` : ' · the whole shire is with you'} · given so far £ ${P.given}</div>
+        <div class="alms">${alms}</div></div>
+      <div class="card scroll"><h2>Merry men</h2><p class="small-note">Men left in camp work while the band is away. Their work is done each time you win a mission.</p>${men}</div>
       <div class="card"><h2>The band</h2><div class="band">${band}</div></div>
       <div class="card"><h2>Supplies</h2><div class="small-note">Arrows ${P.arrows} · Healing draughts ${P.potions}</div>${shop}</div>
-      <div class="row"><button class="btn sec" data-act="howto" data-arg="camp">📜 How to play</button><button class="btn sec" data-act="sound" data-sound>🔇</button></div>
-      <button class="btn sec" data-act="title">◀ Title screen</button>`);
+      <div class="row"><button class="btn" data-act="howto" data-arg="camp">📜 How to play</button><button class="btn" data-act="sound" data-sound>🔇</button></div>
+      <button class="btn" data-act="title">◀ Title screen</button>`);
   };
 
-  ui.showBrief = function (i) {
+  let briefPick = [];
+  ui.showBrief = function (i, keep) {
     screenName = 'brief';
     const m = RH.MISSIONS[i];
+    const P = RH.profile;
     const roster = Object.keys(m.heroes);
     const objText = {
       rescue: m.prisoner && m.prisoner.id === 'tuck' ? 'Free Friar Tuck from his cell' : 'Free Hob from the pen',
       steal: 'Steal the tax chest', convoy: 'Stop the cart and take its chest', sheriff: 'Capture the Sheriff alive',
       exit: 'Bring everyone to the exit', noalarm: 'Don’t let the alarm be raised',
     };
-    show(`<div class="card"><div class="place">${esc(m.place)}${m.night ? ' · Night' : ''}</div><h2>${i + 1}. ${esc(m.title)}</h2>
+    const slots = m.slots || 0;
+    if (!keep) {
+      briefPick = (P.band || []).filter((id) => P.recruits.some((r) => r.id === id)).slice(0, slots);
+      for (const r of P.recruits) { if (briefPick.length >= slots) break; if (!briefPick.includes(r.id) && r.job === 'rest') briefPick.push(r.id); }
+    }
+    const men = slots && P.recruits.length ? `<h3>Merry men (${briefPick.length}/${slots})</h3>
+      <div class="band">${P.recruits.map((rc) => `<div class="member pick ${briefPick.includes(rc.id) ? 'on' : ''}" data-act="pick" data-arg="${i}:${rc.id}"><canvas data-por="outlaw" data-rid="${rc.id}" width="72" height="72"></canvas><div>${esc(rc.name.split(' ')[0])}</div></div>`).join('')}</div>
+      <p class="small-note">Tap to bring a man along. Men on a mission don’t work in camp that day.</p>` : '';
+    show(`<div class="card scroll"><div class="place">${esc(m.place)}${m.night ? ' · Night' : ''}</div><h2>${i + 1}. ${esc(m.title)}</h2>
       <p>${esc(m.intro)}</p>
-      <h3>Objectives</h3><ul class="objs">${m.objectives.map((o) => `<li>${esc(objText[o])}</li>`).join('')}</ul>
+      <h3>Objectives</h3><ul class="objs">${m.objectives.map((o) => `<li>${esc(objText[o])}</li>`).join('')}${m.captive ? '<li><i>Optional:</i> free a captured outlaw. He’ll join the band</li>' : ''}</ul>
       <h3>Your band</h3><div class="band">${roster.map((k) => `<div class="member"><canvas data-por="${k}" width="72" height="72"></canvas><div>${esc(RH.HEROES[k].name)}</div></div>`).join('')}</div>
+      ${men}
+      ${m.climbs && m.climbs.length ? '<p class="small-note">🧗 There is a place here where Robin can climb the wall.</p>' : ''}
       <p class="small-note">★ Finish · ★ Never spotted, no alarm · ★ Nobody killed</p></div>
-      <button class="btn" data-act="begin" data-arg="${i}">⚔️ Begin mission</button>
-      <button class="btn sec" data-act="camp">◀ Back to camp</button>`);
+      <button class="btn prim" data-act="begin" data-arg="${i}">⚔️ Begin mission</button>
+      <button class="btn" data-act="camp">◀ Back to camp</button>`);
   };
 
   ui.showPause = function () {
@@ -241,11 +322,11 @@
         <div class="stat"><span>Finished</span><b>★</b></div>
         <div class="stat"><span>Never spotted, no alarm</span><b>${!st.spotted && !st.alarm ? '★' : '—'}</b></div>
         <div class="stat"><span>Nobody killed</span><b>${st.kills === 0 ? '★' : '—'}</b></div>
-        <div class="stat"><span>Gold found</span><b>🪙 ${st.gold}</b></div>
+        <div class="stat"><span>Gold found</span><b>£ ${st.gold}</b></div>
         <div class="stat"><span>Knocked out / slain</span><b>${st.ko} / ${st.kills}</b></div>
         <div class="stat"><span>Time</span><b>${fmtTime(st.time)}</b></div>
-        <div class="stat"><span>Reward</span><b>🪙 ${reward}</b></div>
-        </div><p style="text-align:left">${esc(G.m.outro)}</p></div>
+        <div class="stat"><span>Reward</span><b>£ ${reward}</b></div>
+        </div>${newsHTML(G.campNews)}<p style="text-align:left">${esc(G.m.outro)}</p></div>
         <button class="btn" data-act="camp">🏕 Back to camp</button>
         <button class="btn sec" data-act="retry">↻ Play again for more stars</button>`, true);
     } else {
@@ -254,6 +335,18 @@
         <button class="btn" data-act="retry">↻ Try again</button>
         <button class="btn sec" data-act="camp">🏕 Back to camp</button>`, true);
     }
+  }
+  function newsHTML(n) {
+    if (!n) return '';
+    const bits = [];
+    bits.push(`Word spreads: popularity +${n.popGain}.`);
+    for (const r of n.joined) bits.push(`<b>${esc(r.name)}</b> has joined the band.`);
+    for (const r of n.volunteers) bits.push(`A volunteer, <b>${esc(r.name)}</b>, walks into camp.`);
+    const d = n.day, w = [];
+    if (d.arrows) w.push(`${d.arrows} arrows`); if (d.potions) w.push(`${d.potions} draught${d.potions > 1 ? 's' : ''}`); if (d.gold) w.push(`£${d.gold}`);
+    if (w.length) bits.push(`The men in camp made ${w.join(', ')}.`);
+    if (d.trained.length) bits.push(`${esc(d.trained.join(', '))} trained hard (+1 health).`);
+    return `<div class="news">${bits.join(' ')}</div>`;
   }
   const fmtTime = (t) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
 
@@ -275,12 +368,24 @@
       case 'sound': toggleSound(); break;
       case 'brief': ui.showBrief(+arg); break;
       case 'locked': ui.toastScreen('Finish the earlier missions first'); break;
-      case 'begin': RH.main.begin(+arg); break;
+      case 'begin': RH.main.begin(+arg, briefPick.slice()); break;
       case 'buy': RH.buy(arg); ui.showCamp(); break;
+      case 'alms': {
+        const joined = RH.giveAlms(+arg);
+        const note = joined == null ? '' : `The villagers bless your name (popularity +${(+arg / 2)}).` + joined.map((r) => ` <b>${esc(r.name)}</b> has come to join the band!`).join('');
+        const y = $('screen').scrollTop; ui.showCamp(note); $('screen').scrollTop = y; break;
+      }
+      case 'job': { const [rid, job] = arg.split(':'); RH.setJob(rid, job); const y = $('screen').scrollTop; ui.showCamp(); $('screen').scrollTop = y; break; }
+      case 'pick': {
+        const [mi, rid] = arg.split(':'); const m = RH.MISSIONS[+mi];
+        if (briefPick.includes(rid)) briefPick = briefPick.filter((x) => x !== rid);
+        else { briefPick.push(rid); if (briefPick.length > (m.slots || 0)) briefPick.shift(); }
+        const y = $('screen').scrollTop; ui.showBrief(+mi, true); $('screen').scrollTop = y; break;
+      }
       case 'resume': hideScreen(); G.paused = false; ui.refresh(true); break;
       case 'plan': hideScreen(); G.paused = true; ui.refresh(true); break;
       case 'pause': ui.showPause(); break;
-      case 'restart': case 'retry': RH.main.begin(G.idx); break;
+      case 'restart': case 'retry': RH.main.begin(G.idx, G.heroes.filter((h) => h.rid && !h.fresh).map((h) => h.rid)); break;
       case 'quit': RH.main.toCamp(); break;
     }
   }
@@ -311,11 +416,13 @@
     box.innerHTML = '';
     for (const h of G.heroes) {
       const b = document.createElement('button');
-      b.className = 'por'; b.dataset.id = h.id;
-      b.innerHTML = `<canvas></canvas><div class="nm">${esc(h.name.replace('Little ', 'L. ').replace('Friar ', '').replace('Will ', ''))}</div><div class="sn"></div><div class="hp"><i></i></div>`;
+      b.className = 'por' + (h.rid ? ' recruit' : ''); b.dataset.id = h.id;
+      const nm = h.def.short || h.name.replace('Little ', 'L. ').replace('Friar ', '').replace('Will ', '');
+      b.innerHTML = `<canvas></canvas><div class="nm">${esc(nm)}</div><div class="sn"></div><div class="hp"><i></i></div>`;
+      b.setAttribute('aria-label', h.name);
       b.addEventListener('click', () => onPortrait(h));
       box.appendChild(b);
-      RH.render.portrait(b.querySelector('canvas'), h.key);
+      RH.render.portrait(b.querySelector('canvas'), h.key, h.def);
     }
     if (G.heroes.length > 1) {
       const a = document.createElement('button');
@@ -361,6 +468,10 @@
     }
     const all = $('porAll');
     if (all) all.classList.toggle('sel', G.sel.length > 1);
+    // money readout + minimap
+    const money = RH.profile.gold + G.stats.gold;
+    const mv = $('moneyv'); if (mv.textContent !== String(money)) mv.textContent = money;
+    RH.render.drawMinimap($('minimap'));
     // objectives
     const objs = RH.game.objectives();
     let firstOpen = objs.findIndex((o) => !o.done && !o.neg && (!o.last || o.ready));
@@ -442,7 +553,7 @@
     const acts = RH.game.contextActions(hit, h);
     if (!acts.length) return;
     const m = $('ctxmenu');
-    const name = { guard: hit.e.sheriff ? 'The Sheriff' : 'Guard', body: hit.e.tied ? 'Tied-up guard' : (hit.e.state === 'dead' ? 'Fallen guard' : 'Unconscious guard'), prisoner: 'Prisoner', chest: 'Tax chest', cart: 'Treasure cart', carter: 'The carter' }[hit.kind];
+    const name = { guard: hit.e.sheriff ? 'The Sheriff' : 'Guard', body: hit.e.tied ? 'Tied-up guard' : (hit.e.state === 'dead' ? 'Fallen guard' : 'Unconscious guard'), prisoner: 'Prisoner', chest: 'Tax chest', cart: 'Treasure cart', carter: 'The carter', captive: 'Captured outlaw', climb: hit.e.rope ? 'Rope over the wall' : 'Climbing spot' }[hit.kind];
     m.innerHTML = `<div class="ttl">${esc(name)} — ${esc(h.name)}</div>` + acts.map((a) => `<button data-id="${a.id}">${esc(a.label)}</button>`).join('');
     m.querySelectorAll('button').forEach((b) => b.addEventListener('click', (e) => {
       e.stopPropagation(); closeCtx(); sfx('tap');
@@ -515,6 +626,43 @@
     if (hit) { sfx('select'); openCtx(sx, sy, hit); }
   }
 
+  // ---------- Swipe sword strokes ----------
+  function swipeTargetAt(sx, sy) {
+    if (!G.m || G.over || G.mode) return null;
+    RH.render.toWorld(sx, sy, tw);
+    const hit = RH.game.entityAt(tw.x, tw.y, pickRadius() * 1.5);
+    if (!hit || hit.kind !== 'guard' || !RH.game.isActive(hit.e)) return null;
+    const e = hit.e;
+    const near = G.sel.some((h) => !h.down && !h.npc && (h.x - e.x) ** 2 + (h.y - e.y) ** 2 < (TILE * (e.state === 'alert' ? 5 : 2.2)) ** 2);
+    return near ? e : null;
+  }
+  function classify(pts) {
+    const a = pts[0], b = pts[pts.length - 1];
+    const dx = b[0] - a[0], dy = b[1] - a[1], endd = Math.hypot(dx, dy);
+    let maxd = 0; for (const p of pts) maxd = Math.max(maxd, Math.hypot(p[0] - a[0], p[1] - a[1]));
+    if (maxd > 26 && endd < maxd * 0.5) return 'parry';
+    if (endd < 22) return null;
+    if (Math.abs(dx) > Math.abs(dy) * 1.1) return 'slash';
+    return dy > 0 ? 'heavy' : 'thrust';
+  }
+  function doSwipe(e, pts) {
+    const stroke = classify(pts);
+    if (!stroke) return false;
+    const a = pts[0], b = pts[pts.length - 1];
+    if (stroke === 'parry') { let far = a; for (const p of pts) if (Math.hypot(p[0] - a[0], p[1] - a[1]) > Math.hypot(far[0] - a[0], far[1] - a[1])) far = p; G.fx.push({ type: 'slash', x: a[0], y: a[1], x2: far[0], y2: far[1], t: 0, life: 0.35 }); }
+    else G.fx.push({ type: 'slash', x: a[0], y: a[1], x2: b[0], y2: b[1], t: 0, life: 0.35 });
+    ui.swipe(e, stroke);
+    return true;
+  }
+  ui.swipe = function (e, stroke) {
+    const r = RH.game.swipeStrike(e, stroke);
+    if (r === 'approach') ui.toast('Closing in, swipe again to strike');
+    else if (!r) ui.toast('Select a fighter first');
+    return r;
+  };
+  ui.classifySwipe = classify;
+  ui._swipeTargetAt = (x, y) => swipeTargetAt(x, y);
+
   let touches = new Map();
   let gesture = null; // {type:'tap'|'pan'|'pinch', ...}
   let longTimer = 0;
@@ -527,7 +675,7 @@
       for (const t of e.changedTouches) touches.set(t.identifier, { x: t.clientX, y: t.clientY, sx: t.clientX, sy: t.clientY });
       if (touches.size === 1) {
         const t = [...touches.values()][0];
-        gesture = { type: 'tap', sx: t.x, sy: t.y, t0: performance.now(), long: false };
+        gesture = { type: 'tap', sx: t.x, sy: t.y, t0: performance.now(), long: false, swipe: swipeTargetAt(t.x, t.y), pts: [[t.x, t.y]] };
         clearTimeout(longTimer);
         longTimer = setTimeout(() => { if (gesture && gesture.type === 'tap') { gesture.long = true; handleLong(gesture.sx, gesture.sy); } }, 430);
       } else if (touches.size === 2) {
@@ -540,8 +688,9 @@
       e.preventDefault();
       for (const t of e.changedTouches) { const p = touches.get(t.identifier); if (p) { p.px = p.x; p.py = p.y; p.x = t.clientX; p.y = t.clientY; } }
       if (!gesture || !G.cam) return;
-      if (gesture.type === 'tap' || gesture.type === 'pan') {
+      if (gesture.type === 'tap' || gesture.type === 'pan' || gesture.type === 'swipe') {
         const t = [...touches.values()][0]; if (!t) return;
+        if (gesture.swipe) { gesture.pts.push([t.x, t.y]); if (gesture.type === 'tap' && Math.hypot(t.x - gesture.sx, t.y - gesture.sy) > 10) { gesture.type = 'swipe'; clearTimeout(longTimer); } return; }
         if (gesture.type === 'tap' && Math.hypot(t.x - gesture.sx, t.y - gesture.sy) > 10) { gesture.type = 'pan'; clearTimeout(longTimer); }
         if (gesture.type === 'pan') { RH.main.panBy(t.x - (t.px != null ? t.px : t.x), t.y - (t.py != null ? t.py : t.y)); }
       } else if (gesture.type === 'pinch' && touches.size >= 2) {
@@ -556,6 +705,10 @@
     const end = (e) => {
       e.preventDefault();
       for (const t of e.changedTouches) touches.delete(t.identifier);
+      if (gesture && gesture.type === 'swipe' && touches.size === 0) {
+        if (!doSwipe(gesture.swipe, gesture.pts)) handleTap(gesture.sx, gesture.sy);
+        gesture = null; return;
+      }
       if (gesture && gesture.type === 'tap' && touches.size === 0) {
         clearTimeout(longTimer);
         if (!gesture.long) handleTap(gesture.sx, gesture.sy);
@@ -568,17 +721,22 @@
     // mouse (desktop)
     let md = null;
     canvas.addEventListener('mousedown', (e) => {
-      md = { sx: e.clientX, sy: e.clientY, x: e.clientX, y: e.clientY, pan: false, long: false };
+      md = { sx: e.clientX, sy: e.clientY, x: e.clientX, y: e.clientY, pan: false, long: false, swipe: swipeTargetAt(e.clientX, e.clientY), pts: [[e.clientX, e.clientY]] };
       clearTimeout(longTimer);
       longTimer = setTimeout(() => { if (md && !md.pan) { md.long = true; handleLong(md.sx, md.sy); } }, 450);
     });
     window.addEventListener('mousemove', (e) => {
       if (!md) return;
       if (!md.pan && Math.hypot(e.clientX - md.sx, e.clientY - md.sy) > 6) { md.pan = true; clearTimeout(longTimer); }
-      if (md.pan) RH.main.panBy(e.clientX - md.x, e.clientY - md.y);
+      if (md.swipe) md.pts.push([e.clientX, e.clientY]);
+      else if (md.pan) RH.main.panBy(e.clientX - md.x, e.clientY - md.y);
       md.x = e.clientX; md.y = e.clientY;
     });
-    window.addEventListener('mouseup', () => { if (md && !md.pan && !md.long) { clearTimeout(longTimer); handleTap(md.sx, md.sy); } md = null; });
+    window.addEventListener('mouseup', () => {
+      if (md && md.swipe && md.pan) { if (!doSwipe(md.swipe, md.pts)) handleTap(md.sx, md.sy); }
+      else if (md && !md.pan && !md.long) { clearTimeout(longTimer); handleTap(md.sx, md.sy); }
+      md = null;
+    });
     canvas.addEventListener('contextmenu', (e) => { e.preventDefault(); });
     canvas.addEventListener('wheel', (e) => { e.preventDefault(); RH.main.zoomAt(G.cam.z * (e.deltaY < 0 ? 1.1 : 0.9), e.clientX, e.clientY); }, opt);
     // block page gestures (iOS)

@@ -78,6 +78,8 @@
     }
     if (G.prisoner && !G.prisoner.freed) { const [x, y] = P(G.prisoner.x, G.prisoner.y); c.fillStyle = '#e0b020'; c.beginPath(); c.arc(x, y, 2.2, 0, 7); c.fill(); }
     if (G.chest && !G.chest.taken) { const [x, y] = P(G.chest.x, G.chest.y); c.fillStyle = '#ffd84a'; c.fillRect(x - 2, y - 2, 4, 4); }
+    if (G.captive && !G.captive.freed) { const [x, y] = P(G.captive.x, G.captive.y); c.fillStyle = '#e07a20'; c.beginPath(); c.arc(x, y, 2, 0, 7); c.fill(); }
+    for (const cl of G.climbs || []) { const [x, y] = P(cl.wx, cl.wy); c.strokeStyle = '#5a3a10'; c.lineWidth = 0.8; c.beginPath(); c.moveTo(x, y - 2.5); c.lineTo(x, y + 2.5); c.stroke(); }
     // camera view (diamond-ish quad)
     const q = [[0, 0], [R.W, 0], [R.W, R.H], [0, R.H]].map(([sx, sy]) => { R.toWorld(sx, sy, tmp); return P(tmp.x, tmp.y); });
     c.strokeStyle = 'rgba(40,20,8,0.85)'; c.lineWidth = 1;
@@ -362,7 +364,7 @@
     if (G.cart && inView(G.cart.x, G.cart.y, 100)) ents.push(G.cart);
     if (G.log && !G.log.cleared && inView(G.log.x, G.log.y, 80)) ents.push(G.log);
     if (G.prisoner && !G.prisoner.freed && inView(G.prisoner.x, G.prisoner.y, 60)) ents.push(G.prisoner);
-    if (G.captives) for (const cp of G.captives) if (!cp.freed && inView(cp.x, cp.y, 60)) ents.push(cp);
+    if (G.captive && !G.captive.freed && inView(G.captive.x, G.captive.y, 60)) ents.push(G.captive);
     ents.sort(sortD);
     const objs = sc.objs;
     let ei = 0;
@@ -444,6 +446,20 @@
       ctx.beginPath(); ctx.arc(X, Y - 26, 3.4, 0, 7); ctx.fill(); ctx.stroke();
     }
 
+    // ropes hanging from climbing spots
+    if (G.climbs) for (const cl of G.climbs) {
+      if (!inView(cl.wx, cl.wy, 60)) continue;
+      const X = cl.wx - cl.wy, Y = (cl.wx + cl.wy) / 2;
+      if (cl.rope) {
+        ctx.strokeStyle = '#3a2410'; ctx.lineWidth = 2.6; ctx.beginPath(); ctx.moveTo(X - 1, Y - 40); ctx.quadraticCurveTo(X + 3, Y - 18, X, Y + 6); ctx.stroke();
+        ctx.strokeStyle = '#c8a060'; ctx.lineWidth = 1.4; ctx.stroke();
+        ctx.fillStyle = '#8a6030'; for (let k = 0; k < 4; k++) { ctx.beginPath(); ctx.arc(X + 0.8, Y - 32 + k * 10, 1.6, 0, 7); ctx.fill(); }
+      } else {
+        // scuffed hand-holds marking where Robin can climb
+        ctx.fillStyle = 'rgba(40,26,12,0.75)';
+        for (let k = 0; k < 4; k++) ctx.fillRect(X - 4 + (k % 2) * 6, Y - 36 + k * 9, 3, 2);
+      }
+    }
     // ---- screen-space overlays ----
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -479,7 +495,8 @@
       const top = tmp.y - 37 * z;
       if (h.down) { label(ctx, '✚', tmp.x, tmp.y - 16 * z, 17, '#ff6a5a'); continue; }
       if (h.hp < h.maxhp || G.sel.includes(h)) hpBar(ctx, tmp.x, top, h.hp / h.maxhp, '#5adc4a');
-      if (h.busy > 0) label(ctx, h.busyType === 'climb' ? '🧗' : '…', tmp.x, top - 14, 18, '#fff');
+      if (h.climbing) label(ctx, '🧗', tmp.x + 14, top - 10 - (h.climbZ || 0) * z, 15, '#fff');
+      else if (h.busy > 0) label(ctx, '…', tmp.x, top - 14, 18, '#fff');
       if (h.parryT > 0) label(ctx, '🛡', tmp.x - 15, top + 8, 13, '#fff');
       if (h.sneak) label(ctx, '🦶', tmp.x + 15, tmp.y - 6, 11, '#fff');
       if (RH.hideAt(G.grid, h.x, h.y)) label(ctx, 'hidden', tmp.x, tmp.y + 11, 11, '#bff5a0');
@@ -488,7 +505,7 @@
       R.toScreen(G.prisoner.x, G.prisoner.y, tmp);
       label(ctx, 'HELP!', tmp.x, tmp.y - 42 * z - Math.abs(Math.sin(now * 3)) * 3, 13, '#fff2a8');
     }
-    if (G.captives) for (const cp of G.captives) {
+    for (const cp of (G.captive ? [G.captive] : [])) {
       if (cp.freed || !inView(cp.x, cp.y, 60)) continue;
       R.toScreen(cp.x, cp.y, tmp);
       label(ctx, '🔗', tmp.x, tmp.y - 40 * z - Math.abs(Math.sin(now * 3 + 1)) * 3, 14, '#fff');
@@ -533,8 +550,7 @@
       if (hidden) c.globalAlpha = 0.6;
       if (u.down) lying(c, X, Y, u, L, 'down');
       else {
-        if (u.busyType === 'climb' && u.busy > 0) { const k = 1 - u.busy / (u.climbDur || 1.6); figure(c, X, Y - Math.sin(k * Math.PI) * 26, u, L); }
-        else figure(c, X, Y, u, L);
+        figure(c, X, Y - (u.climbZ || 0), u, L);
         if (u.carry) drawCarried(c, u, X, Y);
       }
       if (u.flash > 0) { c.fillStyle = 'rgba(255,60,40,0.4)'; c.beginPath(); c.arc(X, Y - 14, 10, 0, 7); c.fill(); }

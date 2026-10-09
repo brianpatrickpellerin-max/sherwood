@@ -13,6 +13,38 @@
   };
   RH.HERO_ORDER = ['robin', 'john', 'marian', 'tuck', 'scarlet'];
 
+  // ---------- Generic outlaws (recruits) ----------
+  RH.OUTLAW_NAMES = ['Alan Ashdown', 'Hal Thatcher', 'Piers Cooper', 'Ned Fletcher', 'Tom Wainwright', 'Jack Shepherd', 'Cobb Turner', 'Simkin Reeve', 'Dickon Hale', 'Osric Fenn', 'Rafe Tanner', 'Gib Mossop', 'Wyn Carter', 'Hugh Lathe', 'Bennet Rowe', 'Jory Swale'];
+  const TUNICS = ['#5c6b34', '#6d5a3a', '#4a5a3a', '#7a6a42', '#55603f', '#6a4e34', '#46584a', '#7a5a3c'];
+  const HOODS = ['#4a5a2a', '#5a4a2e', '#3e4a2c', '#6a5a36', '#4c3e2a'];
+  const HAIRS = ['#3a2412', '#6a4020', '#9a6a3a', '#2a1a10', '#b08850', '#5a3a1a'];
+  const SKINS = ['#efc39c', '#e2b48a', '#f0c9a0', '#d8a47a', '#eab896'];
+  RH.makeRecruit = function (id, seed) {
+    const r = RH.rng(seed * 7919 + 13);
+    const pick = (a) => a[Math.floor(r() * a.length)];
+    return { id, name: RH.OUTLAW_NAMES[(seed - 1) % RH.OUTLAW_NAMES.length], tunic: pick(TUNICS), hood: pick(HOODS), hair: pick(HAIRS), skin: pick(SKINS), beard: r() < 0.45, train: 0, job: 'rest' };
+  };
+  const rdefs = {};
+  RH.recruitDef = function (rec) {
+    const k = rec.id + ':' + rec.train;
+    if (rdefs[k]) return rdefs[k];
+    return (rdefs[k] = {
+      name: rec.name, short: rec.name.split(' ')[0], hp: 4 + rec.train, speed: 2.5, dmg: 1 + (rec.train >= 3 ? 1 : 0), weapon: 'staff',
+      tunic: rec.tunic, trim: '#3a2a18', hat: null, hood: rec.hood, hair: rec.hair, skin: rec.skin, beard: rec.beard, legs: '#4a3a2a',
+      icon: '🗡', blurb: 'An outlaw of Sherwood. Knocks out, ties up, carries and fights.', outlaw: true, lookKey: 'outlaw',
+    });
+  };
+  // Camp jobs for idle men between missions (yield per day = per mission won)
+  RH.JOBS = [
+    { id: 'rest', name: 'Rest', ic: '💤', desc: 'Joins the next mission fresh' },
+    { id: 'arrows', name: 'Fletch arrows', ic: '🏹', desc: '+3 arrows each day' },
+    { id: 'potions', name: 'Brew draughts', ic: '🧪', desc: '+1 healing draught every day' },
+    { id: 'train', name: 'Train at arms', ic: '⚔️', desc: '+1 health each day (max +4); at +3, harder blows' },
+    { id: 'hunt', name: 'Hunt & trade', ic: '🦌', desc: '+12 gold each day' },
+  ];
+  // Popularity needed for each new volunteer (giving gold to the poor raises it)
+  RH.POP_STEPS = [10, 25, 45, 70, 100, 140, 190];
+
   RH.SHOP = [
     { id: 'arrows', name: 'Bundle of arrows', desc: '+5 arrows for Robin', cost: 15, kind: 'item' },
     { id: 'potion', name: 'Healing draught', desc: 'Restores 5 health. Use from the action bar.', cost: 25, kind: 'item' },
@@ -24,7 +56,7 @@
 
   RH.MISSIONS = [
     {
-      id: 'm1', theme: 'forest', title: 'The Woodcutters\u2019 Camp', place: 'Sherwood Forest', mapPos: [24, 58],
+      id: 'm1', slots: 1, captive: [3, 9], climbs: [], theme: 'forest', title: 'The Woodcutters\u2019 Camp', place: 'Sherwood Forest', mapPos: [24, 58],
       intro: 'The Sheriff\u2019s men have seized a woodcutters\u2019 camp deep in Sherwood. They are holding Hob, Little John\u2019s cousin, inside a fenced pen, and mean to march him to Nottingham at dawn.\n\nSlip in quietly, cut Hob loose and bring everyone back to the clearing.',
       outro: 'Hob rubs his wrists and grins. \u201cI told them my cousin would come. They laughed.\u201d\n\nWord of the rescue spreads through the villages. In Nottingham, a certain lady hears of it too\u2026',
       heroes: { robin: [12, 25], john: [11, 25] },
@@ -82,7 +114,7 @@
       ],
     },
     {
-      id: 'm2', theme: 'town', title: 'Market Day', place: 'Nottingham', mapPos: [58, 50],
+      id: 'm2', slots: 1, captive: [2, 15], climbs: [[8, 5, 10, 5]], theme: 'town', title: 'Market Day', place: 'Nottingham', mapPos: [58, 50],
       intro: 'Every market day the Sheriff\u2019s collector squeezes the stallholders dry, then locks the takings in his strongroom off the square.\n\nMarian has joined the band. She knows the town, and the guards are fond of her. Steal the tax chest and bring it back out of the south gate. The townsfolk are on our side: harm none of them.',
       outro: 'The chest is heavy with coin, every penny of it wrung from honest folk. By nightfall it is back in their hands.\n\nBut the Sheriff has arrested Friar Tuck for preaching against him. He is to be made an example of.',
       heroes: { robin: [13, 29], john: [14, 29], marian: [12, 29] },
@@ -141,7 +173,7 @@
       ],
     },
     {
-      id: 'm3', theme: 'castle', title: 'The Castle by Night', place: 'Nottingham Castle', mapPos: [82, 30], night: true,
+      id: 'm3', slots: 1, captive: [7, 3], climbs: [[11, 18, 11, 16]], theme: 'castle', title: 'The Castle by Night', place: 'Nottingham Castle', mapPos: [82, 30], night: true,
       intro: 'Friar Tuck sits in a cell in the castle yard, to hang at sunrise. Torches burn along the walls; the guards see less in the dark, but anyone who steps into torchlight is plain to see.\n\nIf the alarm is raised, they will move him to the dungeons, and he\u2019ll be lost. Tie up every guard you knock out, and don\u2019t let a single one see you.',
       outro: '\u201cBless you, my son!\u201d Tuck booms, then remembers to whisper. \u201cAnd bless that cook\u2019s pantry. I shall need my strength.\u201d\n\nTuck joins the band. On the road home, a red-cloaked swordsman steps from the trees with news of a treasure convoy\u2026',
       heroes: { robin: [13, 24], john: [14, 24], marian: [15, 24] },
@@ -196,7 +228,7 @@
       ],
     },
     {
-      id: 'm4', theme: 'forest', title: 'The Forest Road', place: 'The Great North Road', mapPos: [36, 32],
+      id: 'm4', slots: 2, captive: [20, 21], climbs: [], theme: 'forest', title: 'The Forest Road', place: 'The Great North Road', mapPos: [36, 32],
       intro: 'A treasure cart is rolling south to Prince John, guarded by soldiers. Will Scarlet felled an oak across the road; the carter will have to stop and clear it.\n\nStop the cart before it leaves the forest, take the chest and carry it back to camp. The carter is a hired local man. Knock him out if you must, but don\u2019t kill him.',
       outro: 'The chest is packed with silver marked for Prince John\u2019s new palace. Instead it will buy seed corn for a dozen villages.\n\nNow the Sheriff is furious. He has locked himself in his keep with the last of the taxes. It is time to pay him a visit.',
       heroes: { robin: [17, 14], john: [18, 14], marian: [19, 14], tuck: [20, 14], scarlet: [21, 14] },
@@ -252,7 +284,7 @@
       ],
     },
     {
-      id: 'm5', theme: 'castle', title: 'The Sheriff\u2019s Keep', place: 'The Sheriff\u2019s Keep', mapPos: [84, 58], night: true,
+      id: 'm5', slots: 2, captive: [26, 10], climbs: [[6, 20, 6, 18]], theme: 'castle', title: 'The Sheriff\u2019s Keep', place: 'The Sheriff\u2019s Keep', mapPos: [84, 58], night: true,
       intro: 'The Sheriff of Nottingham sits in his great hall, guarding the last chest of stolen taxes and plotting revenge.\n\nCapture him alive: beat or knock him out, then tie him up so he can answer to King Richard. Take the tax chest from the treasury and get the whole band back out over the moat.',
       outro: 'The Sheriff, trussed like a Michaelmas goose, is left on the steps of the abbey with a note pinned to his cloak.\n\nThe last of the taxes go home to the people. Sherwood rings with songs that night. Long live Robin Hood!',
       heroes: { robin: [14, 25], john: [15, 25], marian: [13, 25], tuck: [16, 25], scarlet: [12, 25] },

@@ -23,7 +23,7 @@
   }
 
   // ---------- Mission setup ----------
-  game.start = function (idx) {
+  game.start = function (idx, band) {
     const m = RH.MISSIONS[idx];
     const P = RH.profile;
     for (const k of Object.keys(G)) delete G[k];
@@ -41,13 +41,33 @@
       tipsShown: {}, tipQ: [], torches: (m.torches || []).map(([x, y]) => ({ x: tcx(x), y: tcx(y) })),
       exit: m.exit, prisoner: null, chest: null, cart: null, sheriff: null, log: null,
       bowRange: (P.up.yew ? 12 : 9) * TILE, sneakMul: P.up.boots ? 0.27 : 0.4,
-      cdMarian: 0, cdTuck: 0,
+      cdMarian: 0, cdTuck: 0, captive: null, climbs: [], newRecruits: [], swipes: 0,
     });
     // Heroes
     for (const key of Object.keys(m.heroes)) {
       const [tx, ty] = m.heroes[key];
       G.heroes.push(mkHero(key, tx, ty));
     }
+    // Recruited outlaws chosen for this mission stand beside the heroes
+    const taken = new Set(G.heroes.map((h) => tileOf(h.y) * grid.w + tileOf(h.x)));
+    const recs = (band || []).map((id) => (P.recruits || []).find((r) => r.id === id)).filter(Boolean).slice(0, m.slots || 0);
+    for (const rec of recs) {
+      const [hx, hy] = m.heroes.robin;
+      const n = RH.nearestWalk(grid, hx, hy + 1, taken);
+      if (n < 0) continue;
+      taken.add(n);
+      const h = mkHero('outlaw', n % grid.w, (n / grid.w) | 0, RH.recruitDef(rec));
+      h.rid = rec.id;
+      G.heroes.push(h);
+    }
+    // A captured outlaw who joins the band if freed (optional)
+    if (m.captive && (P.recruits || []).length + (P.nextRid ? 0 : 0) < 24) {
+      const seed = (P.nextRid || 1);
+      const rec = RH.makeRecruit('r' + seed, seed);
+      G.captive = { key: 'outlaw', rec, def: RH.recruitDef(rec), x: tcx(m.captive[0]), y: tcx(m.captive[1]), tx: m.captive[0], ty: m.captive[1], freed: false, captive: true };
+    }
+    // Climbing spots: Robin climbs, then lets down a rope for the others
+    G.climbs = (m.climbs || []).map(([ax, ay, bx, by]) => ({ a: { x: tcx(ax), y: tcx(ay) }, b: { x: tcx(bx), y: tcx(by) }, wx: tcx((ax + bx) / 2), wy: tcx((ay + by) / 2), x: tcx((ax + bx) / 2), y: tcx((ay + by) / 2), rope: false }));
     // Prisoner
     if (m.prisoner) {
       G.prisoner = { key: m.prisoner.id, x: tcx(m.prisoner.x), y: tcx(m.prisoner.y), freed: false, tx: m.prisoner.x, ty: m.prisoner.y };
@@ -104,11 +124,13 @@
     return G;
   };
 
-  function mkHero(key, tx, ty) {
-    const d = RH.HEROES[key];
+  function mkHero(key, tx, ty, def) {
+    const d = def || RH.HEROES[key];
     const h = mkUnit('hero', tx, ty);
     h.key = key; h.def = d; h.name = d.name;
-    h.maxhp = d.hp + (RH.profile.up.jerkin && !d.npc ? 2 : 0); h.hp = h.maxhp;
+    const tr = (!def && RH.profile.train && RH.profile.train[key]) || 0;
+    h.maxhp = d.hp + tr + (RH.profile.up.jerkin && !d.npc ? 2 : 0); h.hp = h.maxhp;
+    h.strokeCd = 0; h.parryT = 0;
     h.spd = d.speed * TILE; h.sneak = false; h.task = null; h.busy = 0; h.carry = null; h.down = false;
     h.dmg = d.dmg; h.npc = !!d.npc; h.dir = N; h.bowT = 0; h.hurtT = 0;
     return h;
@@ -204,6 +226,8 @@
     if (G.chest && !G.chest.carrier && !G.chest.onCart) test(G.chest, G.chest.x, G.chest.y, 'chest');
     if (G.cart && G.cart.chest) test(G.cart, G.cart.x, G.cart.y, 'cart');
     if (G.cart) { const c = G.cart.carter; if (c.state === 'ok') test(c, c.x, c.y - 10, 'carter'); }
+    if (G.captive && !G.captive.freed) test(G.captive, G.captive.x, G.captive.y - 8, 'captive');
+    for (const c of G.climbs) test(c, c.wx, c.wy - 14, 'climb');
     return best;
   };
 
@@ -215,6 +239,8 @@
       case 'guard': return (e.state === 'alert' && !(h && h.key === 'john' && false)) ? 'attack' : 'ko';
       case 'body': return (e.state === 'ko' && !e.tied) ? 'tie' : 'carry';
       case 'prisoner': return 'free';
+      case 'captive': return 'free';
+      case 'climb': return 'climb';
       case 'chest': return 'loot';
       case 'cart': return 'loot';
       case 'carter': return 'ko';
@@ -238,11 +264,13 @@
     } else if (hit.kind === 'prisoner') out.push({ id: 'free', label: '🔓 Cut loose' });
     else if (hit.kind === 'chest' || hit.kind === 'cart') out.push({ id: 'loot', label: '💰 Take the chest' });
     else if (hit.kind === 'carter') out.push({ id: 'ko', label: '👊 Knock out' });
+    else if (hit.kind === 'captive') out.push({ id: 'free', label: '🔓 Cut loose (he\u2019ll join you)' });
+    else if (hit.kind === 'climb') out.push({ id: 'climb', label: k === 'robin' || e.rope ? '🧗 Climb over' : '🧗 Climb (Robin first)' });
     return out;
   };
 
   function canDo(h, type) {
-    if (h.down) return false;
+    if (h.down || h.climbing) return false;
     if (h.npc) return type === 'move' || type === 'loot' || type === 'carry';
     return true;
   }
@@ -256,12 +284,18 @@
       if (type === 'shoot' && h.key !== 'robin') continue;
       if (type === 'charm' && h.key !== 'marian') continue;
       if (type === 'heal' && h.key !== 'tuck') continue;
+      if (type === 'climb' && !hit.e.rope && h.key !== 'robin') continue;
       if ((type === 'carry' || type === 'loot') && h.carry) continue;
       const d = (h.x - hit.e.x) ** 2 + (h.y - hit.e.y) ** 2;
       const pref = (type === 'carry' && h.key === 'john') ? 0.3 : 1;
       if (d * pref < bd) { bd = d * pref; best = h; }
     }
-    if (!best) return false;
+    if (!best) { if (type === 'climb') toast('Only Robin can climb here. Once he is up, he lets down a rope.'); return false; }
+    if (type === 'climb' && hit.e.rope) {
+      // with the rope down, every selected outlaw climbs over in turn
+      for (const h of heroes) { h.task = { type: 'climb', target: hit.e, kind: 'climb', t: 0 }; h.path = null; h.repathT = 0; }
+      sfx('move'); return true;
+    }
     best.task = { type, target: hit.e, kind: hit.kind, t: 0 };
     best.path = null; best.repathT = 0;
     if (type === 'attack') {
@@ -273,7 +307,7 @@
   };
 
   game.moveSel = function (wx, wy) {
-    const heroes = G.sel.filter((h) => !h.down);
+    const heroes = G.sel.filter((h) => !h.down && !h.climbing);
     if (!heroes.length) return false;
     const g = G.grid;
     let tx = tileOf(wx), ty = tileOf(wy);
@@ -348,6 +382,7 @@
 
   function updHero(h, dt) {
     h.atkCd -= dt; h.bowT -= dt; h.hurtT -= dt; if (h.flash > 0) h.flash -= dt;
+    if (h.strokeCd > 0) h.strokeCd -= dt; if (h.parryT > 0) h.parryT -= dt;
     if (h.down) { h.moving = false; return; }
     // carry follows
     if (h.carry && h.carry !== 'chest') { h.carry.x = h.x; h.carry.y = h.y; }
@@ -381,8 +416,13 @@
         if (!e || !active(e)) { h.task = null; return; }
         if (!inRange(h, e.x, e.y, TILE * 0.95)) { approach(h, e.x, e.y, dt); return; }
         h.path = null; h.moving = false; h.dir = Math.atan2(e.y - h.y, e.x - h.x);
+        if (h.queued) { const q = h.queued; h.queued = null; doStroke(h, e, q); return; }
+        if (!G.swipeTipped && e.state === 'alert' && !(RH.profile.seen && RH.profile.seen.swipe) && RH.ui && !RH.ui.tipShowing()) {
+          G.swipeTipped = true; RH.profile.seen = Object.assign(RH.profile.seen || {}, { swipe: 1 }); RH.saveProfile();
+          RH.ui.tip('Sword fight! Swipe across the guard to strike: sideways to slash, down for a heavy blow, up to thrust, back-and-forth to parry.');
+        }
         if (h.atkCd <= 0) {
-          h.atkCd = 0.75; h.swingT = 0.25;
+          h.atkCd = 1.0; h.swingT = 0.25; h.stroke = 'auto';
           if (e.state !== 'alert' && e.state !== 'stunned') {
             // surprised guard fights back
             spot(e, h, true);
@@ -406,10 +446,32 @@
         return;
       }
       case 'free': {
-        const p = G.prisoner;
+        const p = (e && e.captive) ? e : G.prisoner;
         if (!p || p.freed) { h.task = null; return; }
         if (!inRange(h, p.x, p.y, TILE * 1.25)) { approach(h, p.x, p.y, dt); return; }
-        h.path = null; h.busy = 1.4; h.busyType = 'free'; h.task = null; sfx('tie');
+        h.path = null; h.busy = 1.4; h.busyType = 'free'; h.busyTarget = p; h.task = null; sfx('tie');
+        return;
+      }
+      case 'climb': {
+        if (!e) { h.task = null; return; }
+        if (!e.rope && h.key !== 'robin') { toast('Robin must climb up first and let down a rope'); h.task = null; return; }
+        if (!t.from) {
+          const da = (h.x - e.a.x) ** 2 + (h.y - e.a.y) ** 2, db = (h.x - e.b.x) ** 2 + (h.y - e.b.y) ** 2;
+          t.from = da <= db ? e.a : e.b; t.to = da <= db ? e.b : e.a;
+        }
+        if (!t.t && !inRange(h, t.from.x, t.from.y, TILE * 0.35)) { approach(h, t.from.x, t.from.y, dt); return; }
+        h.path = null; h.moving = false;
+        if (t.t === 0) { sfx('tie'); if (h.carry) dropCarry(h); h.climbing = true; h.x = t.from.x; h.y = t.from.y; }
+        const dur = h.key === 'robin' ? 1.4 : 2.0;
+        t.t += dt;
+        const k = Math.min(1, t.t / dur);
+        h.x = RH.lerp(t.from.x, t.to.x, k); h.y = RH.lerp(t.from.y, t.to.y, k);
+        h.climbZ = Math.sin(k * Math.PI) * 26; h.climbT = k; h.dir = Math.atan2(t.to.y - t.from.y, t.to.x - t.from.x);
+        if (k >= 1) {
+          h.climbZ = 0; h.climbT = 0; h.task = null; h.climbing = false;
+          if (!e.rope) { e.rope = true; fx('text', h.x, h.y - 34, 'Rope down!', '#ffe08a', 1.4); toast('Robin ties off a rope: the others can climb now', 'good'); }
+          G.stats.climbs = (G.stats.climbs || 0) + 1;
+        }
         return;
       }
       case 'loot': {
@@ -470,7 +532,7 @@
       case 'tie':
         if (e && e.state === 'ko' && !e.carried) { e.tied = true; G.stats.tied++; fx('text', e.x, e.y - 20, 'Tied!', '#ffe08a'); }
         break;
-      case 'free': freePrisoner(); break;
+      case 'free': if (e && e.captive) freeCaptive(e); else freePrisoner(); break;
       case 'loot': {
         const c = G.chest;
         if (c && !c.carrier && !h.carry) {
@@ -503,6 +565,67 @@
     RH.ui && RH.ui.rosterChanged();
   }
   game.freePrisoner = freePrisoner;
+  function freeCaptive(c) {
+    if (!c || c.freed) return;
+    c.freed = true;
+    const h = mkHero('outlaw', c.tx, c.ty, c.def);
+    h.x = c.x; h.y = c.y; h.rid = c.rec.id; h.fresh = true;
+    G.heroes.push(h);
+    G.newRecruits.push(c.rec);
+    fx('text', c.x, c.y - 34, c.def.short + ' joins the band!', '#9dff8a', 1.8);
+    sfx('win');
+    RH.ui && RH.ui.rosterChanged();
+  }
+  game.freeCaptive = freeCaptive;
+
+  // ---------- Swipe sword fighting ----------
+  // A swipe on an enemy in melee range strikes: slash (sideways) is quick, overhead (down) is a heavy
+  // blow that staggers but is often blocked, thrust (up / toward) can't be blocked, and a short
+  // back-and-forth (or swiping away) parries the next blow and leaves the guard open.
+  const STROKES = {
+    slash: { cd: 0.45, dmg: 0, block: 0.2, label: 'Slash!' },
+    heavy: { cd: 0.95, dmg: 1, block: 0.45, label: 'Overhead!', stagger: 0.8 },
+    thrust: { cd: 0.65, dmg: 0, block: 0, label: 'Thrust!' },
+    parry: { cd: 0.5, dmg: -1, block: 0, label: 'Parry' },
+  };
+  game.STROKES = STROKES;
+  game.swipeStrike = function (e, stroke, heroes) {
+    const st = STROKES[stroke]; if (!st || !e || !active(e) || e.kind !== 'guard') return false;
+    heroes = (heroes || G.sel).filter((h) => !h.down && !h.npc && !h.carry && h.busy <= 0);
+    let h = null, bd = 1e12;
+    for (const x of heroes) { const d = (x.x - e.x) ** 2 + (x.y - e.y) ** 2; if (d < bd) { bd = d; h = x; } }
+    if (!h) return false;
+    if (bd > (TILE * 1.25) ** 2) {
+      // not yet in reach: close in and fight
+      h.task = { type: 'attack', target: e, kind: 'guard', t: 0 }; h.path = null; h.repathT = 0; h.queued = stroke;
+      return 'approach';
+    }
+    if (h.strokeCd > 0) return 'cooldown';
+    return doStroke(h, e, stroke);
+  };
+  function doStroke(h, e, stroke) {
+    const st = STROKES[stroke];
+    h.strokeCd = st.cd; h.atkCd = Math.max(h.atkCd, 0.7); h.swingT = 0.3; h.stroke = stroke;
+    h.dir = Math.atan2(e.y - h.y, e.x - h.x); h.path = null; h.moving = false;
+    if (!h.task || h.task.target !== e) h.task = { type: 'attack', target: e, kind: 'guard', t: 0 };
+    G.swipes++;
+    if (e.state !== 'alert') spot(e, h, true);
+    if (stroke === 'parry') { h.parryT = 0.8; fx('text', h.x, h.y - 36, 'Parry', '#cfe8ff', 0.7); sfx('tap'); return 'parry'; }
+    const open = e.stagger > 0;
+    if (!open && Math.random() < st.block) {
+      e.atkCd = Math.max(e.atkCd, 0.25); sfx('clang');
+      fx('text', e.x, e.y - 40, 'Blocked', '#d8d8d8', 0.7); fx('spark', (e.x + h.x) / 2, (e.y + h.y) / 2 - 12);
+      return 'blocked';
+    }
+    const dmg = Math.max(1, h.dmg + st.dmg + (open ? 1 : 0));
+    e.hp -= dmg; e.flash = 0.18; sfx('clang');
+    fx('spark', (e.x + h.x) / 2, (e.y + h.y) / 2 - 12);
+    fx('text', e.x, e.y - 40, st.label, '#ffe6a0', 0.7);
+    if (st.stagger) { e.stagger = st.stagger; e.atkCd = Math.max(e.atkCd, st.stagger); }
+    if (stroke === 'thrust') { const a = Math.atan2(e.y - h.y, e.x - h.x), nx = e.x + Math.cos(a) * 6, ny = e.y + Math.sin(a) * 6; if (RH.isWalk(G.grid, tileOf(nx), tileOf(ny))) { e.x = nx; e.y = ny; } }
+    if (e.hp <= 0) defeat(e, h.def.weapon === 'sword');
+    return 'hit';
+  }
 
   function heroHurt(h, d) {
     if (h.down) return;
@@ -697,9 +820,13 @@
         if (d2 < (TILE * 0.9) ** 2) {
           g.path = null; g.moving = false;
           g.dir = Math.atan2(t.y - g.y, t.x - g.x);
-          if (g.atkCd <= 0) {
+          if (g.stagger > 0) { g.stagger -= dt; }
+          else if (g.atkCd <= 0) {
             g.atkCd = g.sheriff ? 0.9 : 1.15; g.swingT = 0.25;
-            heroHurt(t, g.dmg); sfx('clang');
+            if (t.parryT > 0) {
+              t.parryT = 0; g.stagger = 1.3; sfx('clang');
+              fx('text', t.x, t.y - 40, 'Parried!', '#cfe8ff', 0.9); fx('spark', (t.x + g.x) / 2, (t.y + g.y) / 2 - 12);
+            } else { heroHurt(t, g.dmg); sfx('clang'); }
           }
         } else {
           g.repathT -= dt;
@@ -906,6 +1033,7 @@
       if (o === 'sheriff') { const s = G.sheriff; const d = s.state === 'ko' && s.tied; out.push({ text: 'Knock out & tie up the Sheriff', done: d }); main = main && d; }
       if (o === 'noalarm') out.push({ text: 'Don\u2019t raise the alarm', done: !G.alarmed, neg: true });
     }
+    if (G.captive) out.push({ text: G.captive.freed ? G.captive.def.short + ' has joined the band' : 'Optional: free the captive', done: G.captive.freed, opt: true });
     if (m.objectives.includes('exit')) out.push({ text: G.chest ? 'Bring the chest to the exit' : 'Everyone back to the exit', done: false, last: true, ready: main });
     return out;
   };
@@ -916,7 +1044,7 @@
     const fighters = G.heroes.filter((h) => !h.npc);
     if (fighters.every((h) => h.down)) return end(false, 'The whole band has fallen.');
     const objs = game.objectives();
-    const mainDone = objs.filter((o) => !o.last && !o.neg).every((o) => o.done);
+    const mainDone = objs.filter((o) => !o.last && !o.neg && !o.opt).every((o) => o.done);
     G.exitReady = mainDone;
     if (!mainDone) return;
     const standing = G.heroes.filter((h) => !h.down);

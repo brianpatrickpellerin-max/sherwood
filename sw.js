@@ -1,8 +1,8 @@
 // Offline cache: cache-first for app files, refreshed when the version changes.
-const VERSION = 'sherwood-v3';
+const VERSION = 'sherwood-v4-iso';
 const FILES = [
   './', 'index.html', 'css/style.css', 'manifest.webmanifest',
-  'js/util.js', 'js/data.js', 'js/audio.js', 'js/game.js', 'js/render.js', 'js/ui.js', 'js/main.js',
+  'js/util.js', 'js/data.js', 'js/audio.js', 'js/game.js', 'js/iso.js', 'js/render.js', 'js/art.js', 'js/ui.js', 'js/main.js',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png',
 ];
 self.addEventListener('install', (e) => {
