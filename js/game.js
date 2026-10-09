@@ -42,6 +42,7 @@
     apple: { ic: '🍎', t: 'Apple', item: 'apples', aim: 'ground', range: () => 7 * TILE },
     ale: { ic: '🍺', t: 'Ale', item: 'ale', aim: 'ground', range: () => 6 * TILE },
     whistle: { ic: '🎵', t: 'Whistle', aim: 'self' },
+    snare: { ic: '🪢', t: 'Snare', item: 'nets', aim: 'ground', range: () => 1.1 * TILE },
   };
   game.ABIL = ABIL;
   const has = (h, a) => !!(h && !h.down && h.def.abil && h.def.abil.includes(a));
@@ -68,7 +69,7 @@
       time: 0, runId: Math.random(), exitReady: false, paused: false, speed: 1,
       heroes: [], guards: [], civs: [], projs: [], fx: [], coins: [], gold: [], allies: [],
       sel: [], mode: null, over: null, failPending: null, alarmT: 0, alarmed: false, reinforced: false,
-      stats: { ko: 0, kills: 0, tied: 0, gold: 0, spotted: false, alarm: false, alms: 0, treasures: [] },
+      stats: { ko: 0, kills: 0, tied: 0, gold: 0, spotted: false, alarm: false, alms: 0, treasures: [], hidden: 0, snared: 0, drops: 0, counters: 0, reinf: 0 },
       inv: {
         arrows: P.arrows, potions: P.potions, purses: P.purses, nets: P.nets, apples: P.apples, ale: P.ale, hives: P.hives,
         stones: 5,
@@ -159,7 +160,8 @@
     (m.contacts || []).forEach((c) => G.contacts.push(Object.assign({}, c, { x: tcx(c.x), y: tcx(c.y), tx: c.x, ty: c.y, met: false, hidden: !!c.hidden, contact: true, dir: c.dir != null ? c.dir : S })));
     (m.props || []).forEach((p) => G.props.push(Object.assign({}, p, { x: tcx(p.x), y: tcx(p.y), used: false, prop: true, hits: 0 })));
     (m.blazons || []).forEach(([x, y, label]) => G.blazons.push({ x: tcx(x), y: tcx(y), label: label || 'Blazon', cap: false, t: 0 }));
-    (m.traps || []).forEach((t) => G.traps.push({ kind: t.kind || 'pit', x: tcx(t.x), y: tcx(t.y), used: false }));
+    G.snares = [];
+    (m.traps || []).forEach((t) => { if (t.kind === 'snare') G.snares.push({ x: tcx(t.x), y: tcx(t.y), armed: true, pre: true }); else G.traps.push({ kind: t.kind || 'pit', x: tcx(t.x), y: tcx(t.y), used: false }); });
     if (m.treasure) G.treasure = { x: tcx(m.treasure.x), y: tcx(m.treasure.y), id: m.treasure.id, name: m.treasure.name, taken: (RH.profile.treasures || []).includes(m.treasure.id) };
     // gates closed until a lever is pulled
     for (const p of G.props) if (p.gate) for (const [x, y] of p.gate) grid.block[y * grid.w + x] = 1;
@@ -183,6 +185,7 @@
       G.log = { x: cv.path[cv.logStop][0] * TILE, y: cv.path[cv.logStop][1] * TILE + TILE * 1.2 };
     }
     (m.gold || []).forEach(([x, y, v]) => G.gold.push({ x: tcx(x), y: tcx(y), v, taken: false }));
+    setupWorld(m);
     G.cam = { x: 0, y: 0, z: 1 };
     G.tipList = (m.tips || []).slice();
     G.sel = G.heroes.length ? [G.heroes[0]] : [];
@@ -228,7 +231,7 @@
   game.isActive = active;
   const isBody = (g) => (g.state === 'ko' || g.state === 'dead') && !g.carried;
   game.isBody = isBody;
-  const passive = (g) => g.state === 'watch' || g.state === 'netted' || g.state === 'stunned' || g.state === 'drinking' || g.state === 'counting' || g.state === 'charmed';
+  const passive = (g) => g.state === 'watch' || g.state === 'netted' || g.state === 'stunned' || g.state === 'drinking' || g.state === 'counting' || g.state === 'charmed' || g.state === 'panic' || g.state === 'brawl';
 
   function setPath(u, tx, ty) {
     const g = G.grid;
@@ -316,6 +319,8 @@
     for (const s of G.scrolls) if (visible(s) && !s.read) test(s, s.x, s.y - 4, 'scroll');
     for (const c of G.contacts) if (visible(c) && !c.met) test(c, c.x, c.y - 10, 'contact');
     for (const p of G.props) if (!p.used || p.kind === 'target') test(p, p.x, p.y - (p.kind === 'target' ? 16 : 10), 'prop');
+    for (const hs of G.houses || []) if (hs.door) test(hs, hs.door.x, hs.door.y - 12, 'house');
+    for (const iv of G.ivy || []) test(iv, iv.x, iv.y - 16, 'ivy');
     return best;
   };
 
@@ -333,11 +338,13 @@
       case 'scroll': return 'read';
       case 'contact': return 'talk';
       case 'prop': return e.kind === 'target' ? 'shoot' : 'use';
+      case 'house': return h && h.carry && h.carry !== 'chest' ? 'stash' : 'enter';
+      case 'ivy': return 'roof';
     }
     return null;
   };
 
-  const PROP_LABEL = { banner: '🚩 Raise the banner', bell: '🔔 Ring the bell', winch: '⚙️ Work the winch', lever: '⚙️ Open the gate', listen: '👂 Listen here', target: '🎯 Shoot the target' };
+  const PROP_LABEL = { horn: '📯 Stuff the alarm horn with moss', banner: '🚩 Raise the banner', bell: '🔔 Ring the bell', winch: '⚙️ Work the winch', lever: '⚙️ Open the gate', listen: '👂 Listen here', target: '🎯 Shoot the target' };
   game.PROP_LABEL = PROP_LABEL;
   game.contextActions = function (hit, h) {
     const out = [];
@@ -362,6 +369,8 @@
     else if (hit.kind === 'scroll') out.push({ id: 'read', label: '📜 Read the parchment' });
     else if (hit.kind === 'contact') out.push({ id: 'talk', label: '💬 Talk' });
     else if (hit.kind === 'prop') out.push({ id: e.kind === 'target' ? 'shoot' : 'use', label: e.label || PROP_LABEL[e.kind] || 'Use' });
+    else if (hit.kind === 'house') { if (h.carry && h.carry !== 'chest') out.push({ id: 'stash', label: '🧺 Hide the body inside' }); out.push({ id: 'enter', label: h.inside === e ? '🚪 Come out' : '🏠 Hide inside' }); }
+    else if (hit.kind === 'ivy') out.push({ id: 'roof', label: AGILE(h) ? '🌿 Climb the ivy to the roof' : '🌿 Climb (Robin, Marian, Will)' });
     return out;
   };
 
@@ -382,6 +391,8 @@
       if (type === 'charm' && !has(h, 'charm')) continue;
       if (type === 'heal' && !has(h, 'heal')) continue;
       if (type === 'climb' && !hit.e.rope && !canLead(h)) continue;
+      if (type === 'roof' && !AGILE(h)) continue;
+      if (type === 'stash' && (!h.carry || h.carry === 'chest')) continue;
       if ((type === 'carry' || type === 'loot') && h.carry) continue;
       const d = (h.x - hit.e.x) ** 2 + (h.y - hit.e.y) ** 2;
       const pref = (type === 'carry' && (h.def.big || h.def.strong)) ? 0.3 : (type === 'shoot' && h.key === 'robin') ? 0.5 : 1;
@@ -389,6 +400,8 @@
     }
     if (!best) {
       if (type === 'climb') toast('Only Robin can climb here. Once he is up, he lets down a rope.');
+      else if (type === 'roof') toast('Only Robin, Marian, Will and nimble outlaws can climb ivy');
+      else if (type === 'stash') toast('Pick up a body first, then bring it to a door');
       else if (type === 'shoot') toast('Nobody here carries a bow');
       return false;
     }
@@ -396,6 +409,8 @@
       for (const h of heroes) { h.task = { type: 'climb', target: hit.e, kind: 'climb', t: 0 }; h.path = null; h.repathT = 0; }
       sfx('move'); return true;
     }
+    if (best.inside && !(type === 'enter' && best.inside === hit.e)) leaveHouse(best);
+    else if (type === 'enter' && best.inside === hit.e) { leaveHouse(best); return true; }
     best.task = { type, target: hit.e, kind: hit.kind, t: 0 };
     best.path = null; best.repathT = 0;
     if (type === 'attack') {
@@ -414,6 +429,12 @@
     heroes.sort((a, b) => ((a.x - wx) ** 2 + (a.y - wy) ** 2) - ((b.x - wx) ** 2 + (b.y - wy) ** 2));
     let ok = false;
     for (const h of heroes) {
+      if (h.inside) leaveHouse(h);
+      if (h.roof) {
+        h.task = null; h.busy = 0;
+        if (roofMove(h, tx, ty)) { ok = true; continue; }
+        startDrop(h, wx, wy, null); ok = true; continue;
+      }
       const n = RH.nearestWalk(g, tx, ty, taken);
       if (n < 0) continue;
       taken.add(n);
@@ -480,6 +501,8 @@
   function inRange(h, x, y, r) { return (h.x - x) ** 2 + (h.y - y) ** 2 <= r * r; }
 
   function approach(h, x, y, dt) {
+    if (h.roof) { startDrop(h, x, y, h.task); return; }
+    if (h.inside) leaveHouse(h);
     h.repathT -= dt;
     if (!h.path || h.repathT <= 0) {
       h.repathT = 0.5;
@@ -496,7 +519,10 @@
   function updHero(h, dt) {
     h.atkCd -= dt; h.bowT -= dt; h.hurtT -= dt; if (h.flash > 0) h.flash -= dt;
     if (h.strokeCd > 0) h.strokeCd -= dt; if (h.parryT > 0) h.parryT -= dt; if (h.cd > 0) h.cd -= dt;
-    if (h.down) { h.moving = false; return; }
+    if (h.crimeT > 0) h.crimeT -= dt;
+    if (h.down) { h.moving = false; if (h.roof) { h.roof = null; h.climbZ = 0; const n = RH.nearestWalk(G.grid, tileOf(h.x), tileOf(h.y)); if (n >= 0) { h.x = tcx(n % G.grid.w); h.y = tcx((n / G.grid.w) | 0); } } return; }
+    if (h.inside) { h.moving = false; if (!h.task) return; }
+    if (h.roof && !h.climbing) h.climbZ = roofZ(tileOf(h.x), tileOf(h.y));
     if (h.carry && h.carry !== 'chest') { h.carry.x = h.x; h.carry.y = h.y; }
     if (h.carry === 'chest') { G.chest.x = h.x; G.chest.y = h.y; }
     for (const c of G.gold) if (!c.taken && inRange(h, c.x, c.y, TILE * 0.7)) {
@@ -516,14 +542,40 @@
     }
     if (t.type === 'move') { if (follow(h, heroSpeed(h), dt)) h.task = null; return; }
     const e = t.target;
+    if (t.type === 'roofmove') { if (follow(h, heroSpeed(h) * 0.85, dt)) h.task = null; return; }
+    if (t.type === 'drop') return dropStep(h, t, dt);
     switch (t.type) {
+      case 'enter': case 'stash': {
+        const d = e && e.door;
+        if (!d) { h.task = null; return; }
+        if (!inRange(h, d.x, d.y, TILE * 0.8)) { approach(h, d.x, d.y, dt); return; }
+        h.path = null; h.moving = false; h.task = null;
+        if (h.carry && h.carry !== 'chest') stashBody(h, e);
+        if (t.type === 'enter') enterHouse(h, e);
+        return;
+      }
+      case 'roof': {
+        if (!e) { h.task = null; return; }
+        if (!t.up) {
+          if (!inRange(h, e.x, e.y, TILE * 0.6)) { approach(h, e.x, e.y, dt); return; }
+          if (h.carry) dropCarry(h);
+          t.up = true; t.t = 0; h.path = null; h.moving = false; h.climbing = true; sfx('tie');
+          h.dir = Math.atan2(e.ry - h.y, e.rx - h.x);
+        }
+        t.t += dt / 1.1;
+        const k = Math.min(1, t.t), Z = roofZ(tileOf(e.rx), tileOf(e.ry));
+        h.climbZ = Z * k; h.climbT = k;
+        if (k > 0.6) { h.x = RH.lerp(e.x, e.rx, (k - 0.6) / 0.4); h.y = RH.lerp(e.y, e.ry, (k - 0.6) / 0.4); }
+        if (k >= 1) { h.climbing = false; h.climbT = 0; h.roof = e.house; h.task = null; h.x = e.rx; h.y = e.ry; G.stats.climbs = (G.stats.climbs || 0) + 1; fx('text', h.x, h.y - Z - 30, 'On the roof', '#cfe8a0', 1.1); }
+        return;
+      }
       case 'ko': {
         if (!e || (e.kind === 'guard' && !active(e)) || (e.kind === 'civ' && e.state === 'ko')) { h.task = null; return; }
         if (!inRange(h, e.x, e.y, TILE * 0.95)) { approach(h, e.x, e.y, dt); return; }
         h.path = null; h.moving = false; h.dir = Math.atan2(e.y - h.y, e.x - h.x);
         if (e.kind === 'civ') { e.state = 'ko'; e.koT = 999; e.path = null; G.stats.ko++; fx('stars', e.x, e.y - 24); sfx('ko'); h.task = null; h.punchT = 0.35; return; }
         if (e.state === 'alert' && e.type !== 'collector') { t.type = 'attack'; return; }
-        h.punchT = 0.35; h.busy = 0.35; h.task = null;
+        h.punchT = 0.35; h.busy = 0.35; h.task = null; h.crimeT = 3;
         punch(h, e);
         return;
       }
@@ -537,7 +589,7 @@
           RH.ui.tip('Sword fight! Swipe across the guard to strike: sideways to slash, down for a heavy blow, up to thrust, back-and-forth to parry.');
         }
         if (h.atkCd <= 0) {
-          h.atkCd = 1.0; h.swingT = 0.25; h.stroke = 'auto';
+          h.atkCd = 1.0; h.swingT = 0.25; h.stroke = 'auto'; h.crimeT = 3;
           if (e.state !== 'alert' && !passive(e)) spot(e, h, true);
           e.hp -= h.dmg; e.flash = 0.15; sfx('clang');
           fx('spark', (e.x + h.x) / 2, (e.y + h.y) / 2 - 12);
@@ -548,7 +600,7 @@
       case 'tie': {
         if (!e || e.state !== 'ko' || e.tied || e.carried) { h.task = null; return; }
         if (!inRange(h, e.x, e.y, TILE * 0.9)) { approach(h, e.x, e.y, dt); return; }
-        h.path = null; h.busy = 1.0; h.busyType = 'tie'; h.busyTarget = e; h.task = null; sfx('tie');
+        h.path = null; h.busy = 1.0; h.busyType = 'tie'; h.busyTarget = e; h.task = null; sfx('tie'); h.crimeT = 3;
         return;
       }
       case 'search': {
@@ -558,9 +610,9 @@
         return;
       }
       case 'carry': {
-        if (!e || !isBody(e) || h.carry) { h.task = null; return; }
+        if (!e || !isBody(e) || h.carry || e.hoisted || e.inPit) { h.task = null; return; }
         if (!inRange(h, e.x, e.y, TILE * 0.9)) { approach(h, e.x, e.y, dt); return; }
-        h.path = null; e.carried = true; e.carrier = h; h.carry = e; h.task = null; h.busy = 0.3; sfx('ko');
+        h.path = null; e.carried = true; e.carrier = h; h.carry = e; h.task = null; h.busy = 0.3; sfx('ko'); h.crimeT = 3;
         return;
       }
       case 'free': {
@@ -618,12 +670,12 @@
         const item = sling ? 'stones' : 'arrows';
         if (G.inv[item] <= 0) { toast(sling ? 'Out of sling stones' : 'Out of arrows! Fletch more in camp.'); h.task = null; return; }
         const R = sling ? 6 * TILE : G.bowRange;
-        if (!inRange(h, e.x, e.y, R) || !RH.los(G.grid, h.x, h.y - 10, e.x, e.y - 10)) { approach(h, e.x, e.y, dt); return; }
+        if (!inRange(h, e.x, e.y, R * (h.roof ? 1.15 : 1)) || !(h.roof || RH.los(G.grid, h.x, h.y - 10, e.x, e.y - 10))) { approach(h, e.x, e.y, dt); return; }
         h.path = null; h.moving = false; h.dir = Math.atan2(e.y - h.y, e.x - h.x);
         if (!t.draw) { t.draw = sling ? 0.3 : 0.45; h.drawT = t.draw; return; }
         t.draw -= dt; h.drawT = t.draw;
         if (t.draw <= 0) {
-          G.inv[item]--; h.drawT = 0;
+          G.inv[item]--; h.drawT = 0; h.crimeT = 3;
           let miss = false;
           if (prop && G.contest && e.kind === 'target' && e.contest) miss = Math.abs(game.sway()) > 0.5;
           G.projs.push({ kind: sling ? 'stone' : 'arrow', x: h.x, y: h.y - 14, target: e, from: h, t: 0, sx: h.x, sy: h.y - 14, prop, miss });
@@ -643,9 +695,11 @@
       }
       case 'throw': {
         const a = ABIL[t.item];
-        if (!inRange(h, t.x, t.y, a.range()) || !RH.los(G.grid, h.x, h.y, t.x, t.y)) { approach(h, t.x, t.y, dt); return; }
+        if (!inRange(h, t.x, t.y, a.range()) || !(h.roof || RH.los(G.grid, h.x, h.y, t.x, t.y))) { approach(h, t.x, t.y, dt); return; }
         h.path = null; h.moving = false; h.dir = Math.atan2(t.y - h.y, t.x - h.x);
         if (a.item) { if (G.inv[a.item] <= 0) { h.task = null; return; } G.inv[a.item]--; }
+        h.crimeT = 3;
+        if (t.item === 'snare') { h.busy = 1.0; h.busyType = 'snare'; h.busyTarget = { x: t.x, y: t.y }; h.task = null; sfx('tie'); return; }
         G.projs.push({ kind: t.item, sx: h.x, sy: h.y - 14, x: h.x, y: h.y, tx: t.x, ty: t.y, t: 0, dur: 0.6 });
         sfx('throw'); h.task = null; h.busy = 0.3;
         return;
@@ -758,6 +812,10 @@
         // the noise draws the nearest guards
         for (const g of G.guards) if (active(g) && !passive(g) && g.state !== 'alert' && d2(g, p) < (6 * TILE) ** 2) { g.state = 'investigate'; g.lx = p.x; g.ly = p.y; g.path = null; g.sus = Math.max(g.sus, 0.4); g.icon = '?'; g.iconT = 3; }
         break;
+      case 'horn':
+        p.used = true; sfx('tie'); fx('text', p.x, p.y - 40, 'Stuffed with moss!', '#cfe8a0', 1.4);
+        toast('The alarm horn won\u2019t sound now', 'good');
+        break;
       case 'lever':
         p.used = true; sfx('tie');
         for (const [x, y] of p.gate) G.grid.block[y * G.grid.w + x] = 0;
@@ -806,6 +864,9 @@
       case 'tie':
         if (e && e.state === 'ko' && !e.carried) { e.tied = true; G.stats.tied++; fx('text', e.x, e.y - 20, 'Tied!', '#ffe08a'); }
         break;
+      case 'snare':
+        if (e) { G.snares.push({ x: e.x, y: e.y, armed: true }); fx('text', e.x, e.y - 24, 'Snare set', '#cfe8a0', 1.1); fx('ring', e.x, e.y, '', '#9ad06a', 0.8); }
+        break;
       case 'search':
         if (e && !e.searched) {
           e.searched = true;
@@ -822,6 +883,7 @@
         if (c && !c.carrier && !h.carry) {
           if (c.onCart) { c.onCart = false; G.cart.chest = false; }
           c.taken = true;
+          if (c.value && G.cart) { c.done = true; spillGold(G.cart.x, G.cart.y, c.value); c.x = -999; break; }
           if (c.value) { c.done = true; G.stats.gold += c.value; fx('text', h.x, h.y - 34, '+£' + c.value, '#ffd84a', 1.5); sfx('coin'); c.x = -999; break; }
           c.carrier = h; h.carry = 'chest';
           fx('text', h.x, h.y - 34, c.letter ? 'Got the letter!' : 'Got the chest!', '#ffd84a', 1.5); sfx('coin');
@@ -880,13 +942,13 @@
     let h = null, bd = 1e12;
     for (const x of heroes) { const d = d2(x, e); if (d < bd) { bd = d; h = x; } }
     if (!h) return false;
-    if (bd > (TILE * 1.25) ** 2) { h.task = { type: 'attack', target: e, kind: 'guard', t: 0 }; h.path = null; h.repathT = 0; h.queued = stroke; return 'approach'; }
+    if (bd > (TILE * 1.25) ** 2) { if (h.roof || h.inside) { h.task = { type: 'attack', target: e, kind: 'guard', t: 0 }; h.queued = stroke; return 'approach'; } h.task = { type: 'attack', target: e, kind: 'guard', t: 0 }; h.path = null; h.repathT = 0; h.queued = stroke; return 'approach'; }
     if (h.strokeCd > 0) return 'cooldown';
     return doStroke(h, e, stroke);
   };
   function doStroke(h, e, stroke) {
     const st = STROKES[stroke];
-    h.strokeCd = st.cd; h.atkCd = Math.max(h.atkCd, 0.7); h.swingT = 0.3; h.stroke = stroke;
+    h.strokeCd = st.cd; h.atkCd = Math.max(h.atkCd, 0.7); h.swingT = 0.3; h.stroke = stroke; h.lastStroke = stroke; h.lastStrokeAt = G.time; h.crimeT = 3;
     h.dir = Math.atan2(e.y - h.y, e.x - h.x); h.path = null; h.moving = false;
     if (!h.task || h.task.target !== e) h.task = { type: 'attack', target: e, kind: 'guard', t: 0 };
     G.swipes++;
@@ -939,7 +1001,7 @@
   game.defeat = defeat;
 
   function raiseAlarm(x, y, why) {
-    G.alarmT = 30;
+    G.alarmT = Math.max(G.alarmT, 30); G.alarmAt = { x, y };
     if (!G.alarmed) {
       G.alarmed = true; G.stats.alarm = true;
       sfx('alarm'); toast(why === 'body' ? 'A guard found a body: ALARM!' : why === 'woke' ? 'A guard woke up: ALARM!' : why === 'missing' ? 'The sergeant missed his man: ALARM!' : 'ALARM!', 'bad');
@@ -969,6 +1031,7 @@
   function spot(g, h, silentToast) {
     if (g.coward) { g.state = 'flee'; g.target = h; g.icon = '!'; g.iconT = 3; g.path = null; G.stats.spotted = true; fx('text', g.x, g.y - 44, 'Help! Thieves!', '#ffb08a', 1.4); return; }
     if (g.state === 'alert') { g.target = h; return; }
+    if (g.state === 'tohorn' || g.state === 'horn') return;
     g.state = 'alert'; g.target = h; g.sus = 1; g.icon = '!'; g.iconT = 2.5; g.path = null; g.lostT = 0;
     g.lx = h.x; g.ly = h.y;
     if (h.kind !== 'ally') G.stats.spotted = true;
@@ -996,7 +1059,7 @@
     const dx = x - g.x, dy = y - g.y, dd = dx * dx + dy * dy;
     if (dd > R * R) return false;
     const d = Math.sqrt(dd);
-    if (d > TILE * 0.8 && Math.abs(RH.angDiff(g.dir, Math.atan2(dy, dx))) > g.fov / 2) return false;
+    if (d > TILE * 0.8 && Math.abs(RH.angDiff(g.vd != null ? g.vd : g.dir, Math.atan2(dy, dx))) > g.fov / 2) return false;
     return RH.los(G.grid, g.x, g.y - 8, x, y - 6);
   }
   game.canSeePoint = canSeePoint;
@@ -1008,7 +1071,8 @@
     let best = 0, bh = null;
     const targets = G.allies.length ? G.heroes.concat(G.allies) : G.heroes;
     for (const h of targets) {
-      if (h.down) continue;
+      if (h.down || h.inside) continue;
+      if (h.def && h.def.social && !h.carry && !(h.crimeT > 0) && !(st === 'alert' && g.target === h)) continue; // Marian walks freely
       let R = R0;
       if (G.night && litAt(h.x, h.y)) R = 7.5 * TILE;
       const dx = h.x - g.x, dy = h.y - g.y, dd = dx * dx + dy * dy;
@@ -1016,7 +1080,8 @@
       const d = Math.sqrt(dd);
       if (RH.hideAt(G.grid, h.x, h.y) && d > 1.5 * TILE && st !== 'alert') continue;
       if (h.climbZ > 8 && d > 2 * TILE) continue;
-      if (!canSeePoint(g, h.x, h.y, R)) continue;
+      if (h.roof) { if (d > TILE && Math.abs(RH.angDiff(g.vd != null ? g.vd : g.dir, Math.atan2(dy, dx))) > g.fov / 2) continue; }
+      else if (!canSeePoint(g, h.x, h.y, R)) continue;
       const k = 1 - d / R;
       let rate = 0.65 + 3.4 * k * k;
       if (h.sneak) rate *= G.sneakMul;
@@ -1071,8 +1136,15 @@
       t.used = true; knockOut(g, 999); g.tied = true; g.inPit = true; fx('text', g.x, g.y - 30, 'Aaagh!', '#ffb08a', 1.2); sfx('ko');
       toast('Into the pit with him!', 'good'); return;
     }
+    for (const sn of G.snares) if (sn.armed && !g.boss && !g.sheriff && (g.x - sn.x) ** 2 + (g.y - sn.y) ** 2 < (TILE * 0.6) ** 2) { springSnare(sn); if (g.state === 'ko') return; }
+    for (const sw of G.swarms) if (sw.t > 0 && active(g) && g.state !== 'panic' && (g.x - sw.x) ** 2 + (g.y - sw.y) ** 2 < sw.r * sw.r) panic(g, 6);
+    if (g.state === 'panic') return panicStep(g, dt);
+    if (g.state === 'brawl') return brawlStep(g, dt);
+    if (g.state === 'shaking') return shakeStep(g, dt);
+    if (g.state === 'tohorn' || g.state === 'horn') { hornStep(g, dt); g.vd = g.dir; return; }
     if (g.state === 'stunned') { g.stateT -= dt; g.dir += dt * 6; if (g.stateT <= 0) { g.state = 'search'; g.searchT = 6; g.sus = 0.7; g.lx = g.x; g.ly = g.y; } return; }
     if (g.state === 'netted') { g.stateT -= dt; g.moving = false; if (g.stateT <= 0) { g.state = 'search'; g.searchT = 8; g.sus = 0.8; g.lx = g.x; g.ly = g.y; g.icon = '!'; g.iconT = 2; } return; }
+    { const calm = g.state === 'patrol' || g.state === 'watch' || g.state === 'look'; g.vd = g.dir + (calm && g.state !== 'look' ? Math.sin(G.time * 1.25 + g.id * 1.7) * 0.34 : 0); }
     if (g.state === 'watch') { g.moving = false; lookCycle(g, dt); return; }
     vision(g, dt);
     const st = g.state;
@@ -1123,7 +1195,8 @@
           fx('text', g.x, g.y - 44, g.boss ? 'Come back and fight!' : 'Back to my post\u2026', '#ffcf9a', 1.2);
           break;
         }
-        if (!t || t.down || g.lostT > 5) {
+        if (t && (t.inside || (t.def && t.def.social && !t.carry && !(t.crimeT > 0) && g.lostT > 1.5))) { g.lostT = Math.max(g.lostT, 5.1); }
+        if (!t || t.down || g.lostT > 5 || t.inside) {
           if (g.seeing) { g.target = g.seeing; break; }
           if (G.kind === 'defense' && g.raider) { g.state = 'raid'; g.path = null; g.target = null; break; }
           g.state = 'search'; g.searchT = 10; g.path = null; g.icon = '?'; g.iconT = 3; g.target = null; break;
@@ -1134,9 +1207,10 @@
           if (g.atkCd <= 0) { g.atkCd = 1.7; g.drawT = 0.3; G.projs.push({ kind: 'garrow', x: g.x, y: g.y - 14, sx: g.x, sy: g.y - 14, target: t, from: g, t: 0 }); sfx('bow'); }
           break;
         }
-        if (dd < (TILE * 0.9) ** 2) {
+        if (dd < (TILE * 0.9) ** 2 && !t.roof) {
           g.path = null; g.moving = false;
           g.dir = Math.atan2(t.y - g.y, t.x - g.x);
+          if ((g.boss || g.sheriff) && t.kind === 'hero') { duelStep(g, t, dt); break; }
           if (g.stagger > 0) g.stagger -= dt;
           else if (g.atkCd <= 0) {
             g.atkCd = g.sheriff || g.boss ? 0.9 : g.type === 'knight' ? 1.3 : 1.15; g.swingT = 0.25;
@@ -1170,8 +1244,12 @@
         if (follow(g, g.walk * 1.3, dt, 7) || d2(g, c) < (TILE * 0.8) ** 2) {
           g.path = null;
           if (c.ale) { g.state = 'drinking'; g.stateT = 2.5; g.icon = '🍺'; g.iconT = 2.5; c.gone = true; }
-          else { g.state = 'counting'; g.stateT = 6; g.icon = '$'; g.iconT = 6; }
-          g.dir = Math.atan2(c.y - g.y, c.x - g.x) + Math.PI * 0.15;
+          else {
+            const rival = G.guards.find((o) => o !== g && o.coin === c && (o.state === 'counting' || o.state === 'lured') && active(o) && d2(o, c) < (TILE * 1.6) ** 2);
+            if (rival && rival.state === 'counting') startBrawl(g, rival);
+            else { g.state = 'counting'; g.stateT = 6; g.icon = '$'; g.iconT = 6; }
+          }
+          if (g.state !== 'brawl') g.dir = Math.atan2(c.y - g.y, c.x - g.x) + Math.PI * 0.15;
         }
         break;
       }
@@ -1190,9 +1268,11 @@
   function arrive(g) {
     const b = g.rescue;
     g.rescue = null;
-    if (b && b.state === 'ko' && !b.carried && d2(g, b) < (TILE * 1.6) ** 2) {
-      fx('text', b.x, b.y - 26, b.tied ? 'Untied!' : 'Up!', '#ffb08a', 1.2);
-      b.tied = false; wake(b);
+    if (b && b.state === 'ko' && !b.carried && !b.hoisted && !b.inPit && d2(g, b) < (TILE * 1.6) ** 2) {
+      g.state = 'shaking'; g.stateT = b.tied ? 3.2 : 2.2; g.rescueB = b; g.path = null; g.moving = false;
+      g.dir = Math.atan2(b.y - g.y, b.x - g.x);
+      fx('text', g.x, g.y - 44, b.tied ? 'Hold still, I\u2019ll cut you loose!' : 'Wake up, man!', '#ffb08a', 1.6);
+      return;
     }
     g.state = 'search'; g.searchT = 7; g.path = null;
   }
@@ -1488,7 +1568,9 @@
     switch (p.kind) {
       case 'hive':
         sfx('buzz'); fx('bees', p.tx, p.ty, '', '#ffd23a', 2.5);
-        for (const g of G.guards) if (active(g) && d2(g, at) < (1.8 * TILE) ** 2) { g.state = 'stunned'; g.stateT = 7; g.path = null; g.icon = '🐝'; g.iconT = 7; g.target = null; g.sus = 0; }
+        G.swarms.push({ x: p.tx, y: p.ty, t: 9, r: 2.3 * TILE });
+        for (const g of G.guards) if (active(g) && d2(g, at) < (2.3 * TILE) ** 2) panic(g, 7);
+        for (const c of G.civs) if (c.state !== 'ko' && !c.carter && d2(c, at) < (3 * TILE) ** 2) c.flee = 6;
         break;
       case 'net':
         sfx('net'); fx('net', p.tx, p.ty, '', '#d8c890', 2);
@@ -1592,6 +1674,7 @@
 
   function end(win, reason) {
     const st = G.stats;
+    st.foes = G.guards.filter((g) => !g.civ).length; st.spared = Math.round(100 * Math.max(0, st.foes - st.kills) / Math.max(1, st.foes));
     st.time = G.time;
     const stars = win ? 1 + (!st.spotted && !st.alarm ? 1 : 0) + (st.kills === 0 ? 1 : 0) : 0;
     G.over = { win, reason, stars, stats: st };
@@ -1635,6 +1718,294 @@
   }
 
   // ---------- Main step ----------
+  // ---------- v4: houses, rooftops, alarm horn, snares, swarms, purse brawls, duels ----------
+  const AGILE = (h) => !!h && !h.npc && !h.def.big && !h.def.round && !h.def.strong && h.key !== 'john' && h.key !== 'tuck';
+  game.AGILE = AGILE;
+  function roofZ(tx, ty) { return (RH.render && RH.render.roofZ && RH.render.roofZ(tx, ty)) || 46; }
+  function setupWorld(m) {
+    const g = G.grid, W = g.w, Hh = g.h;
+    G.houses = []; G.ivy = []; G.swarms = []; G.horn = null; G.reinfT = 0; G.alarmAt = null;
+    const at = (x, y) => (x < 0 || y < 0 || x >= W || y >= Hh) ? 'T' : g.ch[y * W + x];
+    const walk = (x, y) => RH.isWalk(g, x, y);
+    const rg = { w: W, h: Hh, walk: new Uint8Array(W * Hh), block: new Uint8Array(W * Hh), see: g.see, hide: g.hide, ch: g.ch };
+    G.roofGrid = rg;
+    if (m.kind === 'defense' || m.kind === 'base') return;
+    const used = new Uint8Array(W * Hh);
+    let ivyN = 0;
+    for (let y = 0; y < Hh; y++) for (let x = 0; x < W; x++) {
+      if (at(x, y) !== 'r' || used[y * W + x]) continue;
+      let w = 0; while (at(x + w, y) === 'r' && !used[y * W + x + w]) w++;
+      let hh = 1;
+      outer: while (y + hh < Hh) { for (let k = 0; k < w; k++) if (at(x + k, y + hh) !== 'r' || used[(y + hh) * W + x + k]) break outer; hh++; }
+      for (let yy = y; yy < y + hh; yy++) for (let xx = x; xx < x + w; xx++) used[yy * W + xx] = 1;
+      if (w < 2 || hh < 2) continue;
+      const hs = { id: G.houses.length, x, y, w, h: hh, door: null, bodies: 0, cx: (x + w / 2) * TILE, cy: (y + hh / 2) * TILE, house: true };
+      // the door: middle of the south face, else the east face (the faces we see)
+      const front = [];
+      for (let k = 0; k < w; k++) front.push({ tx: x + k, ty: y + hh, rx: x + k, ry: y + hh - 1, face: 's', c: Math.abs(k - (w - 1) / 2) });
+      for (let k = 0; k < hh; k++) front.push({ tx: x + w, ty: y + k, rx: x + w - 1, ry: y + k, face: 'e', c: Math.abs(k - (hh - 1) / 2) + 0.5 });
+      const ok = front.filter((f) => walk(f.tx, f.ty)).sort((a, b) => a.c - b.c);
+      if (!ok.length) continue;
+      const d = ok[0];
+      hs.door = { tx: d.tx, ty: d.ty, x: tcx(d.tx), y: tcx(d.ty), face: d.face };
+      for (let yy = y; yy < y + hh; yy++) for (let xx = x; xx < x + w; xx++) rg.walk[yy * W + xx] = 1;
+      G.houses.push(hs);
+      // ivy on every other house, on the side away from the door
+      if (ivyN < 6 && hs.id % 2 === 0 && ok.length > 2) {
+        const f = ok[ok.length - 1];
+        if (Math.abs(f.tx - d.tx) + Math.abs(f.ty - d.ty) >= 2) { G.ivy.push({ house: hs, tx: f.tx, ty: f.ty, x: tcx(f.tx), y: tcx(f.ty), rx: tcx(f.rx), ry: tcx(f.ry), face: f.face, ivy: true }); ivyN++; }
+      }
+    }
+    // the alarm horn: at a sentry post far from the band; blowing it brings endless reinforcements
+    if (m.kind === 'story' && m.horn !== false && !m.alarmFail && (m.theme === 'town' || m.theme === 'castle') && G.heroes.length) {
+      const h0 = G.heroes[0];
+      let post = null, bd = -1;
+      if (m.horn) post = { x: tcx(m.horn[0]), y: tcx(m.horn[1]) };
+      else for (const gd of G.guards) if (gd.route && gd.route.length === 1 && !gd.boss && !gd.sheriff && gd.state !== 'watch') { const dd = d2(gd, h0); if (dd > bd) { bd = dd; post = gd; } }
+      if (post) {
+        const taken = new Set([tileOf(post.y) * W + tileOf(post.x)]);
+        const n = RH.nearestWalk(g, tileOf(post.x) + 1, tileOf(post.y), taken);
+        if (n >= 0) {
+          const hp = { kind: 'horn', id: 'horn', x: tcx(n % W), y: tcx((n / W) | 0), used: false, prop: true, hits: 0, blown: false };
+          G.props.push(hp); G.horn = hp;
+          // reinforcements march in from the far edge of the map
+          const dist = new Int32Array(W * Hh).fill(-1), q = [];
+          const s0 = RH.nearestWalk(g, tileOf(h0.x), tileOf(h0.y)); dist[s0] = 0; q.push(s0);
+          for (let qi = 0; qi < q.length; qi++) { const i = q[qi], cx = i % W, cy = (i / W) | 0; for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const nx = cx + dx, ny = cy + dy; if (!walk(nx, ny)) continue; const j = ny * W + nx; if (dist[j] >= 0) continue; dist[j] = dist[i] + 1; q.push(j); } }
+          let best = -1, bv = -1;
+          const ex = G.exit;
+          for (const i of q) { const x = i % W, y = (i / W) | 0; if (x >= ex.x - 1 && x < ex.x + ex.w + 1 && y >= ex.y - 1 && y < ex.y + ex.h + 1) continue; const edge = (x <= 1 || y <= 1 || x >= W - 2 || y >= Hh - 2) ? 1000 : 0; if (dist[i] + edge > bv) { bv = dist[i] + edge; best = i; } }
+          if (best >= 0) G.spawnAt = [best % W, (best / W) | 0];
+        }
+      }
+    }
+  }
+  function leaveHouse(h) {
+    const hs = h.inside; if (!hs) return;
+    h.inside = null; h.x = hs.door.x; h.y = hs.door.y; fx('text', h.x, h.y - 34, 'Out!', '#e8dcc0', 0.8); sfx('tap');
+  }
+  function enterHouse(h, hs) {
+    h.inside = hs; h.x = hs.door.x; h.y = hs.door.y; h.moving = false; h.path = null; h.sneak = false;
+    fx('text', h.x, h.y - 34, 'Hidden indoors', '#cfe8a0', 1); sfx('tie');
+    for (const g of G.guards) if (g.target === h && g.state === 'alert') { g.lostT = 5.1; }
+  }
+  function stashBody(h, hs) {
+    const b = h.carry;
+    if (!b || b === 'chest') return;
+    if (b.sheriff || b.boss) { toast('Keep him in sight: he\u2019s the prize.'); return; }
+    h.carry = null; b.carried = false; b.carrier = null; b.state = 'gone'; b.x = -9999; b.y = -9999; b.found = true;
+    hs.bodies++; G.stats.hidden++;
+    fx('text', hs.door.x, hs.door.y - 36, 'Out of sight!', '#cfe8a0', 1.1); sfx('ko');
+  }
+  // roof walking on the house's tiles, and dropping down
+  function roofMove(h, tx, ty) {
+    const rg = G.roofGrid;
+    if (!RH.isWalk(rg, tx, ty)) return false;
+    const p = RH.astar(rg, tileOf(h.x), tileOf(h.y), tx, ty);
+    if (!p) return false;
+    h.path = p; h.pi = 0; h.task = { type: 'roofmove' };
+    h.roof = G.houses.find((hs) => tx >= hs.x && tx < hs.x + hs.w && ty >= hs.y && ty < hs.y + hs.h) || h.roof;
+    fx('marker', tcx(tx), tcx(ty), '', '#ffe066', 0.8); sfx('move');
+    return true;
+  }
+  function startDrop(h, x, y, then) {
+    const rg = G.roofGrid, g = G.grid, W = g.w;
+    // BFS over connected roof tiles; pick the edge tile whose ground neighbour is nearest the goal
+    const s = tileOf(h.y) * W + tileOf(h.x), seen = new Set([s]), q = [s];
+    let best = null, bv = 1e12;
+    for (let qi = 0; qi < q.length && qi < 400; qi++) {
+      const i = q[qi], cx = i % W, cy = (i / W) | 0;
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const nx = cx + dx, ny = cy + dy, j = ny * W + nx;
+        if (RH.isWalk(rg, nx, ny)) { if (!seen.has(j)) { seen.add(j); q.push(j); } continue; }
+        if (!RH.isWalk(g, nx, ny)) continue;
+        const v = (tcx(nx) - x) ** 2 + (tcx(ny) - y) ** 2 + 0.25 * ((cx - tileOf(h.x)) ** 2 + (cy - tileOf(h.y)) ** 2) * TILE * TILE;
+        if (v < bv) { bv = v; best = { rx: cx, ry: cy, gx: nx, gy: ny }; }
+      }
+    }
+    if (!best) { h.task = null; return; }
+    const p = RH.astar(rg, tileOf(h.x), tileOf(h.y), best.rx, best.ry);
+    h.path = p && p.length ? p : null; h.pi = 0;
+    h.task = { type: 'drop', gx: best.gx, gy: best.gy, then: then && then.type !== 'drop' ? then : null, fall: 0, gox: x, goy: y };
+  }
+  game.startDrop = startDrop;
+  function dropStep(h, t, dt) {
+    if (!t.jumping) {
+      if (h.path && !follow(h, heroSpeed(h) * 0.85, dt)) return;
+      t.jumping = true; t.sx = h.x; t.sy = h.y; t.z0 = h.climbZ || roofZ(tileOf(h.x), tileOf(h.y)); h.climbing = true; sfx('move');
+    }
+    t.fall += dt / 0.45;
+    const k = Math.min(1, t.fall);
+    h.x = RH.lerp(t.sx, tcx(t.gx), k); h.y = RH.lerp(t.sy, tcx(t.gy), k); h.climbZ = t.z0 * (1 - k * k);
+    if (k < 1) return;
+    h.climbZ = 0; h.climbing = false; h.roof = null;
+    // dropping onto an unaware guard knocks him flat
+    for (const g of G.guards) if (active(g) && g.state !== 'alert' && !g.boss && !g.sheriff && d2(g, h) < (TILE * 1.25) ** 2) {
+      knockOut(g, 45); G.stats.drops++; fx('text', g.x, g.y - 40, 'From above!', '#ffe08a', 1.2); h.crimeT = 3; break;
+    }
+    const then = t.then;
+    h.task = null; h.path = null;
+    if (then) { h.task = then; h.repathT = 0; }
+    else if (t.gox != null && (Math.abs(tileOf(t.gox) - t.gx) + Math.abs(tileOf(t.goy) - t.gy) > 1)) { if (setPath(h, tileOf(t.gox), tileOf(t.goy))) h.task = { type: 'move' }; }
+  }
+  // net snares set on the ground: the first guard to step in is hoisted into the branches with anyone at his side
+  function springSnare(sn) {
+    sn.armed = false; sn.sprung = G.time;
+    sfx('net'); fx('net', sn.x, sn.y, '', '#d8c890', 1.6);
+    let n = 0;
+    for (const g of G.guards) if (active(g) && !g.boss && !g.sheriff && (g.x - sn.x) ** 2 + (g.y - sn.y) ** 2 < (TILE * 1.45) ** 2) {
+      knockOut(g, 999); g.tied = true; g.hoisted = true; g.hoistT = 0; g.hx = sn.x; g.hy = sn.y; g.found = true; g.icon = ''; n++;
+    }
+    G.stats.snared += n; G.stats.tied += n;
+    if (n) { fx('text', sn.x, sn.y - 60, n > 1 ? `${n} hoisted!` : 'Hoisted!', '#ffe08a', 1.4); toast(n > 1 ? `The snare hoists ${n} of them into the trees!` : 'Snared! Up he goes into the branches.', 'good'); }
+  }
+  game.springSnare = springSnare;
+  function panic(g, t) {
+    if (g.state === 'ko' || g.state === 'dead') return;
+    g.state = 'panic'; g.stateT = t; g.path = null; g.target = null; g.sus = 0; g.icon = '🐝'; g.iconT = t; g.panicDir = Math.random() * 7; g.panicT = 0;
+    if (!g.yelled) { g.yelled = true; fx('text', g.x, g.y - 44, ['Bees! Bees!', 'Get them off!', 'Aaah!'][g.id % 3], '#ffe08a', 1.3); }
+  }
+  function panicStep(g, dt) {
+    g.stateT -= dt; g.panicT -= dt; g.vd = g.dir;
+    if (g.panicT <= 0) { g.panicT = 0.35 + Math.random() * 0.4; g.panicDir += (Math.random() - 0.5) * 3; }
+    const sp = g.walk * 1.6 * dt, nx = g.x + Math.cos(g.panicDir) * sp, ny = g.y + Math.sin(g.panicDir) * sp;
+    if (RH.isWalk(G.grid, tileOf(nx), tileOf(ny))) { g.x = nx; g.y = ny; g.moving = true; g.anim = (g.anim || 0) + dt * 6; } else { g.panicDir += Math.PI * (0.5 + Math.random()); g.moving = false; }
+    g.dir = g.panicDir; g.flail = (g.flail || 0) + dt * 14;
+    if (g.stateT <= 0) { g.yelled = false; g.state = 'search'; g.searchT = 6; g.sus = 0.7; g.lx = g.x; g.ly = g.y; g.icon = '?'; g.iconT = 2; }
+  }
+  // two guards reaching one purse come to blows over it
+  function startBrawl(a, b) {
+    for (const [g, o] of [[a, b], [b, a]]) { g.state = 'brawl'; g.stateT = 5.5; g.foe = o; g.path = null; g.icon = '💢'; g.iconT = 5.5; g.sus = 0; g.moving = false; }
+    fx('text', (a.x + b.x) / 2, (a.y + b.y) / 2 - 50, 'Mine! No, MINE!', '#ffe08a', 1.8); sfx('clang');
+    G.stats.brawls = (G.stats.brawls || 0) + 1;
+  }
+  function brawlStep(g, dt) {
+    g.stateT -= dt; g.vd = g.dir;
+    const o = g.foe;
+    if (o && active(o)) { g.dir = Math.atan2(o.y - g.y, o.x - g.x); if (o.state !== 'brawl') g.stateT = Math.min(g.stateT, 0.01); }
+    if (g.atkCd <= 0) { g.atkCd = 0.6 + Math.random() * 0.5; g.swingT = 0.25; if (o && active(o) && Math.random() < 0.5) { sfx('clang'); fx('spark', (g.x + o.x) / 2, (g.y + o.y) / 2 - 14); } }
+    if (g.stateT <= 0) {
+      const c = g.coin;
+      g.foe = null;
+      if (c && !c.gone && g.id < (o ? o.id : 1e9)) { g.state = 'counting'; g.stateT = 4; g.icon = '$'; g.iconT = 4; }
+      else { g.coin = null; g.state = 'search'; g.searchT = 4; g.sus = 0.3; g.lx = g.x; g.ly = g.y; g.icon = ''; }
+    }
+  }
+  // a guard shaking his fallen mate awake (or cutting his ropes)
+  function shakeStep(g, dt) {
+    const b = g.rescueB;
+    g.stateT -= dt; g.moving = false; g.shakeT = (g.shakeT || 0) + dt; g.vd = g.dir;
+    vision(g, dt);
+    if (g.state !== 'shaking') return;
+    if (!b || b.state !== 'ko' || b.carried) { g.rescueB = null; g.state = 'search'; g.searchT = 6; return; }
+    b.shook = G.time;
+    if (g.stateT <= 0) {
+      fx('text', b.x, b.y - 26, b.tied ? 'Untied!' : 'Up!', '#ffb08a', 1.2);
+      b.tied = false; wake(b); g.rescueB = null;
+      g.state = 'search'; g.searchT = 7; g.path = null;
+    }
+  }
+  // the alarm horn
+  function hornStep(g, dt) {
+    const H = G.horn;
+    if (!H || H.used || H.blown) { g.state = 'search'; g.searchT = 6; g.icon = ''; return; }
+    vision(g, dt);
+    if (g.state === 'tohorn') {
+      if (d2(g, H) < (TILE * 0.9) ** 2) { g.state = 'horn'; g.stateT = 1.6; g.path = null; g.moving = false; fx('text', g.x, g.y - 44, '*takes a deep breath*', '#ffcf9a', 1.4); return; }
+      if (!g.path) { if (!setPath(g, tileOf(H.x), tileOf(H.y))) { g.state = 'search'; return; } }
+      follow(g, g.chase || g.walk * 1.5, dt, 10);
+    } else {
+      g.stateT -= dt; g.moving = false;
+      if (g.stateT <= 0) {
+        H.blown = true; sfx('horn'); G.alarmT = Math.max(G.alarmT, 45); G.reinfT = 3;
+        fx('text', g.x, g.y - 50, 'HOOOOOOM!', '#ffb08a', 2); fx('ring', g.x, g.y, '', '#ff8a5a', 1.4);
+        toast('📯 The alarm horn! Soldiers will keep coming until the alarm dies down.', 'bad');
+        g.state = 'search'; g.searchT = 8; g.lx = g.x; g.ly = g.y; g.icon = '!'; g.iconT = 2;
+      }
+    }
+  }
+  function updWorld(dt) {
+    for (let i = G.swarms.length - 1; i >= 0; i--) { G.swarms[i].t -= dt; if (G.swarms[i].t <= 0) G.swarms.splice(i, 1); }
+    for (const g of G.guards) if (g.hoisted) g.hoistT = Math.min(1, (g.hoistT || 0) + dt * 2.5);
+    const H = G.horn;
+    if (!H || H.used) return;
+    if (!H.blown && G.alarmT > 0) {
+      const r = H.runner;
+      if (!r || !active(r) || (r.state !== 'tohorn' && r.state !== 'horn')) {
+        H.runner = null;
+        let best = null, bd = (16 * TILE) ** 2;
+        for (const g of G.guards) { if (!active(g) || passive(g) || g.boss || g.sheriff || g.coward || g.type === 'collector' || g.type === 'knight' || g.state === 'tohorn') continue; const dd = d2(g, H); if (dd < bd) { bd = dd; best = g; } }
+        if (best && (!H.nextRunT || G.time > H.nextRunT)) {
+          H.runner = best; H.nextRunT = G.time + 4;
+          best.state = 'tohorn'; best.path = null; best.target = null; best.icon = '📯'; best.iconT = 99;
+          fx('text', best.x, best.y - 44, 'Sound the horn!', '#ff9a7a', 1.5);
+        }
+      }
+    }
+    if (H.blown && G.alarmT > 0 && G.spawnAt) {
+      G.reinfT -= dt;
+      const alive = G.guards.filter((g) => g.reinf && active(g)).length;
+      if (G.reinfT <= 0 && alive < 6) {
+        G.reinfT = 12;
+        const [sx, sy] = G.spawnAt, to = G.alarmAt || H;
+        for (let k = 0; k < 2; k++) {
+          const n = RH.nearestWalk(G.grid, sx, sy, new Set(G.guards.filter((o) => active(o)).map((o) => tileOf(o.y) * G.grid.w + tileOf(o.x))));
+          if (n < 0) break;
+          const tx = n % G.grid.w, ty = (n / G.grid.w) | 0;
+          const g = mkGuard(tx, ty, k ? (G.m.rank >= 2 ? 'archer' : 'soldier') : (G.m.rank >= 2 ? 'officer' : 'soldier'), G.m.rank);
+          g.route = [{ tx, ty, x: g.x, y: g.y, wait: 0 }]; g.looks = [S, W, N, E]; g.home = { x: to.x, y: to.y }; g.reinf = true;
+          g.state = 'investigate'; g.lx = to.x; g.ly = to.y; g.sus = 0.7; g.faceTo = g.dir; g.icon = '!'; g.iconT = 2;
+          G.guards.push(g); G.stats.reinf++;
+        }
+        if (!G.reinfToast) { G.reinfToast = true; toast('More soldiers pour in! Hide until the alarm dies down.', 'bad'); }
+      }
+    }
+  }
+  // boss duels: he winds up a blow from one side; swipe the same way to counter it
+  const DUEL_DIRS = ['slash', 'heavy', 'thrust'];
+  function duelStep(g, t, dt) {
+    if (g.stagger > 0) { g.stagger -= dt; g.duel = null; return; }
+    if (!g.duel) {
+      if (g.atkCd > 0) return;
+      g.duel = { need: DUEL_DIRS[(Math.random() * 3) | 0], t: 1.15, T: 1.15, hero: t, start: G.time };
+      if (!G.duelTipped && RH.ui && !(RH.profile.seen && RH.profile.seen.duel)) {
+        G.duelTipped = true; RH.profile.seen = Object.assign(RH.profile.seen || {}, { duel: 1 }); RH.saveProfile();
+        RH.ui.tip('Duel! He winds up a blow: swipe across him the way the arrow shows (↔ sideways, ↓ down, ↑ up) to counter it. A back-and-forth parry blocks anything.');
+      }
+      return;
+    }
+    const D = g.duel;
+    D.t -= dt;
+    if (t.lastStroke === D.need && t.lastStrokeAt >= D.start - 0.1 && !D.done) {
+      D.done = true; g.duel = null; g.stagger = 1.7; g.atkCd = 1.0; g.hp -= 1; g.flash = 0.2; G.stats.counters++;
+      sfx('clang'); fx('text', g.x, g.y - 48, 'Countered!', '#9affa0', 1.1); fx('spark', (t.x + g.x) / 2, (t.y + g.y) / 2 - 14);
+      if (g.hp <= 0) defeat(g, false);
+      return;
+    }
+    if (D.t > 0) return;
+    g.duel = null; g.atkCd = 0.6; g.swingT = 0.3;
+    if (t.parryT > 0) { t.parryT = 0; g.stagger = 1.2; sfx('clang'); fx('text', t.x, t.y - 40, 'Parried!', '#cfe8ff', 0.9); }
+    else { heroHurt(t, g.dmg); sfx('clang'); }
+  }
+  // a robbed cart spills its silver across the road
+  function spillGold(x, y, value) {
+    const n = Math.max(3, Math.min(8, Math.round(value / 6)));
+    const taken = new Set();
+    let left = value;
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2 + Math.random() * 0.5, rr = TILE * (0.9 + Math.random() * 1.1);
+      const k = RH.nearestWalk(G.grid, tileOf(x + Math.cos(a) * rr), tileOf(y + Math.sin(a) * rr), taken);
+      if (k < 0) continue;
+      taken.add(k);
+      const v = i === n - 1 ? left : Math.round(value / n); left -= v;
+      G.gold.push({ x: tcx(k % G.grid.w) + (Math.random() - 0.5) * 10, y: tcx((k / G.grid.w) | 0) + (Math.random() - 0.5) * 10, v, taken: false, spill: G.time, fromX: x, fromY: y });
+    }
+    if (left > 0 && G.gold.length) G.gold[G.gold.length - 1].v += left;
+    fx('text', x, y - 50, 'The strongbox bursts!', '#ffd84a', 1.8); sfx('coin'); setTimeout(() => sfx('coin'), 120);
+    toast('Silver spills across the road: walk over the coins to scoop them up', 'good');
+  }
+  game.spillGold = spillGold;
+
   game.update = function (dt) {
     if (!G.m || G.over) return;
     G.time += dt;
@@ -1650,6 +2021,7 @@
     updDefense(dt);
     updBlazons(dt);
     updListen(dt);
+    updWorld(dt);
     for (let i = G.fx.length - 1; i >= 0; i--) { const f = G.fx[i]; f.t += dt; if (f.t >= f.life) G.fx.splice(i, 1); }
     for (let i = G.coins.length - 1; i >= 0; i--) { const c = G.coins[i]; if (c.t != null) { c.t -= dt; if (c.t <= 0) c.gone = true; } if (c.gone) G.coins.splice(i, 1); }
     updTips();
@@ -1662,7 +2034,7 @@
     g.coneR = R;
     const half = g.fov / 2;
     for (let i = 0; i < NRAYS; i++) {
-      const a = g.dir - half + (g.fov * i) / (NRAYS - 1);
+      const a = (g.vd != null ? g.vd : g.dir) - half + (g.fov * i) / (NRAYS - 1);
       g.cone[i] = RH.rayDist(G.grid, g.x, g.y - 4, a, R);
     }
   };

@@ -4,10 +4,10 @@
   const E = 0, S = Math.PI / 2, W = Math.PI, N = -Math.PI / 2;
 
   RH.HEROES = {
-    robin:   { name: 'Robin',       hp: 6, speed: 2.7, dmg: 1, weapon: 'sword', tunic: '#3f7d2c', trim: '#a9c94a', hat: '#2f5e1f', hair: '#7a4a22', skin: '#f0c9a0', icon: '🏹', abil: ['bow', 'purse'], blurb: 'Archer and leader. Bow, coin purses, climbs walls at the rope marks.' },
-    john:    { name: 'Little John', hp: 9, speed: 2.3, dmg: 2, weapon: 'staff', tunic: '#5b6fa8', trim: '#c9b27a', hat: null,      hair: '#4a2c14', skin: '#e2b48a', icon: '💪', abil: ['net', 'whistle'], blurb: 'Huge and strong. One-blow knockouts on anyone, carries fast, throws nets, whistles to lure.', big: true },
-    marian:  { name: 'Marian',      hp: 5, speed: 2.8, dmg: 1, weapon: 'sword', tunic: '#9c2a3a', trim: '#e8c46a', hat: null,      hair: '#b0522a', skin: '#f3d0ae', icon: '🌹', abil: ['charm', 'bow'], blurb: 'Charms a guard so he sees only her. A fine shot too.' },
-    tuck:    { name: 'Friar Tuck',  hp: 7, speed: 2.1, dmg: 1, weapon: 'staff', tunic: '#7a5634', trim: '#d9c08a', hat: null,      hair: '#c8a070', skin: '#eab896', icon: '✚', abil: ['heal', 'hive', 'ale'], blurb: 'Heals and revives. Beehives stun a group; a mug of his ale puts any guard to sleep.', round: true },
+    robin:   { name: 'Robin',       hp: 6, speed: 2.7, dmg: 1, weapon: 'sword', tunic: '#3f7d2c', trim: '#a9c94a', hat: '#2f5e1f', hair: '#7a4a22', skin: '#f0c9a0', icon: '🏹', abil: ['bow', 'purse'], blurb: 'Archer and leader. Bow, coin purses, climbs walls and ivy onto rooftops.' },
+    john:    { name: 'Little John', hp: 9, speed: 2.3, dmg: 2, weapon: 'staff', tunic: '#5b6fa8', trim: '#c9b27a', hat: null,      hair: '#4a2c14', skin: '#e2b48a', icon: '💪', abil: ['net', 'snare', 'whistle'], blurb: 'Huge and strong. One-blow knockouts on anyone, carries fast, throws nets, sets net snares, whistles to lure.', big: true },
+    marian:  { name: 'Marian',      hp: 5, speed: 2.8, dmg: 1, weapon: 'sword', tunic: '#9c2a3a', trim: '#e8c46a', hat: null,      hair: '#b0522a', skin: '#f3d0ae', icon: '🌹', abil: ['charm', 'bow'], social: true, blurb: 'Walks freely among the guards, as long as they don\u2019t see her fight or carry a body. Charms a guard so he sees only her. A fine shot too.' },
+    tuck:    { name: 'Friar Tuck',  hp: 7, speed: 2.1, dmg: 1, weapon: 'staff', tunic: '#7a5634', trim: '#d9c08a', hat: null,      hair: '#c8a070', skin: '#eab896', icon: '✚', abil: ['heal', 'hive', 'ale'], blurb: 'Heals and revives. Beehives send a group running in panic; a mug of his ale puts any guard to sleep.', round: true },
     scarlet: { name: 'Will Scarlet', hp: 6, speed: 2.8, dmg: 2, weapon: 'sword', tunic: '#c0362c', trim: '#2a2a2a', hat: '#7d1d18', hair: '#2b1a10', skin: '#efc39c', icon: '🪨', abil: ['sling', 'apple'], blurb: 'Fast blade. His sling knocks a guard out from afar; an apple turns a guard\u2019s head.' },
     hob:     { name: 'Hob',         hp: 4, speed: 2.4, dmg: 0, weapon: null,    tunic: '#8a7a5a', trim: '#5a4a2a', hat: null,      hair: '#9a6a3a', skin: '#efc39c', icon: '🙂', blurb: 'Little John\u2019s cousin.', npc: true },
   };
@@ -23,7 +23,7 @@
   RH.CLASSES = {
     strong: { name: 'Strongman', ic: '🔨', weapon: 'staff', hp: 5, abil: ['whistle'], strong: true, desc: 'Knocks out anyone in one blow, carries fast, whistles to lure guards.' },
     herbal: { name: 'Herbalist', ic: '🌿', weapon: 'staff', hp: 4, abil: ['heal', 'apple'], desc: 'Heals with draughts and throws apples.' },
-    trapper: { name: 'Trapper', ic: '🏹', weapon: 'staff', hp: 4, abil: ['bow', 'net'], desc: 'Shoots arrows and throws nets.' },
+    trapper: { name: 'Trapper', ic: '🏹', weapon: 'staff', hp: 4, abil: ['bow', 'snare'], desc: 'Shoots arrows and sets net snares that hoist guards into the trees.' },
   };
   RH.CLASS_ORDER = ['trapper', 'strong', 'herbal'];
   RH.makeRecruit = function (id, seed) {

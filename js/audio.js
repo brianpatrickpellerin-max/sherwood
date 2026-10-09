@@ -69,6 +69,7 @@
     net: () => { noise(0.25, 700, 0.25, 0, 0.8); tone(200, 0.2, 'triangle', 0.08, 0.6); },
     gulp: () => { tone(300, 0.08, 'sine', 0.1, 0.6); tone(260, 0.08, 'sine', 0.1, 0.6, 0.14); tone(220, 0.1, 'sine', 0.1, 0.6, 0.28); },
     sling: () => { noise(0.1, 2600, 0.2, 0, 3); tone(500, 0.06, 'triangle', 0.06, 0.5); },
+    horn: () => { tone(147, 1.4, 'sawtooth', 0.09, 1.02); tone(220, 1.3, 'triangle', 0.06, 1.0, 0.05); tone(110, 1.5, 'sine', 0.08, 1.0); },
     bird: () => { const b = 2000 + Math.random() * 1500; tone(b, 0.08, 'sine', 0.03, 1.3); tone(b * 1.1, 0.08, 'sine', 0.03, 0.8, 0.1); },
   };
   A.play = function (name) {
