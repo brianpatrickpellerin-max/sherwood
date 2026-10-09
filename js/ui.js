@@ -145,11 +145,12 @@
       ${trees}
       <path d="M100 30 Q80 36 74 48 T60 78" stroke="#5a8fb0" stroke-width="2.4" fill="none" opacity="0.8"/>
       <path d="M44 0 L44 78" stroke="#a8875a" stroke-width="1.2" stroke-dasharray="3 1.5" opacity="0.7"/>
-      <g transform="translate(66 34)"><rect x="-6" y="-4" width="12" height="8" fill="#b9a888" stroke="#3a2a1a" stroke-width="0.6"/><path d="M-7 -4 L0 -9 L7 -4 Z" fill="#9a3a24" stroke="#3a2a1a" stroke-width="0.6"/></g>
-      <g transform="translate(72 16)"><rect x="-7" y="-3" width="14" height="8" fill="#a89a80" stroke="#3a2a1a" stroke-width="0.6"/><rect x="-8" y="-7" width="4" height="12" fill="#a89a80" stroke="#3a2a1a" stroke-width="0.6"/><rect x="4" y="-7" width="4" height="12" fill="#a89a80" stroke="#3a2a1a" stroke-width="0.6"/></g>
+      <g transform="translate(60 33)"><rect x="-6" y="-4" width="12" height="8" fill="#b9a888" stroke="#3a2a1a" stroke-width="0.6"/><path d="M-7 -4 L0 -9 L7 -4 Z" fill="#9a3a24" stroke="#3a2a1a" stroke-width="0.6"/></g>
+      <g transform="translate(82 15)"><rect x="-7" y="-3" width="14" height="8" fill="#a89a80" stroke="#3a2a1a" stroke-width="0.6"/><rect x="-8" y="-7" width="4" height="12" fill="#a89a80" stroke="#3a2a1a" stroke-width="0.6"/><rect x="4" y="-7" width="4" height="12" fill="#a89a80" stroke="#3a2a1a" stroke-width="0.6"/></g>
       <text x="20" y="18" font-size="4.4" font-family="Georgia" font-style="italic" fill="#2f5a22">Sherwood Forest</text>
-      <text x="58" y="45" font-size="3.6" font-family="Georgia" fill="#5a3a14">Nottingham</text>
-      <g transform="translate(14 70)"><path d="M-4 3 L0 -4 L4 3 Z" fill="#d8c79e" stroke="#3a2a1a" stroke-width="0.5"/><text x="7" y="2" font-size="3.4" fill="#2f5a22">Our camp</text></g>
+      <text x="60" y="42" text-anchor="middle" font-size="3.6" font-family="Georgia" fill="#5a3a14">Nottingham</text>
+      <g transform="translate(93 50)"><rect x="-3" y="-6" width="6" height="10" fill="#8a7a60" stroke="#3a2a1a" stroke-width="0.5"/><path d="M-4 -6 h8 v-2 h-2 v1 h-1 v-1 h-2 v1 h-1 v-1 h-2 z" fill="#8a7a60" stroke="#3a2a1a" stroke-width="0.4"/></g>
+      <g transform="translate(8 74)"><path d="M-4 3 L0 -4 L4 3 Z" fill="#d8c79e" stroke="#3a2a1a" stroke-width="0.5"/><text x="6" y="2" font-size="3.4" fill="#2f5a22">Our camp</text></g>
       ${lines}${nodes}
       <g transform="translate(92 70)"><circle r="5" fill="none" stroke="#7a5a2a" stroke-width="0.5"/><text y="-5.8" text-anchor="middle" font-size="3" fill="#7a5a2a">N</text><path d="M0 -4 L1.4 0 L0 4 L-1.4 0 Z" fill="#7a5a2a"/></g>
     </svg>`;
@@ -218,7 +219,9 @@
   };
 
   ui.onEnd = function (res) {
-    setTimeout(() => showEnd(res), res.win ? 700 : 900);
+    const run = G.runId;
+    if (res.win) RH.commitWin(res);
+    setTimeout(() => { if (G.runId === run && G.over === res) showEnd(res); }, res.win ? 700 : 900);
   };
   function showEnd(res) {
     screenName = 'end';
@@ -293,7 +296,8 @@
     $('toasts').innerHTML = '';
     porSig = ''; actSig = ''; objSig = '';
     ui.refresh(true);
-    // collapse objectives after a while on small screens
+    // landscape phones: show only the current objective (tap to expand); small portrait screens collapse after a while
+    if (window.innerHeight < 520) $('objbox').classList.add('collapsed');
     setTimeout(() => { if (window.innerHeight < 700 && G.m) $('objbox').classList.add('collapsed'); }, 12000);
   };
 
@@ -355,7 +359,7 @@
     // objectives
     const objs = RH.game.objectives();
     let firstOpen = objs.findIndex((o) => !o.done && !o.neg && (!o.last || o.ready));
-    const sig = objs.map((o) => (o.done ? 1 : 0) + (o.ready ? 'r' : '')).join('') + G.alarmed;
+    const sig = objs.map((o) => (o.done ? 1 : 0) + (o.ready ? 'r' : '') + o.text).join('') + G.alarmed;
     if (sig !== objSig || force) {
       objSig = sig;
       $('mtitle').textContent = G.m.title;

@@ -24,7 +24,7 @@
 
   RH.MISSIONS = [
     {
-      id: 'm1', title: 'The Woodcutters\u2019 Camp', place: 'Sherwood Forest', mapPos: [30, 60],
+      id: 'm1', title: 'The Woodcutters\u2019 Camp', place: 'Sherwood Forest', mapPos: [24, 58],
       intro: 'The Sheriff\u2019s men have seized a woodcutters\u2019 camp deep in Sherwood. They are holding Hob, Little John\u2019s cousin, inside a fenced pen, and mean to march him to Nottingham at dawn.\n\nSlip in quietly, cut Hob loose and bring everyone back to the clearing.',
       outro: 'Hob rubs his wrists and grins. \u201cI told them my cousin would come. They laughed.\u201d\n\nWord of the rescue spreads through the villages. In Nottingham, a certain lady hears of it too\u2026',
       heroes: { robin: [12, 25], john: [11, 25] },
@@ -78,11 +78,11 @@
         { id: 'carry', when: 'firstTie', text: 'A guard who sees a body raises the alarm. Long-press a body with Little John to carry it into a bush.' },
         { id: 'pause', when: 'time40', text: 'Tap \u23F8 any time to pause. You can still give orders while paused.' },
         { id: 'free', when: 'nearPrisoner', text: 'Tap Hob to cut him loose.' },
-        { id: 'exit', when: 'freed', text: 'Now bring everyone back to the glowing clearing.' },
+        { id: 'exit', when: 'freed', text: 'Now bring everyone back to the glowing clearing. Tip: tap a portrait twice (or \u{1F465} All) to move the whole band.' },
       ],
     },
     {
-      id: 'm2', title: 'Market Day', place: 'Nottingham', mapPos: [62, 40],
+      id: 'm2', title: 'Market Day', place: 'Nottingham', mapPos: [58, 50],
       intro: 'Every market day the Sheriff\u2019s collector squeezes the stallholders dry, then locks the takings in his strongroom off the square.\n\nMarian has joined the band. She knows the town, and the guards are fond of her. Steal the tax chest and bring it back out of the south gate. The townsfolk are on our side: harm none of them.',
       outro: 'The chest is heavy with coin, every penny of it wrung from honest folk. By nightfall it is back in their hands.\n\nBut the Sheriff has arrested Friar Tuck for preaching against him. He is to be made an example of.',
       heroes: { robin: [13, 29], john: [14, 29], marian: [12, 29] },
@@ -141,7 +141,7 @@
       ],
     },
     {
-      id: 'm3', title: 'The Castle by Night', place: 'Nottingham Castle', mapPos: [70, 22], night: true,
+      id: 'm3', title: 'The Castle by Night', place: 'Nottingham Castle', mapPos: [82, 30], night: true,
       intro: 'Friar Tuck sits in a cell in the castle yard, to hang at sunrise. Torches burn along the walls; the guards see less in the dark, but anyone who steps into torchlight is plain to see.\n\nIf the alarm is raised, they will move him to the dungeons, and he\u2019ll be lost. Tie up every guard you knock out, and don\u2019t let a single one see you.',
       outro: '\u201cBless you, my son!\u201d Tuck booms, then remembers to whisper. \u201cAnd bless that cook\u2019s pantry. I shall need my strength.\u201d\n\nTuck joins the band. On the road home, a red-cloaked swordsman steps from the trees with news of a treasure convoy\u2026',
       heroes: { robin: [13, 24], john: [14, 24], marian: [15, 24] },
@@ -150,7 +150,7 @@
       objectives: ['rescue', 'exit', 'noalarm'],
       alarmFail: true,
       reward: 80,
-      torches: [[9, 5], [19, 5], [13, 9], [3, 12], [24, 12], [5, 16], [20, 16], [21, 18], [17, 18]],
+      torches: [[9, 5], [19, 5], [13, 9], [3, 12], [24, 12], [20, 16], [21, 18], [17, 18]],
       map: [
         '############################',
         '#rrrrrrrrrrrrrrrrrrrrrrrrrr#',
@@ -196,12 +196,12 @@
       ],
     },
     {
-      id: 'm4', title: 'The Forest Road', place: 'The Great North Road', mapPos: [44, 34],
+      id: 'm4', title: 'The Forest Road', place: 'The Great North Road', mapPos: [36, 32],
       intro: 'A treasure cart is rolling south to Prince John, guarded by soldiers. Will Scarlet felled an oak across the road; the carter will have to stop and clear it.\n\nStop the cart before it leaves the forest, take the chest and carry it back to camp. The carter is a hired local man. Knock him out if you must, but don\u2019t kill him.',
       outro: 'The chest is packed with silver marked for Prince John\u2019s new palace. Instead it will buy seed corn for a dozen villages.\n\nNow the Sheriff is furious. He has locked himself in his keep with the last of the taxes. It is time to pay him a visit.',
       heroes: { robin: [17, 14], john: [18, 14], marian: [19, 14], tuck: [20, 14], scarlet: [21, 14] },
       exit: { x: 16, y: 13, w: 6, h: 3 },
-      convoy: { path: [[8.5, 0.5], [8.5, 16], [8.5, 29.5]], logStop: 1, logWait: 15, speed: 0.6 },
+      convoy: { path: [[8.5, 3], [8.5, 16], [8.5, 29.5]], logStop: 1, logWait: 15, speed: 0.6 },
       objectives: ['convoy', 'exit'],
       reward: 90,
       map: [
@@ -252,7 +252,7 @@
       ],
     },
     {
-      id: 'm5', title: 'The Sheriff\u2019s Keep', place: 'The Sheriff\u2019s Keep', mapPos: [78, 50], night: true,
+      id: 'm5', title: 'The Sheriff\u2019s Keep', place: 'The Sheriff\u2019s Keep', mapPos: [84, 58], night: true,
       intro: 'The Sheriff of Nottingham sits in his great hall, guarding the last chest of stolen taxes and plotting revenge.\n\nCapture him alive: beat or knock him out, then tie him up so he can answer to King Richard. Take the tax chest from the treasury and get the whole band back out over the moat.',
       outro: 'The Sheriff, trussed like a Michaelmas goose, is left on the steps of the abbey with a note pinned to his cloak.\n\nThe last of the taxes go home to the people. Sherwood rings with songs that night. Long live Robin Hood!',
       heroes: { robin: [14, 25], john: [15, 25], marian: [13, 25], tuck: [16, 25], scarlet: [12, 25] },
@@ -262,7 +262,7 @@
       objectives: ['sheriff', 'steal', 'exit'],
       reinforce: [[14, 18], [15, 18]],
       reward: 120,
-      torches: [[13, 7], [16, 7], [10, 15], [19, 15], [11, 18], [16, 18], [6, 2], [23, 2], [8, 9], [21, 9], [5, 20], [24, 20]],
+      torches: [[13, 7], [16, 7], [10, 15], [19, 15], [11, 18], [16, 18], [6, 2], [23, 2], [8, 9]],
       map: [
         '##############################',
         '#rrrrrrrrrrrrrrrrrrrrrrrrrrrr#',

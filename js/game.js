@@ -30,7 +30,7 @@
     const grid = RH.makeGrid(m.map);
     const night = !!m.night;
     Object.assign(G, {
-      idx, m, grid, night, time: 0, paused: false, speed: 1,
+      idx, m, grid, night, time: 0, runId: Math.random(), exitReady: false, paused: false, speed: 1,
       heroes: [], guards: [], civs: [], projs: [], fx: [], coins: [], gold: [],
       sel: [], mode: null, over: null, failPending: null, alarmT: 0, alarmed: false, reinforced: false,
       stats: { ko: 0, kills: 0, tied: 0, gold: 0, spotted: false, alarm: false },
@@ -896,7 +896,11 @@
     for (const o of m.objectives) {
       if (o === 'rescue') { const d = G.prisoner.freed; out.push({ text: G.prisoner.key === 'tuck' ? 'Free Friar Tuck' : 'Free Hob from the pen', done: d }); main = main && d; }
       if (o === 'steal') { const d = G.chest.taken; out.push({ text: 'Steal the tax chest', done: d }); main = main && d; }
-      if (o === 'convoy') { const d = G.chest.taken; out.push({ text: 'Stop the cart, take its chest', done: d }); main = main && d; }
+      if (o === 'convoy') {
+        const d = G.chest.taken, c = G.cart;
+        const extra = d ? '' : c.state === 'log' ? ` (stopped: ${Math.ceil(c.waitT)}s)` : c.state === 'stopped' ? ' (cart stopped!)' : '';
+        out.push({ text: 'Stop the cart, take its chest' + extra, done: d }); main = main && d;
+      }
       if (o === 'sheriff') { const s = G.sheriff; const d = s.state === 'ko' && s.tied; out.push({ text: 'Knock out & tie up the Sheriff', done: d }); main = main && d; }
       if (o === 'noalarm') out.push({ text: 'Don\u2019t raise the alarm', done: !G.alarmed, neg: true });
     }
@@ -911,6 +915,7 @@
     if (fighters.every((h) => h.down)) return end(false, 'The whole band has fallen.');
     const objs = game.objectives();
     const mainDone = objs.filter((o) => !o.last && !o.neg).every((o) => o.done);
+    G.exitReady = mainDone;
     if (!mainDone) return;
     const standing = G.heroes.filter((h) => !h.down);
     if (!standing.every((h) => inExit(h.x, h.y))) return;

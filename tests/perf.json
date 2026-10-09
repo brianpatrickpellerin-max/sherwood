@@ -1,0 +1,20 @@
+{
+ "x4_m3": {
+  "n": 133,
+  "workAvg": 3.22,
+  "workP50": 3.1,
+  "workP95": 3.9,
+  "workMax": 7.2,
+  "frameP50": 33.4,
+  "frameP95": 50
+ },
+ "x4_m5": {
+  "n": 109,
+  "workAvg": 4.35,
+  "workP50": 4.2,
+  "workP95": 5.8,
+  "workMax": 8.9,
+  "frameP50": 50,
+  "frameP95": 50.1
+ }
+}

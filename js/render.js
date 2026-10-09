@@ -2,7 +2,7 @@
 'use strict';
 (function (RH) {
   const TILE = RH.TILE;
-  const R = {};
+  const R = { flags: {} };
   RH.render = R;
   const G = RH.G;
   const OUT = '#1b140d';
@@ -67,6 +67,27 @@
     }
     for (let y = 0; y < g.h; y++) for (let x = 0; x < g.w; x++) {
       if (at(x, y) === 'T') tree(c, x * TILE, y * TILE, r, at, x, y);
+    }
+    // night: darkness map in world space (1/4 res) with torch holes, blitted once per frame
+    R.darkMap = null;
+    if (G.night) {
+      const q = 0.25, dm = document.createElement('canvas');
+      dm.width = Math.ceil(W * q); dm.height = Math.ceil(H * q);
+      const d = dm.getContext('2d');
+      d.fillStyle = 'rgba(6,10,32,0.72)'; d.fillRect(0, 0, dm.width, dm.height);
+      d.globalCompositeOperation = 'destination-out';
+      for (const t of G.torches) { const rr = 3.4 * TILE * q; d.drawImage(lightSprite, t.x * q - rr, t.y * q - rr, rr * 2, rr * 2); }
+      R.darkMap = dm; R.darkQ = q;
+    }
+    // warm torchlight baked into the map (night missions): no per-frame blending needed
+    if (G.torches.length) {
+      c.globalCompositeOperation = 'lighter';
+      for (const t of G.torches) {
+        const gr = c.createRadialGradient(t.x, t.y, 0, t.x, t.y, 3 * TILE);
+        gr.addColorStop(0, 'rgba(255,150,60,0.32)'); gr.addColorStop(1, 'rgba(255,110,40,0)');
+        c.fillStyle = gr; c.fillRect(t.x - 3 * TILE, t.y - 3 * TILE, 6 * TILE, 6 * TILE);
+      }
+      c.globalCompositeOperation = 'source-over';
     }
   };
 
@@ -353,15 +374,18 @@
     c.restore();
   }
 
+  // cached look variants (avoid per-frame allocations)
+  function noWeapon(L) { return L.__nw || (L.__nw = Object.assign({}, L, { weapon: null, __nw: null, __dead: null })); }
+  function deadLook(L) { return L.__dead || (L.__dead = Object.assign({}, L, { weapon: null, tunic: '#5a3a36', __nw: null, __dead: null })); }
+  function smallNoWeapon(L) { return L.__snw || (L.__snw = Object.assign({}, L, { weapon: null, big: false, __nw: null, __dead: null, __snw: null })); }
+  const FAKE = { dir: 0, moving: false, anim: 0, bob: 0, drawT: 0, swingT: 0 };
   function lying(c, x, y, u, L, kind) {
     c.save();
     c.translate(x, y);
     c.fillStyle = 'rgba(0,0,0,0.3)'; c.beginPath(); c.ellipse(0, 0, 14, 5, 0, 0, 7); c.fill();
     c.rotate(-Math.PI / 2); c.translate(4, 6);
     c.globalAlpha = kind === 'dead' ? 0.75 : 1;
-    const fake = { dir: 0, moving: false, anim: 0, bob: 0, drawT: 0, swingT: 0 };
-    const L2 = kind === 'dead' ? Object.assign({}, L, { tunic: '#5a3a36' }) : L;
-    person(c, 0, 0, fake, Object.assign({}, L2, { weapon: null }), null);
+    person(c, 0, 0, FAKE, kind === 'dead' ? deadLook(L) : noWeapon(L), null);
     c.restore();
     if (u.tied) {
       c.strokeStyle = '#d9b46a'; c.lineWidth = 2;
@@ -371,13 +395,14 @@
 
   // ---------- Frame ----------
   R.resize = function (canvas) {
-    const dpr = Math.min(window.devicePixelRatio || 1, 3);
+    // 2x is visually crisp on phones and halves the pixels to fill vs 3x
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const w = window.innerWidth, h = window.innerHeight;
     canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
     canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
     R.W = w; R.H = h; R.dpr = dpr;
     darkC = document.createElement('canvas');
-    darkC.width = Math.ceil(w / 2); darkC.height = Math.ceil(h / 2);
+    darkC.width = Math.ceil(w / 3); darkC.height = Math.ceil(h / 3);
     darkX = darkC.getContext('2d');
     if (!lightSprite) {
       lightSprite = document.createElement('canvas'); lightSprite.width = lightSprite.height = 128;
@@ -417,7 +442,7 @@
     ctx.imageSmoothingEnabled = true;
     const sx = Math.max(0, vx0), sy = Math.max(0, vy0);
     const ex = Math.min(G.grid.w * TILE, vx1), ey = Math.min(G.grid.h * TILE, vy1);
-    if (ex > sx && ey > sy) {
+    if (ex > sx && ey > sy && !R.flags.noStatic) {
       ctx.drawImage(staticC, sx * staticS, sy * staticS, (ex - sx) * staticS, (ey - sy) * staticS,
         (sx - cam.x) * z + W / 2, (sy - cam.y) * z + H / 2, (ex - sx) * z, (ey - sy) * z);
     }
@@ -428,8 +453,7 @@
     // exit zone
     const e = G.exit;
     const pulse = 0.5 + 0.5 * Math.sin(now * 3);
-    const objs = RH.game.objectives();
-    const ready = objs.length && objs[objs.length - 1].ready;
+    const ready = G.exitReady;
     ctx.fillStyle = ready ? `rgba(120,255,120,${0.16 + pulse * 0.14})` : 'rgba(120,255,140,0.08)';
     ctx.fillRect(e.x * TILE, e.y * TILE, e.w * TILE, e.h * TILE);
     ctx.strokeStyle = ready ? `rgba(170,255,150,${0.6 + pulse * 0.4})` : 'rgba(170,255,150,0.35)';
@@ -464,8 +488,13 @@
     // chest on ground
     if (G.chest && !G.chest.carrier && !G.chest.onCart) drawChest(ctx, G.chest.x, G.chest.y, 1);
 
-    // view cones (day: under units)
-    if (!G.night) drawCones(ctx, inView, 1);
+    // night darkness (pre-baked), then view cones; units are drawn on top so the player can read them
+    if (G.night && R.darkMap && !R.flags.noNight) {
+      const q = R.darkQ, dm = R.darkMap;
+      const x0 = Math.max(0, vx0), y0 = Math.max(0, vy0), x1 = Math.min(G.grid.w * TILE, vx1), y1 = Math.min(G.grid.h * TILE, vy1);
+      if (x1 > x0 && y1 > y0) ctx.drawImage(dm, x0 * q, y0 * q, (x1 - x0) * q, (y1 - y0) * q, x0, y0, x1 - x0, y1 - y0);
+    }
+    drawCones(ctx, inView, G.night ? 1.25 : 1);
 
     // selection rings + paths
     for (const h of G.sel) {
@@ -546,12 +575,6 @@
       for (let i = 0; i < 12; i++) { const a = now * (3 + i % 3) + i * 0.52; const rr = 14 + (i % 4) * 8; ctx.fillRect(f.x + Math.cos(a) * rr, f.y - 10 + Math.sin(a * 1.3) * rr * 0.6, 2.6, 2.6); }
     }
 
-    // night lighting
-    if (G.night) {
-      drawNight(ctx, inView);
-      ctx.setTransform(dpr * z, 0, 0, dpr * z, dpr * (W / 2 - cam.x * z), dpr * (H / 2 - cam.y * z));
-      drawCones(ctx, inView, 1.25);
-    }
     // torches flames
     for (const t of G.torches) {
       if (!inView(t.x, t.y, 30)) continue;
@@ -635,6 +658,7 @@
   }
 
   function drawCones(ctx, inView, alphaMul) {
+    if (R.flags.noCones) return;
     const NR = RH.game.NRAYS;
     for (const g of G.guards) {
       if (!RH.game.isActive(g) || g.state === 'stunned' || g.state === 'counting') continue;
@@ -661,7 +685,7 @@
 
   function drawNight(ctx, inView) {
     const W = R.W, H = R.H, cam = G.cam, z = cam.z;
-    const dx = darkX, q = 0.5;
+    const dx = darkX, q = 1 / 3;
     dx.globalCompositeOperation = 'source-over';
     dx.clearRect(0, 0, darkC.width, darkC.height);
     dx.fillStyle = 'rgba(6,10,32,0.74)';
@@ -681,14 +705,6 @@
     dx.globalCompositeOperation = 'source-over';
     ctx.setTransform(R.dpr, 0, 0, R.dpr, 0, 0);
     ctx.drawImage(darkC, 0, 0, W, H);
-    ctx.globalCompositeOperation = 'lighter';
-    for (const t of G.torches) {
-      R.toScreen(t.x, t.y, tmp);
-      const s = 2.6 * TILE * z * (1 + Math.sin(now * 9 + t.x) * 0.03);
-      if (tmp.x + s < 0 || tmp.y + s < 0 || tmp.x - s > W || tmp.y - s > H) continue;
-      ctx.drawImage(glowSprite, tmp.x - s, tmp.y - s, s * 2, s * 2);
-    }
-    ctx.globalCompositeOperation = 'source-over';
   }
 
   function drawChest(ctx, x, y, s) {
@@ -727,11 +743,11 @@
   }
   function drawPrisoner(ctx, p) {
     const L = heroLook({ key: p.key, def: RH.HEROES[p.key] });
-    const fake = { dir: 0, moving: false, anim: 0, bob: 1, drawT: 0, swingT: 0 };
+    const fake = FAKE;
     ctx.save(); ctx.translate(p.x, p.y);
     ctx.fillStyle = '#5a3a1a'; ctx.fillRect(-2, -30, 4, 30); // post
     ctx.restore();
-    person(ctx, p.x, p.y + 2, fake, Object.assign({}, L, { weapon: null }));
+    person(ctx, p.x, p.y + 2, fake, noWeapon(L));
     ctx.strokeStyle = '#d9b46a'; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(p.x - 7, p.y - 16); ctx.lineTo(p.x + 7, p.y - 13); ctx.moveTo(p.x - 7, p.y - 11); ctx.lineTo(p.x + 7, p.y - 8); ctx.stroke();
   }
@@ -739,7 +755,7 @@
     if (h.carry === 'chest') { drawChest(ctx, h.x, h.y - 30, 0.85); return; }
     const L = h.carry.sheriff ? SHERIFF_LOOK : GUARD_LOOK;
     ctx.save(); ctx.translate(h.x, h.y - 26); ctx.rotate(-Math.PI / 2); ctx.scale(0.8, 0.8);
-    person(ctx, 6, 8, { dir: 0, moving: false, anim: 0, bob: 0, drawT: 0, swingT: 0 }, Object.assign({}, L, { weapon: null, big: false }));
+    person(ctx, 6, 8, FAKE, smallNoWeapon(L));
     ctx.restore();
   }
 

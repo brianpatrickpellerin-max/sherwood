@@ -114,7 +114,7 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-user
   #actions { flex-direction: column-reverse; flex-wrap: wrap-reverse; max-height: calc(100vh - 90px - var(--sat)); align-content: flex-end; order: 2; }
   .por { flex: 0 0 auto; width: 54px; height: 54px; }
   .act { width: 56px; height: 56px; }
-  #portraits { max-height: calc(100vh - 80px); flex-wrap: wrap-reverse; align-content: flex-start; }
+  #portraits { max-height: calc(100vh - 84px - var(--sat) - var(--sab)); flex-wrap: wrap; align-content: flex-start; }
   #tip { top: calc(var(--sat) + 70px); left: calc(var(--sal) + 80px); right: calc(var(--sar) + 80px); font-size: 16px; }
   #toasts { top: calc(var(--sat) + 70px); }
   #target, #pausedbar { bottom: calc(var(--sab) + 12px); }
@@ -176,3 +176,5 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-user
 .small-note { font-size: 14px; color: #6a5a3a; }
 .help li { font-size: 16px; margin: 7px 0; line-height: 1.35; }
 .foot { text-align: center; font-size: 13px; color: #b9ac8a; margin-top: 16px; }
+
+.pz { display: block; width: 20px; height: 22px; border-left: 7px solid #fff; border-right: 7px solid #fff; }
