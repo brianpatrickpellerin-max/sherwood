@@ -1,5 +1,5 @@
 // Offline cache: cache-first for app files, refreshed when the version changes.
-const VERSION = 'sherwood-v1';
+const VERSION = 'sherwood-v2';
 const FILES = [
   './', 'index.html', 'css/style.css', 'manifest.webmanifest',
   'js/util.js', 'js/data.js', 'js/audio.js', 'js/game.js', 'js/render.js', 'js/ui.js', 'js/main.js',

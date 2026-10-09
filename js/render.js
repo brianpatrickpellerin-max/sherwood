@@ -666,10 +666,11 @@
       if (!inView(g.x, g.y, range + 20)) continue;
       RH.game.computeCone(g);
       let fill, line;
-      if (g.state === 'alert') { fill = `rgba(255,40,30,${0.3 * alphaMul})`; line = 'rgba(255,60,40,0.7)'; }
-      else if (g.state === 'charmed') { fill = `rgba(255,120,180,${0.14 * alphaMul})`; line = 'rgba(255,140,190,0.5)'; }
-      else if (g.sus > 0.25 || g.state === 'investigate' || g.state === 'search') { fill = `rgba(255,190,40,${0.26 * alphaMul})`; line = 'rgba(255,200,60,0.65)'; }
-      else { fill = `rgba(255,90,70,${0.2 * alphaMul})`; line = 'rgba(255,110,80,0.45)'; }
+      let lw = 1.2;
+      if (g.state === 'alert') { fill = CONE.alert[alphaMul > 1 ? 1 : 0]; line = '#ff2a1a'; lw = 2; }
+      else if (g.state === 'charmed') { fill = CONE.charm[alphaMul > 1 ? 1 : 0]; line = 'rgba(255,140,190,0.7)'; }
+      else if (g.sus > 0.25 || g.state === 'investigate' || g.state === 'search') { fill = CONE.sus[alphaMul > 1 ? 1 : 0]; line = '#ffd23a'; lw = 2; }
+      else { fill = CONE.norm[alphaMul > 1 ? 1 : 0]; line = 'rgba(255,80,60,0.75)'; }
       const half = g.fov / 2, ox = g.x, oy = g.y - 4;
       ctx.beginPath(); ctx.moveTo(ox, oy);
       for (let i = 0; i < NR; i++) {
@@ -679,9 +680,15 @@
       }
       ctx.closePath();
       ctx.fillStyle = fill; ctx.fill();
-      ctx.strokeStyle = line; ctx.lineWidth = 1; ctx.stroke();
+      ctx.strokeStyle = line; ctx.lineWidth = lw; ctx.stroke();
     }
   }
+  const CONE = {
+    norm: ['rgba(255,60,50,0.22)', 'rgba(255,70,60,0.26)'],
+    sus: ['rgba(255,214,40,0.32)', 'rgba(255,214,40,0.36)'],
+    alert: ['rgba(255,20,20,0.38)', 'rgba(255,30,30,0.42)'],
+    charm: ['rgba(255,120,180,0.16)', 'rgba(255,120,180,0.2)'],
+  };
 
   function drawNight(ctx, inView) {
     const W = R.W, H = R.H, cam = G.cam, z = cam.z;

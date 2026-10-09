@@ -160,8 +160,8 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-user
 .goldpill { background: rgba(0,0,0,0.45); border: 1px solid var(--gold); color: var(--gold); border-radius: 999px; padding: 8px 14px; font-weight: 800; font-size: 18px; white-space: nowrap; }
 .map { width: 100%; border-radius: 18px; display: block; border: 3px solid #8a6a2a; box-shadow: 0 6px 18px rgba(0,0,0,0.5); background: #e9d9a8; touch-action: pan-y; }
 .band { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; touch-action: pan-x pan-y; }
-.member { flex: 0 0 auto; width: 92px; text-align: center; font-size: 13px; font-weight: 700; }
-.member canvas { width: 72px; height: 72px; background: linear-gradient(#5a8a3a, #2a4a1a); border-radius: 16px; border: 2px solid #b48a3a; }
+.member { flex: 1 1 0; min-width: 58px; max-width: 92px; text-align: center; font-size: 13px; font-weight: 700; }
+.member canvas { width: 100%; max-width: 72px; aspect-ratio: 1; height: auto; background: linear-gradient(#5a8a3a, #2a4a1a); border-radius: 16px; border: 2px solid #b48a3a; }
 .member.locked canvas { filter: grayscale(1) brightness(0.4); }
 .shopitem { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid rgba(90, 60, 20, 0.25); }
 .shopitem .d { flex: 1; font-size: 15px; line-height: 1.3; }

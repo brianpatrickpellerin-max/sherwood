@@ -265,18 +265,21 @@ with sync_playwright() as p:
     ok('long-press opens context menu', pg.locator('#ctxmenu:not(.hidden) button').count() >= 2)
     pg.screenshot(path=f'shots/{tag}_10_ctx.png')
     # drag pans the camera
+    pg.evaluate("document.getElementById('ctxmenu').classList.add('hidden')")
+    E("__sherwood.G.cam.y = __sherwood.G.grid.h*16")
     cx0 = E("__sherwood.G.cam.y")
+    Y0 = int(H * 0.4)
     if cdp:
-        cdp.send('Input.dispatchTouchEvent', {'type': 'touchStart', 'touchPoints': [{'x': 200, 'y': 500}]})
+        cdp.send('Input.dispatchTouchEvent', {'type': 'touchStart', 'touchPoints': [{'x': 200, 'y': Y0}]})
         for k in range(1, 8):
-            cdp.send('Input.dispatchTouchEvent', {'type': 'touchMove', 'touchPoints': [{'x': 200, 'y': 500 - k * 20}]})
+            cdp.send('Input.dispatchTouchEvent', {'type': 'touchMove', 'touchPoints': [{'x': 200, 'y': Y0 - k * 20}]})
         cdp.send('Input.dispatchTouchEvent', {'type': 'touchEnd', 'touchPoints': []})
         pg.wait_for_timeout(100)
         ok('one-finger drag pans camera', abs(E("__sherwood.G.cam.y") - cx0) > 30)
         z0 = E("__sherwood.G.cam.z")
-        cdp.send('Input.dispatchTouchEvent', {'type': 'touchStart', 'touchPoints': [{'x': 150, 'y': 450, 'id': 1}, {'x': 250, 'y': 450, 'id': 2}]})
+        cdp.send('Input.dispatchTouchEvent', {'type': 'touchStart', 'touchPoints': [{'x': 150, 'y': Y0, 'id': 1}, {'x': 250, 'y': Y0, 'id': 2}]})
         for k in range(1, 8):
-            cdp.send('Input.dispatchTouchEvent', {'type': 'touchMove', 'touchPoints': [{'x': 150 - k * 10, 'y': 450, 'id': 1}, {'x': 250 + k * 10, 'y': 450, 'id': 2}]})
+            cdp.send('Input.dispatchTouchEvent', {'type': 'touchMove', 'touchPoints': [{'x': 150 - k * 10, 'y': Y0, 'id': 1}, {'x': 250 + k * 10, 'y': Y0, 'id': 2}]})
         cdp.send('Input.dispatchTouchEvent', {'type': 'touchEnd', 'touchPoints': []})
         pg.wait_for_timeout(100)
         ok('pinch zooms', E("__sherwood.G.cam.z") > z0 * 1.2, f'{z0:.2f}->{E("__sherwood.G.cam.z"):.2f}')

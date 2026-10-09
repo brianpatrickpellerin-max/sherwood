@@ -326,6 +326,7 @@
 
   function onPortrait(h) {
     sfx('select');
+    if (G.mode === 'heal') { RH.game.orderAction('heal', { kind: 'hero', e: h }, G.heroes); setMode(null); return; }
     if (G.sel.length === 1 && G.sel[0] === h) {
       // second tap: select the whole band
       G.sel = G.heroes.filter((x) => !x.down);
@@ -419,7 +420,7 @@
     ui.refresh(true);
   }
 
-  const MODE_TEXT = { shoot: '🏹 Tap a guard to shoot', charm: '🌹 Tap a guard to charm', hive: '🐝 Tap where to throw', purse: '💰 Tap where to toss coins', heal: '✚ Tap a friend to heal' };
+  const MODE_TEXT = { shoot: '🏹 Tap a guard to shoot', charm: '🌹 Tap a guard to charm', hive: '🐝 Tap where to throw', purse: '💰 Tap where to toss coins', heal: '✚ Tap a friend (or a portrait)' };
   function setMode(m) {
     G.mode = m;
     $('target').classList.toggle('hidden', !m);
