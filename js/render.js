@@ -590,7 +590,7 @@
       if (!R.fog || R.fog.w !== W || R.fog.h !== H) {
         const fc = document.createElement('canvas'); fc.width = 256; fc.height = 256; const x = fc.getContext('2d');
         const rr = RH.rng(77);
-        for (let i = 0; i < 26; i++) { const cx2 = rr() * 256, cy2 = rr() * 256, r2 = 40 + rr() * 70; const gg = x.createRadialGradient(cx2, cy2, 0, cx2, cy2, r2); gg.addColorStop(0, 'rgba(225,230,225,0.32)'); gg.addColorStop(1, 'rgba(225,230,225,0)'); x.fillStyle = gg; x.fillRect(0, 0, 256, 256); }
+        for (let i = 0; i < 26; i++) { const cx2 = rr() * 256, cy2 = rr() * 256, r2 = 40 + rr() * 70; for (let ox = -256; ox <= 256; ox += 256) for (let oy = -256; oy <= 256; oy += 256) { const gg = x.createRadialGradient(cx2 + ox, cy2 + oy, 0, cx2 + ox, cy2 + oy, r2); gg.addColorStop(0, 'rgba(225,230,225,0.32)'); gg.addColorStop(1, 'rgba(225,230,225,0)'); x.fillStyle = gg; x.fillRect(0, 0, 256, 256); } } // blobs wrap so the tile is seamless
         R.fog = { w: W, h: H, pat: ctx.createPattern(fc, 'repeat') };
       }
       ctx.fillStyle = 'rgba(205,212,208,0.22)'; ctx.fillRect(0, 0, W, H);
@@ -780,8 +780,8 @@
   function coneGrads(ctx) {
     const mk = (a0, a1, rgb) => { const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 1); g.addColorStop(0, `rgba(${rgb},${a0})`); g.addColorStop(0.75, `rgba(${rgb},${(a0 + a1) / 2})`); g.addColorStop(1, `rgba(${rgb},${a1})`); return g; };
     CONE_G = {
-      norm: mk(0.34, 0.08, '255,96,60'), sus: mk(0.42, 0.12, '255,206,60'), alert: mk(0.5, 0.16, '255,30,20'), charm: mk(0.28, 0.06, '255,130,190'),
-      normN: mk(0.3, 0.1, '255,120,80'),
+      norm: mk(0.22, 0.04, '255,96,60'), sus: mk(0.42, 0.12, '255,206,60'), alert: mk(0.5, 0.16, '255,30,20'), charm: mk(0.28, 0.06, '255,130,190'),
+      normN: mk(0.2, 0.05, '255,120,80'),
     };
   }
   function drawCones(ctx, inView, worldT) {
