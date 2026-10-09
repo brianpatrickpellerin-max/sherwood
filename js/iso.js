@@ -47,8 +47,8 @@
   const COB = ['#8e8472', '#9a907c', '#80786a', '#a49a84', '#776e60'];
   const FLAG = ['#9c9282', '#a89e8c', '#908676', '#b0a690'];
   const WATER = '#4a6658';
-  const STONE_W = ['#a59a84', '#9a8f7a', '#b0a58e', '#8f8572', '#a8a088'];
-  const STONE_C = ['#9e9a8e', '#8e8a7e', '#aaa498', '#86827a', '#a49c8c'];
+  const STONE_W = ['#8f8268', '#857a62', '#9c8f74', '#7a705c', '#968a6e'];
+  const STONE_C = ['#8c887c', '#7e7a6e', '#989282', '#726e64', '#908878'];
   const ROOF_CLAY = ['#9a4a2c', '#8a4228', '#a85a34', '#7e3c26'];
   const ROOF_BROWN = ['#6e5644', '#7a604a', '#5e4a3c'];
   const ROOF_THATCH = ['#a8864a', '#9a7a40', '#b8955a'];
@@ -86,7 +86,7 @@
     c.scale(q, q);
     const at = (x, y) => (x < 0 || y < 0 || x >= g.w || y >= g.h) ? 'T' : g.ch[y * g.w + x];
     const cl = (x, y) => classOf(at(x, y), theme);
-    const BASE = { mud: '#7a6244', grass: '#6c7a34', forest: '#3e4a20', dirt: '#86663f', cob: '#8a8070', flag: '#9a9080', wood: '#6e4c30', water: WATER };
+    const BASE = { mud: '#7a6244', grass: '#6c7a34', forest: '#3e4a20', dirt: '#86663f', cob: '#7e715c', flag: '#887e6c', wood: '#6e4c30', water: WATER };
     for (let y = 0; y < g.h; y++) for (let x = 0; x < g.w; x++) { c.fillStyle = BASE[cl(x, y)]; c.fillRect(x * T, y * T, T + 0.6, T + 0.6); }
     // soft splats: natural ground bleeds over its neighbours
     for (let y = 0; y < g.h; y++) for (let x = 0; x < g.w; x++) {
@@ -262,9 +262,9 @@
       if (se) withFace(c, FACE_SE, () => stoneFace(c, 32, H, pal, 0.68, r));
       // top
       c.beginPath(); c.moveTo(0, -16 - H); c.lineTo(32, -H); c.lineTo(0, 16 - H); c.lineTo(-32, -H); c.closePath();
-      c.fillStyle = sh(pal[2], 1.05); c.fill();
-      c.strokeStyle = 'rgba(40,34,26,0.35)'; c.lineWidth = 0.7; c.stroke();
-      c.fillStyle = 'rgba(70,60,40,0.25)'; c.beginPath(); c.moveTo(-20, -H - 2); c.lineTo(0, -12 - H); c.lineTo(20, -H - 2); c.lineTo(0, 8 - H); c.closePath(); c.fill();
+      c.fillStyle = sh(pal[2], 0.94); c.fill();
+      c.strokeStyle = 'rgba(40,34,26,0.1)'; c.lineWidth = 0.7; c.stroke();
+      for (let k = 0; k < 5; k++) { c.fillStyle = `rgba(${r() < 0.5 ? '60,50,34' : '230,220,190'},0.12)`; c.beginPath(); c.ellipse((r() - 0.5) * 30, -H + (r() - 0.5) * 12, 3 + r() * 5, 1.5 + r() * 2, 0, 0, 7); c.fill(); }
       if (cren) {
         const merl = (m, lit) => withFace(c, m, () => {
           for (let i = 0; i < 3; i++) {

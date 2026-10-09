@@ -460,8 +460,20 @@
         for (let k = 0; k < 4; k++) ctx.fillRect(X - 4 + (k % 2) * 6, Y - 36 + k * 9, 3, 2);
       }
     }
-    // ---- screen-space overlays ----
+    // ---- painterly colour grade: warm, darkened edges (pre-rendered per screen size) ----
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (!R.flags.noGrade) {
+      if (!R.grade || R.grade.w !== W || R.grade.h !== H || R.grade.n !== G.night) {
+        const gc = document.createElement('canvas'); gc.width = Math.ceil(W / 2); gc.height = Math.ceil(H / 2);
+        const x = gc.getContext('2d'), w2 = gc.width, h2 = gc.height;
+        const g = x.createRadialGradient(w2 / 2, h2 * 0.45, Math.min(w2, h2) * 0.25, w2 / 2, h2 * 0.5, Math.hypot(w2, h2) * 0.62);
+        g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, G.night ? 'rgba(4,6,18,0.5)' : 'rgba(28,16,4,0.42)');
+        x.fillStyle = g; x.fillRect(0, 0, w2, h2);
+        if (!G.night) { x.fillStyle = 'rgba(120,80,20,0.06)'; x.fillRect(0, 0, w2, h2); }
+        R.grade = { w: W, h: H, n: G.night, img: gc };
+      }
+      ctx.drawImage(R.grade.img, 0, 0, W, H);
+    }
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     for (const g of G.guards) {
       if (g.carried || !inView(g.x, g.y, 60)) continue;
