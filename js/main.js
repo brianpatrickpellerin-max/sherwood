@@ -60,31 +60,35 @@
     return reward;
   };
 
-  // ---------- Camera ----------
+  // ---------- Camera (iso space: cam.x = X, cam.y = Y) ----------
   main.clampCam = function () {
     const c = G.cam; if (!c) return;
     const W = RH.render.W, H = RH.render.H;
-    const mw = G.grid.w * TILE, mh = G.grid.h * TILE;
-    c.z = RH.clamp(c.z, main.minZ(), 2.6);
+    const gw = G.grid.w * TILE, gh = G.grid.h * TILE;
+    c.z = RH.clamp(c.z, main.minZ(), 2.4);
     const hw = W / 2 / c.z, hh = H / 2 / c.z;
-    const padTop = 110 / c.z, padBot = 170 / c.z;
-    if (mw < hw * 2) c.x = mw / 2; else c.x = RH.clamp(c.x, hw - 40 / c.z, mw - hw + 40 / c.z);
-    if (mh + padTop + padBot < hh * 2) c.y = mh / 2; else c.y = RH.clamp(c.y, hh - padTop, mh - hh + padBot);
+    const X0 = -gh, X1 = gw, Y0 = 0, Y1 = (gw + gh) / 2;
+    const padTop = 90 / c.z, padBot = 110 / c.z, padX = 30 / c.z;
+    if (X1 - X0 + padX * 2 < hw * 2) c.x = (X0 + X1) / 2; else c.x = RH.clamp(c.x, X0 + hw - padX, X1 - hw + padX);
+    if (Y1 - Y0 + padTop + padBot < hh * 2) c.y = (Y0 + Y1) / 2; else c.y = RH.clamp(c.y, Y0 + hh - padTop - 60 / c.z, Y1 - hh + padBot);
   };
-  main.minZ = () => Math.max(0.45, Math.min(RH.render.W / (G.grid.w * TILE), RH.render.H / (G.grid.h * TILE)) * 0.95);
+  main.minZ = () => {
+    const span = (G.grid.w + G.grid.h) * TILE;
+    return Math.max(0.32, Math.min(RH.render.W / span, RH.render.H / (span / 2)) * 0.98);
+  };
   main.panBy = function (dx, dy) { if (!G.cam) return; G.cam.x -= dx / G.cam.z; G.cam.y -= dy / G.cam.z; main.clampCam(); };
   main.zoomAt = function (z, sx, sy) {
     if (!G.cam) return;
-    const before = RH.render.toWorld(sx, sy, { x: 0, y: 0 });
-    G.cam.z = RH.clamp(z, main.minZ(), 2.6);
-    const after = RH.render.toWorld(sx, sy, { x: 0, y: 0 });
-    G.cam.x += before.x - after.x; G.cam.y += before.y - after.y;
+    const W = RH.render.W, H = RH.render.H, c = G.cam;
+    const bx = (sx - W / 2) / c.z + c.x, by = (sy - H / 2) / c.z + c.y;
+    c.z = RH.clamp(z, main.minZ(), 2.4);
+    c.x = bx - (sx - W / 2) / c.z; c.y = by - (sy - H / 2) / c.z;
     main.clampCam();
   };
-  main.centerOn = function (x, y) { G.cam.x = x; G.cam.y = y + 30 / G.cam.z; main.clampCam(); };
+  main.centerOn = function (x, y) { G.cam.x = x - y; G.cam.y = (x + y) / 2 + 20 / G.cam.z; main.clampCam(); };
   function defaultZoom() {
     const W = RH.render.W, H = RH.render.H;
-    return RH.clamp(Math.min(W, H) / (10.5 * TILE), 0.9, 1.6);
+    return RH.clamp(Math.min(W, H) / (5.8 * 64), 0.78, 1.45);
   }
 
   // ---------- Flow ----------
@@ -94,8 +98,7 @@
     G.cam.z = defaultZoom();
     const hs = G.heroes;
     const cx = hs.reduce((a, h) => a + h.x, 0) / hs.length, cy = hs.reduce((a, h) => a + h.y, 0) / hs.length;
-    G.cam.x = cx; G.cam.y = cy - 2 * TILE;
-    main.clampCam();
+    main.centerOn(cx - TILE, cy - TILE);
     RH.profile.started = true; RH.saveProfile();
     RH.ui.enterGame();
     lastT = performance.now();
@@ -171,7 +174,7 @@
     step: (sec) => { const n = Math.round(sec * 30); for (let i = 0; i < n && !G.over; i++) RH.game.update(1 / 30); return !!G.over; },
     tileToScreen: (tx, ty) => { const o = RH.render.toScreen(T(tx), T(ty), { x: 0, y: 0 }); return o; },
     worldToScreen: (x, y) => RH.render.toScreen(x, y, { x: 0, y: 0 }),
-    center: (tx, ty) => { G.cam.x = T(tx); G.cam.y = T(ty); },
+    center: (tx, ty) => { G.cam.x = T(tx) - T(ty); G.cam.y = (T(tx) + T(ty)) / 2; },
     tp: (key, tx, ty) => { const h = G.heroes.find((x) => x.key === key); h.x = T(tx); h.y = T(ty); h.path = null; h.task = null; return h; },
     hero: (key) => G.heroes.find((x) => x.key === key),
     select: (...keys) => { G.sel = G.heroes.filter((h) => keys.includes(h.key)); RH.ui.refresh(true); },
