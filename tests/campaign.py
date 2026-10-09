@@ -3,7 +3,8 @@
 # checks save migration and the new mechanics, and fails on any console error.
 import sys, json
 from playwright.sync_api import sync_playwright
-URL = 'http://localhost:18431/index.html'
+import os
+URL = os.environ.get('URL', 'http://localhost:18431/index.html')
 eng = sys.argv[1] if len(sys.argv) > 1 else 'chromium'
 W = int(sys.argv[2]) if len(sys.argv) > 2 else 390
 H = int(sys.argv[3]) if len(sys.argv) > 3 else 844
