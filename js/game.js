@@ -181,7 +181,7 @@
   game.litAt = litAt;
 
   function guardRange(g) {
-    let r = G.night ? 4.6 * TILE : 7 * TILE;
+    let r = G.night ? 4.6 * TILE : 6.5 * TILE;
     if (g.state === 'alert') r *= 1.25;
     return r;
   }
@@ -554,12 +554,14 @@
   }
   game.raiseAlarm = raiseAlarm;
 
+  const SHOUTS = ['Outlaws!', 'Halt!', 'Seize him!', 'To arms!', 'There!', 'Hood’s men!'];
   function spot(g, h, silentToast) {
     if (g.state === 'alert') { g.target = h; return; }
     g.state = 'alert'; g.target = h; g.sus = 1; g.icon = '!'; g.iconT = 2.5; g.path = null; g.lostT = 0;
     g.lx = h.x; g.ly = h.y;
     G.stats.spotted = true;
     sfx('alert');
+    fx('text', g.x, g.y - 44, SHOUTS[(g.id + Math.floor(G.time)) % SHOUTS.length], '#ffb08a', 1.4);
     if (!silentToast) toast(`Spotted! ${h.name} has been seen!`, 'bad');
     // call nearby guards
     for (const o of G.guards) {
