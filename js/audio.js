@@ -64,6 +64,11 @@
     throw: () => noise(0.2, 1200, 0.2, 0, 1.5),
     win: () => { [523, 659, 784, 1047, 784, 1047].forEach((f, i) => tone(f, 0.3, 'triangle', 0.12, null, i * 0.14)); },
     lose: () => { [392, 330, 262, 196].forEach((f, i) => tone(f, 0.4, 'triangle', 0.12, null, i * 0.22)); },
+    whistle: () => { tone(1400, 0.12, 'sine', 0.1, 1.25); tone(1750, 0.22, 'sine', 0.1, 0.7, 0.14); },
+    bell: () => { [0, 0.7, 1.4].forEach((d) => { tone(392, 1.1, 'sine', 0.16, null, d); tone(784, 0.8, 'sine', 0.06, null, d); tone(1176, 0.5, 'triangle', 0.03, null, d); }); },
+    net: () => { noise(0.25, 700, 0.25, 0, 0.8); tone(200, 0.2, 'triangle', 0.08, 0.6); },
+    gulp: () => { tone(300, 0.08, 'sine', 0.1, 0.6); tone(260, 0.08, 'sine', 0.1, 0.6, 0.14); tone(220, 0.1, 'sine', 0.1, 0.6, 0.28); },
+    sling: () => { noise(0.1, 2600, 0.2, 0, 3); tone(500, 0.06, 'triangle', 0.06, 0.5); },
     bird: () => { const b = 2000 + Math.random() * 1500; tone(b, 0.08, 'sine', 0.03, 1.3); tone(b * 1.1, 0.08, 'sine', 0.03, 0.8, 0.1); },
   };
   A.play = function (name) {
