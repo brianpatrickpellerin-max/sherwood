@@ -18,10 +18,10 @@
   // which named heroes have joined after each story mission is won
   const JOINS = { 1: ['stutely'], 2: ['scarlet'], 5: ['john'], 8: ['tuck'], 11: ['marian'] };
   // the original defends each captured town once: Lincoln after mission 8, Derby after 10, York after 15
-  const DEFENCE = { 7: 'Lincoln', 9: 'Derby', 14: 'York' };
+  const DEFENCE = { 7: 'Lincoln', 10: 'Derby', 14: 'York' };
   RH.DEFENCE = DEFENCE;
   // v3 (12 missions) -> v4 (the original's 16): where each old mission sits now
-  const OLD2NEW = [0, 1, 2, 3, 4, 8, 10, 11, 12, 13, 14, 15];
+  const OLD2NEW = [0, 1, 2, 3, 4, 8, 9, 11, 12, 13, 14, 15];
   function freshProfile() {
     return {
       v: 4, gold: 30, clovers: 0, defTown: null, defDone: [], arrows: 10, potions: 1, purses: 2, nets: 1, apples: 2, ale: 0, hives: 0,

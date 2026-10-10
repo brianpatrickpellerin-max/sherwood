@@ -125,7 +125,7 @@
       koAll();
       step(0.5);
       if (g.chest && g.chest.taken && !g.chest.done && !g.chest.carrier) continue;
-      if (g.exitReady) exitAll();
+      if (g.exitReady && !g.over && g.exit.x >= 0) exitAll();
       step(0.5);
     }
     return g.over;

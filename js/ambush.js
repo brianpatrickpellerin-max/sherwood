@@ -152,7 +152,7 @@
   // the towns the band holds and must defend once each (the original's three defensive missions)
   const DEF_TOWN = {
     Lincoln: { mi: 'm8', fire: [16, 14], from: [[15, 30], [4, 26], [27, 26]] },
-    Derby: { mi: 'm10', fire: [14, 16], from: [[14, 31], [15, 31], [14, 30]] },
+    Derby: { mi: 'm11', fire: [14, 16], from: [[14, 31], [15, 31], [14, 30]] },
     York: { mi: 'm15', fire: [15, 20], from: [[15, 33], [16, 33], [15, 32]] },
   };
   RH.DEF_TOWN = DEF_TOWN;

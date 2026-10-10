@@ -109,7 +109,7 @@ MS.append(dict(
     type='Village liberation',
     intro='The Sheriff\u2019s men are burning Wychwood for unpaid taxes. They have caught a giant of a man who tried to stop them, and they mean to hang him at the crossroads.\n\nThis is forest work: Robin carries a quarterstaff today, so every blow knocks out instead of killing. Five soldiers block the west road where the old folk want to flee, and an execution is being readied in the north-east.',
     outro='The giant shakes off the last rope. \u201cJohn Little, they call me, or Little John to wits like you.\u201d He grins. \u201cYou fight well for a small man.\u201d\n\nSherwood has its strongest arm. And the villagers of Wychwood will remember who came when the smoke rose.',
-    heroes={'robin': [16, 29], 'stutely': [17, 29], 'scarlet': [15, 29]}, need=['robin'],
+    heroes={'robin': [13, 29], 'stutely': [14, 29], 'scarlet': [12, 29]}, need=['robin'],
     exit={'x': 15, 'y': 29, 'w': 3, 'h': 2},
     prisoners=[{'id': 'john', 'x': 16, 'y': 6}], captive=[25, 4],
     objectives=['free:john', 'exit'],
@@ -120,7 +120,7 @@ MS.append(dict(
         G(15, 8, 'archer', [S, S + 0.4]), G(17, 8, None, [S, S - 0.4]), G(16, 4, None, [S, S + 0.5]),
         G(23, 4, 'archer', [E, E + 0.3]), G(24, 6, 'archer', [N, N + 0.4]), G(26, 6, 'officer', [W, N]),
         G(0, 0, None, route=[[20, 16, 2], [29, 16, 2]]),
-        G(0, 0, 'knight', route=[[16, 20, 3], [16, 26, 3]], purse=20),
+        G(0, 0, 'knight', route=[[16, 19, 3], [16, 22, 3]], purse=20),
     ],
     civilians=[[14, 25], [12, 22], [20, 23], [10, 14], [27, 15]],
     beggars=[{'id': 'b1', 'x': 28, 'y': 17, 'price': 10, 'pays': ['s1'], 'say': ['They\u2019ve got a giant tied by the old shack, north road. Mind the archers either side of him, they\u2019d shoot their own mothers.']}],
@@ -142,7 +142,7 @@ MS.append(dict(
     treasure={'id': 'roll', 'name': 'the Shire Roll', 'x': 16, 'y': 23},
     torches=[[13, 13], [13, 16], [18, 10], [25, 9], [16, 18], [22, 15], [8, 12], [8, 17]],
     guards=[
-        G(10, 13, None, [W, W + 0.5]), G(0, 0, None, route=[[8, 8, 2], [8, 21, 2]]),
+        G(12, 13, None, [0, 0.5, -0.5]), G(0, 0, None, route=[[8, 2, 2], [8, 8, 2]]),
         G(15, 13, 'soldier', [W, S]), G(15, 16, 'halberd', [W, N]),
         G(0, 0, None, route=[[17, 11, 1], [26, 11, 1], [26, 18, 1], [17, 18, 1]]),
         G(18, 7, 'knight', [S, S + 0.5]), G(19, 6, 'soldier', [S]),
@@ -190,9 +190,14 @@ m['heroes'] = {('stutely' if k == 'marian' else k): v for k, v in m['heroes'].it
 m['objectives'] = ['free:tuck', 'listen:council', 'exit']
 m['props'].append({'id': 'council', 'kind': 'listen', 'x': 22, 'y': 3, 'dur': 5, 'say': 'Behind the shutters the Prince\u2019s steward counts aloud: \u201cA hundred thousand marks for the King\u2019s ransom, and not a penny of it raised. Let Austria keep him.\u201d'})
 MS.append(m)
-# ---------------------------------------------------------------- 10 Derby, day: the black castle (siege by blazons, castellan duel)
+# ---------------------------------------------------------------- 10 Nottingham, day: the silver arrow tournament (trap, Robin alone)
+m = old('m7', id='m10', rank=9, town='Nottingham')
+m['nobles'] = []  # a public tourney: the crowd cheers the archers, nobody runs to the guards
+retext(m, [('Blackmere church', 'York minster'), ('Blackmere', 'York')])
+MS.append(m)
+# ---------------------------------------------------------------- 11 Derby, day: the black castle (siege by blazons, castellan duel)
 MS.append(dict(
-    id='m10', rank=9, theme='castle', title='The Black Castle', place='Derby castle', town='Derby', kind='story',
+    id='m11', rank=10, theme='castle', title='The Black Castle', place='Derby castle', town='Derby', kind='story',
     type='Siege: take the blazons',
     intro='Lord Aubrey\u2019s men are camped in the woods below Derby\u2019s black walls, but they will not throw themselves at the gate. Every banner you pull down tells them the way is clear, and they advance.\n\nTake each blazon point (stand on it with no enemy near). The castellan, Sir Roger Mallory, holds the high tower and will not come down: beat him in a duel there. If it goes badly, step out, heal and go back in.',
     outro='Sir Roger yields his sword on the tower stair. Aubrey\u2019s banner goes up over Derby, and the townsfolk, who hated Sir Roger rather more than they loved anybody, cheer the outlaws in the street.\n\nThe Prince will try to take it back. He always does.',
@@ -216,13 +221,14 @@ MS.append(dict(
     reward=80,
     tips=[{'id': 'blazon', 'when': 'start', 'text': 'Stand on a blazon (gold shield) with no enemy close by to raise our colours. Each one brings three of Aubrey\u2019s men up to help.'}],
     map=m10().rows()))
-# ---------------------------------------------------------------- 11 Nottingham, day: the silver arrow tournament (trap, Robin alone)
-m = old('m7', id='m11', rank=10, town='Nottingham')
-retext(m, [('Blackmere church', 'York minster'), ('Blackmere', 'York')])
-MS.append(m)
 # ---------------------------------------------------------------- 12 York, day: the wedding (flag, rescue, duel)
 m = old('m8', id='m12', rank=11, town='York', place='York minster')
+m['nobles'] = [[8, 5], [3, 5], [19, 3], [20, 13]]
 retext(m, [('Blackmere', 'York')])
+for g in m['guards']:
+    r = g.get('route') or []
+    if r and r[0][:2] == [8, 21]: g['route'] = [[8, 20, 2], [19, 20, 2]]
+    if r and r[0][:2] == [13, 25]: g['route'] = [[13, 23, 0]]; g['looks'] = [W, N, E, N]
 MS.append(m)
 # ---------------------------------------------------------------- 13 Nottingham, fog: the escape (Robin is the prisoner)
 m = old('m9', id='m13', rank=12, town='Nottingham')

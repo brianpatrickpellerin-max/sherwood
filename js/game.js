@@ -1545,6 +1545,7 @@
       if (!RH.los(G.grid, c.x, c.y - 8, h.x, h.y - 6)) continue;
       seen = h; break;
     }
+    if (seen && G.time < 15) seen = null; // townsfolk take a while to notice strangers at the start
     if (seen) {
       c.sus = (c.sus || 0) + dt * (seen.sneak ? 0.8 : 1.6);
       c.icon = '?';

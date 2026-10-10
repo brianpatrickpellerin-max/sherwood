@@ -1588,15 +1588,15 @@
   "outro": "The giant shakes off the last rope. “John Little, they call me, or Little John to wits like you.” He grins. “You fight well for a small man.”\n\nSherwood has its strongest arm. And the villagers of Wychwood will remember who came when the smoke rose.",
   "heroes": {
    "robin": [
-    16,
+    13,
     29
    ],
    "stutely": [
-    17,
+    14,
     29
    ],
    "scarlet": [
-    15,
+    12,
     29
    ]
   },
@@ -1849,12 +1849,12 @@
     "route": [
      [
       16,
-      20,
+      19,
       3
      ],
      [
       16,
-      26,
+      22,
       3
      ]
     ],
@@ -2083,26 +2083,27 @@
    {
     "route": [
      [
-      10,
+      12,
       13,
       0
      ]
     ],
     "looks": [
-     3.141592653589793,
-     3.641592653589793
+     0,
+     0.5,
+     -0.5
     ]
    },
    {
     "route": [
      [
       8,
-      8,
+      2,
       2
      ],
      [
       8,
-      21,
+      8,
       2
      ]
     ]
@@ -3092,6 +3093,317 @@
  {
   "id": "m10",
   "rank": 9,
+  "theme": "town",
+  "title": "The Sheriff’s Tourney",
+  "place": "Nottingham lists",
+  "mapPos": [
+   55,
+   56
+  ],
+  "kind": "story",
+  "type": "Archery contest",
+  "captive": [
+   24,
+   18
+  ],
+  "intro": "The Sheriff offers an arrow of silver to the finest archer in England. Every fool in the shire knows it is bait for Robin Hood, and Robin is going anyway, in a borrowed hood.\n\nHit three targets. The aim sways: loose your arrow when the ring is steady. John and Tuck are hidden in the town in case it goes wrong.",
+  "outro": "They found the silver arrow afterwards, still quivering in the Sheriff’s own chair. Nobody quite remembers how it got there.\n\nBut there is worse news. Sir Hugo de Vane, the Prince’s man, has claimed Marian’s hand. The wedding is at York minster, and it is tomorrow.",
+  "heroes": {
+   "robin": [
+    13,
+    10
+   ]
+  },
+  "need": [
+   "robin"
+  ],
+  "slots": 0,
+  "exit": {
+   "x": 8,
+   "y": 24,
+   "w": 12,
+   "h": 3
+  },
+  "contest": {
+   "need": 3
+  },
+  "prisoners": [
+   {
+    "id": "john",
+    "x": 4,
+    "y": 4,
+    "friend": true,
+    "name": "Little John"
+   },
+   {
+    "id": "tuck",
+    "x": 25,
+    "y": 11,
+    "friend": true,
+    "name": "Friar Tuck"
+   }
+  ],
+  "objectives": [
+   "contest",
+   "free:john",
+   "free:tuck",
+   "exit"
+  ],
+  "props": [
+   {
+    "id": "t1",
+    "kind": "target",
+    "contest": true,
+    "x": 10,
+    "y": 4
+   },
+   {
+    "id": "t2",
+    "kind": "target",
+    "contest": true,
+    "x": 13,
+    "y": 4
+   },
+   {
+    "id": "t3",
+    "kind": "target",
+    "contest": true,
+    "x": 16,
+    "y": 4
+   }
+  ],
+  "guards": [
+   {
+    "route": [
+     [
+      6,
+      5,
+      0
+     ]
+    ],
+    "looks": [
+     0,
+     -0.4
+    ],
+    "watch": true
+   },
+   {
+    "route": [
+     [
+      21,
+      5,
+      0
+     ]
+    ],
+    "looks": [
+     3.141592653589793,
+     3.541592653589793
+    ],
+    "watch": true
+   },
+   {
+    "route": [
+     [
+      6,
+      9,
+      0
+     ]
+    ],
+    "looks": [
+     0
+    ],
+    "watch": true
+   },
+   {
+    "route": [
+     [
+      21,
+      9,
+      0
+     ]
+    ],
+    "looks": [
+     3.141592653589793
+    ],
+    "watch": true
+   },
+   {
+    "type": "officer",
+    "route": [
+     [
+      13,
+      13,
+      0
+     ]
+    ],
+    "looks": [
+     -1.5707963267948966,
+     -1.1707963267948966
+    ],
+    "watch": true
+   },
+   {
+    "type": "archer",
+    "route": [
+     [
+      4,
+      13,
+      0
+     ]
+    ],
+    "looks": [
+     0
+    ],
+    "watch": true
+   },
+   {
+    "route": [
+     [
+      8,
+      19,
+      2
+     ],
+     [
+      19,
+      19,
+      2
+     ]
+    ]
+   },
+   {
+    "route": [
+     [
+      13,
+      22,
+      0
+     ]
+    ],
+    "looks": [
+     1.5707963267948966,
+     -1.5707963267948966
+    ]
+   },
+   {
+    "type": "knight",
+    "route": [
+     [
+      24,
+      13,
+      0
+     ]
+    ],
+    "looks": [
+     3.141592653589793,
+     1.5707963267948966
+    ]
+   }
+  ],
+  "civilians": [
+   [
+    5,
+    3
+   ],
+   [
+    22,
+    3
+   ],
+   [
+    5,
+    11
+   ],
+   [
+    22,
+    11
+   ],
+   [
+    10,
+    13
+   ],
+   [
+    17,
+    13
+   ],
+   [
+    4,
+    17
+   ],
+   [
+    23,
+    17
+   ]
+  ],
+  "nobles": [],
+  "gold": [
+   [
+    1,
+    22,
+    15
+   ],
+   [
+    26,
+    22,
+    15
+   ],
+   [
+    2,
+    18,
+    10
+   ]
+  ],
+  "treasure": {
+   "id": "arrow",
+   "name": "the Silver Arrow",
+   "x": 14,
+   "y": 3
+  },
+  "reward": 80,
+  "tips": [
+   {
+    "id": "aim",
+    "when": "start",
+    "text": "Tap 🏹 Bow, then a target. Watch the swaying ring over it: Robin looses half a second after you tap, so tap when it is about to settle."
+   },
+   {
+    "id": "sprung",
+    "when": "sprung",
+    "text": "Run! Find John (in the hay by the north-west stands) and Tuck (by the east stalls). Tap each to call him over, then everyone out the south gate."
+   }
+  ],
+  "map": [
+   "############################",
+   "#rrrr..................rrrr#",
+   "#rrrr..xxxxxxxxxxxxxx..rrrr#",
+   "#......x............x......#",
+   "#.hh...x............x...hh.#",
+   "#......x............x......#",
+   "#rrr...x............x...rrr#",
+   "#rrr...x............x...rrr#",
+   "#rrr...x............x...rrr#",
+   "#......x............x......#",
+   "#.mm...x............x...mm.#",
+   "#......x............x......#",
+   "#rrr...xxxxxx..xxxxxx...rrr#",
+   "#rrr......................r#",
+   "#.rrrr..ffffffffffff..rrrr.#",
+   "#.rrrr..f..........f..rrrr.#",
+   "#.rrrr..f..rrrrrr..f..rrrr.#",
+   "#.......f..rrrrrr..f.......#",
+   "#.h.....f..rrrrrr..f.....c.#",
+   "#.......ffffffffffff.......#",
+   "#rrrrr.......ff.......rrrrr#",
+   "#rrrrr.......ff.......rrrrr#",
+   "#.....b......ff......b.....#",
+   "#######......ff......#######",
+   "TTTTTT#......ff......#TTTTTT",
+   "TTTTTT#..............#TTTTTT",
+   "TTTTTTTT............TTTTTTTT",
+   "TTTTTTTTTTTTTTTTTTTTTTTTTTTT"
+  ],
+  "town": "Nottingham"
+ },
+ {
+  "id": "m11",
+  "rank": 10,
   "theme": "castle",
   "title": "The Black Castle",
   "place": "Derby castle",
@@ -3504,322 +3816,6 @@
   ]
  },
  {
-  "id": "m11",
-  "rank": 10,
-  "theme": "town",
-  "title": "The Sheriff’s Tourney",
-  "place": "Nottingham lists",
-  "mapPos": [
-   55,
-   56
-  ],
-  "kind": "story",
-  "type": "Archery contest",
-  "captive": [
-   24,
-   18
-  ],
-  "intro": "The Sheriff offers an arrow of silver to the finest archer in England. Every fool in the shire knows it is bait for Robin Hood, and Robin is going anyway, in a borrowed hood.\n\nHit three targets. The aim sways: loose your arrow when the ring is steady. John and Tuck are hidden in the town in case it goes wrong.",
-  "outro": "They found the silver arrow afterwards, still quivering in the Sheriff’s own chair. Nobody quite remembers how it got there.\n\nBut there is worse news. Sir Hugo de Vane, the Prince’s man, has claimed Marian’s hand. The wedding is at York minster, and it is tomorrow.",
-  "heroes": {
-   "robin": [
-    13,
-    10
-   ]
-  },
-  "need": [
-   "robin"
-  ],
-  "slots": 0,
-  "exit": {
-   "x": 8,
-   "y": 24,
-   "w": 12,
-   "h": 3
-  },
-  "contest": {
-   "need": 3
-  },
-  "prisoners": [
-   {
-    "id": "john",
-    "x": 4,
-    "y": 4,
-    "friend": true,
-    "name": "Little John"
-   },
-   {
-    "id": "tuck",
-    "x": 25,
-    "y": 11,
-    "friend": true,
-    "name": "Friar Tuck"
-   }
-  ],
-  "objectives": [
-   "contest",
-   "free:john",
-   "free:tuck",
-   "exit"
-  ],
-  "props": [
-   {
-    "id": "t1",
-    "kind": "target",
-    "contest": true,
-    "x": 10,
-    "y": 4
-   },
-   {
-    "id": "t2",
-    "kind": "target",
-    "contest": true,
-    "x": 13,
-    "y": 4
-   },
-   {
-    "id": "t3",
-    "kind": "target",
-    "contest": true,
-    "x": 16,
-    "y": 4
-   }
-  ],
-  "guards": [
-   {
-    "route": [
-     [
-      6,
-      5,
-      0
-     ]
-    ],
-    "looks": [
-     0,
-     -0.4
-    ],
-    "watch": true
-   },
-   {
-    "route": [
-     [
-      21,
-      5,
-      0
-     ]
-    ],
-    "looks": [
-     3.141592653589793,
-     3.541592653589793
-    ],
-    "watch": true
-   },
-   {
-    "route": [
-     [
-      6,
-      9,
-      0
-     ]
-    ],
-    "looks": [
-     0
-    ],
-    "watch": true
-   },
-   {
-    "route": [
-     [
-      21,
-      9,
-      0
-     ]
-    ],
-    "looks": [
-     3.141592653589793
-    ],
-    "watch": true
-   },
-   {
-    "type": "officer",
-    "route": [
-     [
-      13,
-      13,
-      0
-     ]
-    ],
-    "looks": [
-     -1.5707963267948966,
-     -1.1707963267948966
-    ],
-    "watch": true
-   },
-   {
-    "type": "archer",
-    "route": [
-     [
-      4,
-      13,
-      0
-     ]
-    ],
-    "looks": [
-     0
-    ],
-    "watch": true
-   },
-   {
-    "route": [
-     [
-      8,
-      19,
-      2
-     ],
-     [
-      19,
-      19,
-      2
-     ]
-    ]
-   },
-   {
-    "route": [
-     [
-      13,
-      22,
-      0
-     ]
-    ],
-    "looks": [
-     1.5707963267948966,
-     -1.5707963267948966
-    ]
-   },
-   {
-    "type": "knight",
-    "route": [
-     [
-      24,
-      13,
-      0
-     ]
-    ],
-    "looks": [
-     3.141592653589793,
-     1.5707963267948966
-    ]
-   }
-  ],
-  "civilians": [
-   [
-    5,
-    3
-   ],
-   [
-    22,
-    3
-   ],
-   [
-    5,
-    11
-   ],
-   [
-    22,
-    11
-   ],
-   [
-    10,
-    13
-   ],
-   [
-    17,
-    13
-   ],
-   [
-    4,
-    17
-   ],
-   [
-    23,
-    17
-   ]
-  ],
-  "nobles": [
-   [
-    18,
-    13
-   ]
-  ],
-  "gold": [
-   [
-    1,
-    22,
-    15
-   ],
-   [
-    26,
-    22,
-    15
-   ],
-   [
-    2,
-    18,
-    10
-   ]
-  ],
-  "treasure": {
-   "id": "arrow",
-   "name": "the Silver Arrow",
-   "x": 14,
-   "y": 3
-  },
-  "reward": 80,
-  "tips": [
-   {
-    "id": "aim",
-    "when": "start",
-    "text": "Tap 🏹 Bow, then a target. Watch the swaying ring over it: Robin looses half a second after you tap, so tap when it is about to settle."
-   },
-   {
-    "id": "sprung",
-    "when": "sprung",
-    "text": "Run! Find John (in the hay by the north-west stands) and Tuck (by the east stalls). Tap each to call him over, then everyone out the south gate."
-   }
-  ],
-  "map": [
-   "############################",
-   "#rrrr..................rrrr#",
-   "#rrrr..xxxxxxxxxxxxxx..rrrr#",
-   "#......x............x......#",
-   "#.hh...x............x...hh.#",
-   "#......x............x......#",
-   "#rrr...x............x...rrr#",
-   "#rrr...x............x...rrr#",
-   "#rrr...x............x...rrr#",
-   "#......x............x......#",
-   "#.mm...x............x...mm.#",
-   "#......x............x......#",
-   "#rrr...xxxxxx..xxxxxx...rrr#",
-   "#rrr......................r#",
-   "#.rrrr..ffffffffffff..rrrr.#",
-   "#.rrrr..f..........f..rrrr.#",
-   "#.rrrr..f..rrrrrr..f..rrrr.#",
-   "#.......f..rrrrrr..f.......#",
-   "#.h.....f..rrrrrr..f.....c.#",
-   "#.......ffffffffffff.......#",
-   "#rrrrr.......ff.......rrrrr#",
-   "#rrrrr.......ff.......rrrrr#",
-   "#.....b......ff......b.....#",
-   "#######......ff......#######",
-   "TTTTTT#......ff......#TTTTTT",
-   "TTTTTT#..............#TTTTTT",
-   "TTTTTTTT............TTTTTTTT",
-   "TTTTTTTTTTTTTTTTTTTTTTTTTTTT"
-  ],
-  "town": "Nottingham"
- },
- {
   "id": "m12",
   "rank": 11,
   "theme": "town",
@@ -4040,12 +4036,12 @@
     "route": [
      [
       8,
-      21,
+      20,
       2
      ],
      [
       19,
-      21,
+      20,
       2
      ]
     ]
@@ -4055,14 +4051,14 @@
     "route": [
      [
       13,
-      25,
+      23,
       0
      ]
     ],
     "looks": [
      3.141592653589793,
      -1.5707963267948966,
-     0,
+     0.0,
      -1.5707963267948966
     ]
    }
@@ -4077,8 +4073,8 @@
     5
    ],
    [
-    17,
-    19
+    19,
+    3
    ],
    [
     20,
