@@ -1,22 +1,20 @@
 [
  {
-  "strat": "mob",
+  "strat": "beeline",
   "run": 0,
   "died": false,
   "win": false,
   "reason": null,
-  "t": 101.6,
-  "first_spotted": 1.0,
+  "t": 140.5,
+  "first_spotted": null,
   "hp": [
    10
   ],
   "checkpoint_wakeups": 0,
-  "hits": 3,
-  "melee_types": [
-   "soldier"
-  ],
+  "hits": 0,
+  "melee_types": [],
   "arrow_hits": 0,
-  "max_alert": 2
+  "max_alert": 0
  },
  {
   "strat": "brawler",
@@ -24,17 +22,87 @@
   "died": false,
   "win": false,
   "reason": null,
-  "t": 98.1,
-  "first_spotted": 25.4,
+  "t": 150.5,
+  "first_spotted": 116.9,
   "hp": [
    10
   ],
   "checkpoint_wakeups": 0,
-  "hits": 4,
+  "hits": 1,
   "melee_types": [
    "soldier"
   ],
   "arrow_hits": 0,
-  "max_alert": 2
+  "max_alert": 1
+ },
+ {
+  "strat": "wander",
+  "run": 0,
+  "died": false,
+  "win": false,
+  "reason": null,
+  "t": 150.1,
+  "first_spotted": 149.0,
+  "hp": [
+   9
+  ],
+  "checkpoint_wakeups": 0,
+  "hits": 1,
+  "melee_types": [
+   "soldier"
+  ],
+  "arrow_hits": 0,
+  "max_alert": 1
+ },
+ {
+  "strat": "afk",
+  "run": 0,
+  "died": false,
+  "win": false,
+  "reason": null,
+  "t": 139.9,
+  "first_spotted": null,
+  "hp": [
+   10
+  ],
+  "checkpoint_wakeups": 0,
+  "hits": 0,
+  "melee_types": [],
+  "arrow_hits": 0,
+  "max_alert": 0
+ },
+ {
+  "strat": "charge_gate",
+  "run": 0,
+  "died": false,
+  "win": false,
+  "reason": null,
+  "t": 150.4,
+  "first_spotted": null,
+  "hp": [
+   10
+  ],
+  "checkpoint_wakeups": 0,
+  "hits": 0,
+  "melee_types": [],
+  "arrow_hits": 0,
+  "max_alert": 0
+ },
+ {
+  "strat": "mob",
+  "run": 0,
+  "died": false,
+  "win": false,
+  "reason": null,
+  "t": 150.3,
+  "first_spotted": null,
+  "hp": [
+   10
+  ],
+  "checkpoint_wakeups": 0,
+  "hits": 0,
+  "melee_types": [],
+  "arrow_hits": 0,
+  "max_alert": 0
  }
 ]
