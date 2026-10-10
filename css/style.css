@@ -266,3 +266,25 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-user
 .help li { font-family: var(--serif); font-size: 16px; margin: 7px 0; line-height: 1.35; }
 .foot { text-align: center; font-size: 13px; color: #d8c8a0; margin-top: 12px; text-shadow: 0 1px 2px #000; }
 .pz { display: block; width: 18px; height: 20px; border-left: 6px solid #f3e2b8; border-right: 6px solid #f3e2b8; }
+
+/* step-by-step coach for the first mission */
+#coach { position: absolute; left: calc(var(--sal) + 10px); right: calc(var(--sar) + 10px); top: calc(var(--sat) + 128px);
+  background: linear-gradient(#f3e3b4, #e2c98a); color: var(--ink); border: 2px solid #b8860b; border-radius: 8px; padding: 8px 6px 8px 12px;
+  font-family: var(--serif); font-size: 15px; line-height: 1.3; font-weight: 600; display: flex; gap: 8px; align-items: center;
+  box-shadow: 0 0 0 2px rgba(255,216,74,0.35), 0 5px 16px rgba(0,0,0,0.45); pointer-events: auto; }
+#coach b { color: #7a3a08; margin-right: 4px; }
+#coachtext { flex: 1; }
+#coach.flash { animation: coachflash 0.9s ease-out; }
+@keyframes coachflash { 0% { transform: scale(1.04); box-shadow: 0 0 0 6px rgba(255,216,74,0.9); } 100% { transform: none; } }
+#coachmin { min-width: 40px; min-height: 40px; border-radius: 8px; border: 1px solid #8a6a2a; background: rgba(90,60,20,0.15); font-size: 20px; font-weight: 800; color: #5a3a10; }
+#coach.min #coachtext { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.hascoach #tip { top: calc(var(--sat) + 214px); }
+.hascoach #toasts { top: calc(var(--sat) + 216px); }
+#selbox { position: absolute; border: 2px dashed #9dff7a; background: rgba(120,230,90,0.12); pointer-events: none; z-index: 5; }
+.act.pulse { animation: actpulse 1s ease-in-out infinite; }
+@keyframes actpulse { 0%,100% { box-shadow: 0 0 0 0 rgba(255,216,74,0.9); } 50% { box-shadow: 0 0 0 7px rgba(255,216,74,0.25); transform: scale(1.06); } }
+@media (orientation: landscape) and (max-height: 500px) {
+  #coach { top: calc(var(--sat) + 62px); left: calc(var(--sal) + 140px); right: calc(var(--sar) + 70px); font-size: 13px; padding: 4px 4px 4px 10px; }
+  .hascoach #tip { top: calc(var(--sat) + 122px); }
+  .hascoach #toasts { top: calc(var(--sat) + 124px); }
+}

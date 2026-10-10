@@ -65,6 +65,15 @@
     $('tip').classList.remove('hidden');
     tipOpen = true; tipTimer = Math.max(9, text.length / 9);
   };
+  let coachUi = null;
+  ui.coach = function (text, n, total, uiKey) {
+    const c = $('coach'); if (!c) return;
+    $('coachtext').innerHTML = `<b>Step ${n} of ${total}</b> ${esc(text)}`;
+    c.classList.remove('hidden', 'min'); c.classList.remove('flash'); void c.offsetWidth; c.classList.add('flash');
+    document.getElementById('hud').classList.add('hascoach');
+    coachUi = uiKey; actSig = '';
+  };
+  ui.hideCoach = function () { const c = $('coach'); if (c) c.classList.add('hidden'); document.getElementById('hud').classList.remove('hascoach'); coachUi = null; };
   ui.closeTip = function () { $('tip').classList.add('hidden'); tipOpen = false; };
   ui.tipShowing = () => tipOpen;
   ui.tickTip = function (dt) { if (tipOpen && !G.paused) { tipTimer -= dt; if (tipTimer <= 0) ui.closeTip(); } };
@@ -382,8 +391,8 @@
         ${amb || G.kind === 'defense' ? '' : '<button class="btn sec" data-act="retry">↻ Play again for more stars</button>'}`, true);
     } else {
       show(`<div class="card" style="text-align:center"><div class="place">Mission failed</div><h2>${esc(G.m.title)}</h2>
-        <p>${esc(res.reason || '')}</p><p class="small-note">Try sneaking (🦶), hiding in bushes and tying up every guard you knock out.</p></div>
-        <button class="btn" data-act="retry">↻ Try again</button>
+        <p>${esc(res.reason || '')}</p></div>
+        ${G.cp ? `<button class="btn" data-act="cpretry">↻ Retry from checkpoint</button><button class="btn sec" data-act="retry">⟲ Restart the mission</button>` : '<button class="btn" data-act="retry">↻ Try again</button>'}
         <button class="btn sec" data-act="camp">🏕 Back to camp</button>`, true);
     }
   }
@@ -442,6 +451,7 @@
       case 'resume': hideScreen(); G.paused = false; ui.refresh(true); break;
       case 'plan': hideScreen(); G.paused = true; ui.refresh(true); break;
       case 'pause': ui.showPause(); break;
+      case 'cpretry': if (RH.game.retryFromCheckpoint()) { hideScreen(); G.paused = false; ui.refresh(true); } break;
       case 'restart': case 'retry': RH.main.begin(G.spec != null ? G.spec : G.idx, G.heroes.filter((h) => h.rid && !h.fresh).map((h) => h.rid), G.picks); break;
       case 'quit': RH.main.toCamp(); break;
     }
@@ -453,6 +463,7 @@
   };
 
   ui.enterGame = function () {
+    ui.hideCoach();
     hideScreen();
     $('hud').classList.remove('hidden');
     $('objbox').classList.remove('collapsed');
@@ -563,7 +574,7 @@
         if (A.item) { it.cnt = inv[A.item] | 0; it.dis = it.cnt <= 0; }
         if (ab === 'charm' && G.cdMarian > 0) { it.t = Math.ceil(G.cdMarian) + 's'; it.dis = true; }
         if (ab === 'heal') { if (h.key === 'tuck') { if (G.cdTuck > 0) { it.t = Math.ceil(G.cdTuck) + 's'; it.dis = true; } } else { it.cnt = inv.potions; it.dis = inv.potions <= 0; } }
-        if (ab === 'whistle' && h.cd > 0) { it.t = Math.ceil(h.cd) + 's'; it.dis = true; }
+        if ((ab === 'whistle' || ab === 'sweep') && h.cd > 0) { it.t = Math.ceil(h.cd) + 's'; it.dis = true; }
         list.push(it);
       }
     }
@@ -577,7 +588,7 @@
     box.innerHTML = '';
     for (const a of list) {
       const b = document.createElement('button');
-      b.className = 'act' + (a.on ? ' on' : '') + (G.mode === a.id ? ' arm' : '');
+      b.className = 'act' + (a.on ? ' on' : '') + (G.mode === a.id ? ' arm' : '') + (coachUi === a.id && !a.on ? ' pulse' : '');
       b.dataset.id = a.id;
       if (a.dis) b.disabled = true;
       b.innerHTML = `${a.ic}<small>${esc(a.t)}</small>${a.cnt != null ? `<span class="cnt">${a.cnt}</span>` : ''}`;
@@ -595,6 +606,7 @@
       case 'potion': RH.game.usePotion(); break;
       case 'done': RH.saveProfile(); RH.main.toCamp(); return;
       case 'out': RH.game.leaveHouse(G.sel[0]); break;
+      case 'sweep': { const n = RH.game.sweep(G.sel[0]); if (n === false) break; ui.toast(n ? `🌀 John’s staff sweeps ${n} off their feet` : '🌀 Nobody close enough'); break; }
       case 'jump': { const h = G.sel[0]; if (h && h.roof) RH.game.startDrop(h, h.x + 40, h.y + 40, null); break; }
       case 'whistle': { const n = RH.game.whistle(G.sel[0]); if (n === false) break; ui.toast(n ? `🎵 ${n} guard${n > 1 ? 's' : ''} turn${n > 1 ? '' : 's'} to look` : '🎵 Nobody close enough to hear'); break; }
       default: setMode(G.mode === id ? null : id);
@@ -639,7 +651,7 @@
 
   // ---------- Input ----------
   const tw = { x: 0, y: 0 };
-  function pickRadius() { return Math.max(16, 26 / G.cam.z); }
+  function pickRadius() { return Math.max(24, 34 / G.cam.z); }
 
   function handleTap(sx, sy) {
     if (!G.m || G.over) return;
@@ -691,8 +703,23 @@
       sfx('select'); ui.refresh(true); return;
     }
     const hit = RH.game.entityAt(tw.x, tw.y, r);
-    if (hit) { sfx('select'); openCtx(sx, sy, hit); }
+    if (hit) { sfx('select'); openCtx(sx, sy, hit); return; }
+    // empty ground: start a drag box to pick several outlaws
+    if (gesture && G.heroes.length > 1) { gesture.type = 'box'; gesture.bx = sx; gesture.by = sy; showBox(sx, sy, sx, sy); sfx('select'); }
   }
+  function showBox(x0, y0, x1, y1) {
+    const b = $('selbox'); if (!b) return;
+    b.classList.remove('hidden');
+    b.style.left = Math.min(x0, x1) + 'px'; b.style.top = Math.min(y0, y1) + 'px'; b.style.width = Math.abs(x1 - x0) + 'px'; b.style.height = Math.abs(y1 - y0) + 'px';
+  }
+  function endBox(g) {
+    $('selbox').classList.add('hidden');
+    const x0 = Math.min(g.bx, g.ex), x1 = Math.max(g.bx, g.ex), y0 = Math.min(g.by, g.ey), y1 = Math.max(g.by, g.ey);
+    const t = { x: 0, y: 0 };
+    const picked = G.heroes.filter((h) => !h.down && (RH.render.toScreen(h.x, h.y, t), t.x >= x0 - 14 && t.x <= x1 + 14 && t.y >= y0 - 30 && t.y <= y1 + 14));
+    if (picked.length) { G.sel = picked; sfx('select'); ui.toast(picked.length > 1 ? `${picked.length} outlaws selected: tap the ground and they follow` : picked[0].name + ' selected'); ui.refresh(true); }
+  }
+  ui._endBox = endBox;
 
   // ---------- Swipe sword strokes ----------
   function swipeTargetAt(sx, sy) {
@@ -738,7 +765,7 @@
   function setupInput() {
     const opt = { passive: false };
     canvas.addEventListener('touchstart', (e) => {
-      e.preventDefault();
+      if (e.cancelable) e.preventDefault();
       RH.audio.ctx && RH.audio.ctx.state === 'suspended' && RH.audio.ctx.resume();
       for (const t of e.changedTouches) touches.set(t.identifier, { x: t.clientX, y: t.clientY, sx: t.clientX, sy: t.clientY });
       if (touches.size === 1) {
@@ -753,26 +780,29 @@
       }
     }, opt);
     canvas.addEventListener('touchmove', (e) => {
-      e.preventDefault();
+      if (e.cancelable) e.preventDefault();
       for (const t of e.changedTouches) { const p = touches.get(t.identifier); if (p) { p.px = p.x; p.py = p.y; p.x = t.clientX; p.y = t.clientY; } }
       if (!gesture || !G.cam) return;
+      if (gesture.type === 'box') { const t = [...touches.values()][0]; if (t) { gesture.ex = t.x; gesture.ey = t.y; showBox(gesture.bx, gesture.by, t.x, t.y); } return; }
       if (gesture.type === 'tap' || gesture.type === 'pan' || gesture.type === 'swipe') {
         const t = [...touches.values()][0]; if (!t) return;
         if (gesture.swipe) { gesture.pts.push([t.x, t.y]); if (gesture.type === 'tap' && Math.hypot(t.x - gesture.sx, t.y - gesture.sy) > 10) { gesture.type = 'swipe'; clearTimeout(longTimer); } return; }
         if (gesture.type === 'tap' && Math.hypot(t.x - gesture.sx, t.y - gesture.sy) > 10) { gesture.type = 'pan'; clearTimeout(longTimer); }
-        if (gesture.type === 'pan') { RH.main.panBy(t.x - (t.px != null ? t.px : t.x), t.y - (t.py != null ? t.py : t.y)); }
+        if (gesture.type === 'pan') { RH.main.userPanAt = performance.now(); RH.main.panBy(t.x - (t.px != null ? t.px : t.x), t.y - (t.py != null ? t.py : t.y)); }
       } else if (gesture.type === 'pinch' && touches.size >= 2) {
         const [a, b] = [...touches.values()];
         const d = Math.hypot(a.x - b.x, a.y - b.y);
         const cx = (a.x + b.x) / 2, cy = (a.y + b.y) / 2;
+        RH.main.userPanAt = performance.now();
         RH.main.zoomAt(gesture.z0 * d / gesture.d0, cx, cy);
         RH.main.panBy(cx - gesture.cx, cy - gesture.cy);
         gesture.cx = cx; gesture.cy = cy;
       }
     }, opt);
     const end = (e) => {
-      e.preventDefault();
+      if (e.cancelable) e.preventDefault();
       for (const t of e.changedTouches) touches.delete(t.identifier);
+      if (gesture && gesture.type === 'box' && touches.size === 0) { if (gesture.ex != null) endBox(gesture); else $('selbox').classList.add('hidden'); gesture = null; return; }
       if (gesture && gesture.type === 'swipe' && touches.size === 0) {
         if (!doSwipe(gesture.swipe, gesture.pts)) handleTap(gesture.sx, gesture.sy);
         gesture = null; return;
@@ -805,12 +835,13 @@
       else if (md && !md.pan && !md.long) { clearTimeout(longTimer); handleTap(md.sx, md.sy); }
       md = null;
     });
+    $('coachmin').addEventListener('click', () => { const c = $('coach'); c.classList.toggle('min'); $('coachmin').textContent = c.classList.contains('min') ? '+' : '–'; });
     canvas.addEventListener('contextmenu', (e) => { e.preventDefault(); });
     canvas.addEventListener('wheel', (e) => { e.preventDefault(); RH.main.zoomAt(G.cam.z * (e.deltaY < 0 ? 1.1 : 0.9), e.clientX, e.clientY); }, opt);
     // block page gestures (iOS)
     document.addEventListener('gesturestart', (e) => e.preventDefault());
     document.addEventListener('dblclick', (e) => e.preventDefault());
-    document.addEventListener('touchmove', (e) => { if (!e.target.closest('#screen')) e.preventDefault(); }, opt);
+    document.addEventListener('touchmove', (e) => { if (e.cancelable && !e.target.closest('#screen')) e.preventDefault(); }, opt);
     window.addEventListener('keydown', (e) => {
       if (e.key === ' ' || e.key === 'p') { if (screenName === 'pause') onAct('resume'); else if (!screenName) ui.showPause(); }
       if (e.key === 's' && G.m && !screenName) onActionBtn('sneak');

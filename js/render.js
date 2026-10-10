@@ -757,7 +757,41 @@
       }
     }
     if (G.mode) drawTargeting(ctx);
+    drawGuides(ctx, z);
   };
+  // coach arrow over the next thing to do, and edge arrows for threats you can't see
+  function drawGuides(ctx, z) {
+    const W = R.W, H = R.H, top = 120, bot = H - 190;
+    const edge = (x, y, col, ic) => {
+      const cx = W / 2, cy = (top + bot) / 2, dx = x - cx, dy = y - cy;
+      const k = Math.min((W / 2 - 26) / Math.max(1, Math.abs(dx)), ((bot - top) / 2 - 10) / Math.max(1, Math.abs(dy)));
+      const ex = cx + dx * k, ey = cy + dy * k, a = Math.atan2(dy, dx);
+      ctx.save(); ctx.translate(ex, ey); ctx.rotate(a);
+      ctx.fillStyle = col; ctx.strokeStyle = 'rgba(20,10,4,0.9)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(16, 0); ctx.lineTo(-8, -11); ctx.lineTo(-3, 0); ctx.lineTo(-8, 11); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.restore();
+      if (ic) label(ctx, ic, ex - Math.cos(a) * 20, ey - Math.sin(a) * 20, 14, '#fff');
+    };
+    const on = (p) => p.x > 8 && p.x < W - 8 && p.y > top && p.y < bot;
+    const ct = RH.game.coachTarget && RH.game.coachTarget();
+    if (ct) {
+      R.toScreen(ct.x, ct.y, tmp);
+      if (on(tmp)) {
+        const b = Math.abs(Math.sin(now * 4)) * 8, y = tmp.y - 52 * z - b;
+        ctx.fillStyle = '#ffd84a'; ctx.strokeStyle = '#5a2a08'; ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.moveTo(tmp.x, y + 18); ctx.lineTo(tmp.x - 12, y); ctx.lineTo(tmp.x - 5, y); ctx.lineTo(tmp.x - 5, y - 14); ctx.lineTo(tmp.x + 5, y - 14); ctx.lineTo(tmp.x + 5, y); ctx.lineTo(tmp.x + 12, y); ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.strokeStyle = `rgba(255,216,74,${0.5 + 0.5 * Math.sin(now * 4)})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(tmp.x, tmp.y, 16 * z, 8 * z, 0, 0, 7); ctx.stroke();
+      } else edge(tmp.x, tmp.y, '#ffd84a', '➜');
+    }
+    for (const g of G.guards) {
+      if (!RH.game.isActive(g)) continue;
+      const hot = g.state === 'alert' || g.state === 'tohorn' || (g.sus > 0.25 && g.seeing);
+      if (!hot) continue;
+      R.toScreen(g.x, g.y, tmp);
+      if (on(tmp)) continue;
+      edge(tmp.x, tmp.y, g.state === 'alert' || g.state === 'tohorn' ? '#ff3b2e' : '#ffd23a', g.state === 'alert' ? '!' : '?');
+    }
+  }
 
   function drawEnt(c, u, dt) {
     const X = u.x - u.y, Y = (u.x + u.y) / 2;

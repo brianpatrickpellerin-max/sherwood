@@ -1,0 +1,182 @@
+[
+ {
+  "strat": "beeline",
+  "run": 0,
+  "died": false,
+  "win": false,
+  "reason": null,
+  "t": 150.2,
+  "first_spotted": 10.4,
+  "hp": [
+   3
+  ],
+  "hits": 2,
+  "melee_types": [
+   "soldier"
+  ],
+  "arrow_hits": 0,
+  "max_alert": 1
+ },
+ {
+  "strat": "brawler",
+  "run": 0,
+  "died": true,
+  "win": false,
+  "reason": "The whole band has fallen.",
+  "t": 14.0,
+  "first_spotted": 11.0,
+  "hp": [
+   0
+  ],
+  "hits": 3,
+  "melee_types": [
+   "soldier"
+  ],
+  "arrow_hits": 0,
+  "max_alert": 3
+ },
+ {
+  "strat": "wander",
+  "run": 0,
+  "died": true,
+  "win": false,
+  "reason": "The whole band has fallen.",
+  "t": 23.1,
+  "first_spotted": 10.8,
+  "hp": [
+   0
+  ],
+  "hits": 6,
+  "melee_types": [
+   "soldier"
+  ],
+  "arrow_hits": 0,
+  "max_alert": 2
+ },
+ {
+  "strat": "afk",
+  "run": 0,
+  "died": false,
+  "win": false,
+  "reason": null,
+  "t": 150.2,
+  "first_spotted": 10.1,
+  "hp": [
+   3
+  ],
+  "hits": 2,
+  "melee_types": [
+   "soldier"
+  ],
+  "arrow_hits": 0,
+  "max_alert": 1
+ },
+ {
+  "strat": "charge_gate",
+  "run": 0,
+  "died": true,
+  "win": false,
+  "reason": "The whole band has fallen.",
+  "t": 23.6,
+  "first_spotted": 16.2,
+  "hp": [
+   0
+  ],
+  "hits": 4,
+  "melee_types": [
+   "soldier"
+  ],
+  "arrow_hits": 0,
+  "max_alert": 4
+ },
+ {
+  "strat": "beeline",
+  "run": 1,
+  "died": false,
+  "win": false,
+  "reason": null,
+  "t": 150.5,
+  "first_spotted": 10.4,
+  "hp": [
+   3
+  ],
+  "hits": 2,
+  "melee_types": [
+   "soldier"
+  ],
+  "arrow_hits": 0,
+  "max_alert": 1
+ },
+ {
+  "strat": "brawler",
+  "run": 1,
+  "died": true,
+  "win": false,
+  "reason": "The whole band has fallen.",
+  "t": 22.6,
+  "first_spotted": 19.0,
+  "hp": [
+   0
+  ],
+  "hits": 3,
+  "melee_types": [
+   "soldier"
+  ],
+  "arrow_hits": 0,
+  "max_alert": 4
+ },
+ {
+  "strat": "wander",
+  "run": 1,
+  "died": true,
+  "win": false,
+  "reason": "The whole band has fallen.",
+  "t": 25.6,
+  "first_spotted": 8.4,
+  "hp": [
+   0
+  ],
+  "hits": 6,
+  "melee_types": [
+   "soldier"
+  ],
+  "arrow_hits": 0,
+  "max_alert": 1
+ },
+ {
+  "strat": "afk",
+  "run": 1,
+  "died": false,
+  "win": false,
+  "reason": null,
+  "t": 150.4,
+  "first_spotted": 11.8,
+  "hp": [
+   3
+  ],
+  "hits": 2,
+  "melee_types": [
+   "soldier"
+  ],
+  "arrow_hits": 0,
+  "max_alert": 1
+ },
+ {
+  "strat": "charge_gate",
+  "run": 1,
+  "died": true,
+  "win": false,
+  "reason": "The whole band has fallen.",
+  "t": 25.0,
+  "first_spotted": 19.3,
+  "hp": [
+   0
+  ],
+  "hits": 4,
+  "melee_types": [
+   "soldier"
+  ],
+  "arrow_hits": 0,
+  "max_alert": 3
+ }
+]

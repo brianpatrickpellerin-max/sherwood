@@ -272,6 +272,24 @@
     RH.ui.showCamp();
   };
 
+  // ---------- Camera follow: keep the selected hero on screen unless the player is panning ----------
+  main.userPanAt = 0;
+  const ft = { x: 0, y: 0 };
+  function follow(dt) {
+    if (performance.now() - main.userPanAt < 2500 || !G.cam) return;
+    const hs = G.sel.filter((h) => !h.down); if (!hs.length || !hs.some((h) => h.moving || h.climbing)) return;
+    const x = hs.reduce((a, h) => a + h.x, 0) / hs.length, y = hs.reduce((a, h) => a + h.y, 0) / hs.length;
+    RH.render.toScreen(x, y, ft);
+    const W = RH.render.W, H = RH.render.H;
+    const mx = W * 0.22, top = H * 0.26, bot = H * 0.62;
+    let dx = 0, dy = 0;
+    if (ft.x < mx) dx = ft.x - mx; else if (ft.x > W - mx) dx = ft.x - (W - mx);
+    if (ft.y < top) dy = ft.y - top; else if (ft.y > bot) dy = ft.y - bot;
+    if (!dx && !dy) return;
+    const k = Math.min(1, dt * 3);
+    G.cam.x += dx * k / G.cam.z; G.cam.y += dy * k / G.cam.z; main.clampCam();
+  }
+
   // ---------- Loop ----------
   let canvas, ctx, lastT = 0, hudT = 0;
   const perf = { frames: 0, work: new Float32Array(600), intervals: new Float32Array(600), wi: 0 };
@@ -289,6 +307,7 @@
         let left = dt * (G.speed || 1);
         while (left > 0) { const s = Math.min(left, 1 / 30); RH.game.update(s); left -= s; }
       }
+      if (!covered && !G.over) follow(dt);
       if (!covered || RH.ui.screen() === 'pause') RH.render.draw(ctx, G.paused || covered ? 0 : dt);
       RH.ui.tickTip(dt);
       hudT -= dt;

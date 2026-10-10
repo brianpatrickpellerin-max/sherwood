@@ -30,6 +30,15 @@
     boss: { hp: 12, dmg: 2, weapon: 'sword', tough: true, nogreed: true, arrowproof: true, leash: 4.5 },
   };
   game.GT = GT;
+  // Early missions are gentler: slower to notice you, softer blows, more health and a heal-over-time.
+  const EASE = {
+    m1: { det: 0.4, range: 0.8, atk: 1.8, ghp: 0.5, hp: 4, regen: 2.5, callR: 2.5, alarmR: 4, auto: true },
+    m2: { det: 0.6, range: 0.9, atk: 1.45, ghp: 1, hp: 2, regen: 5, callR: 5, alarmR: 6 },
+    m3: { det: 0.75, range: 0.95, atk: 1.25, ghp: 1, hp: 1, regen: 8, callR: 6.5, alarmR: 8 },
+    m4: { det: 0.88, range: 1, atk: 1.1, ghp: 1, hp: 0, regen: 11, callR: 8, alarmR: 9 },
+  };
+  const NOEASE = { det: 1, range: 1, atk: 1, ghp: 1, hp: 0, regen: 0, callR: 99, alarmR: 10 };
+  game.EASE = EASE;
   // ability table: how each action-bar skill is aimed and what it spends
   const ABIL = {
     bow: { ic: '🏹', t: 'Bow', item: 'arrows', aim: 'guard', range: () => G.bowRange },
@@ -42,6 +51,7 @@
     apple: { ic: '🍎', t: 'Apple', item: 'apples', aim: 'ground', range: () => 7 * TILE },
     ale: { ic: '🍺', t: 'Ale', item: 'ale', aim: 'ground', range: () => 6 * TILE },
     whistle: { ic: '🎵', t: 'Whistle', aim: 'self' },
+    sweep: { ic: '🌀', t: 'Sweep', aim: 'self' },
     snare: { ic: '🪢', t: 'Snare', item: 'nets', aim: 'ground', range: () => 1.1 * TILE },
   };
   game.ABIL = ABIL;
@@ -185,11 +195,16 @@
       G.log = { x: cv.path[cv.logStop][0] * TILE, y: cv.path[cv.logStop][1] * TILE + TILE * 1.2 };
     }
     (m.gold || []).forEach(([x, y, v]) => G.gold.push({ x: tcx(x), y: tcx(y), v, taken: false }));
+    G.ease = (G.kind === 'story' && EASE[m.id]) || NOEASE;
+    for (const h of G.heroes) { h.maxhp += G.ease.hp; h.hp = h.maxhp; }
+    if (G.ease.ghp < 1) for (const g of G.guards) if (!g.boss && !g.sheriff) { g.hp = g.maxhp = Math.max(1, Math.round(g.maxhp * G.ease.ghp)); }
     setupWorld(m);
+    G.coach = COACH[m.id] ? { i: 0, t: 0, steps: COACH[m.id] } : null;
     G.cam = { x: 0, y: 0, z: 1 };
     G.tipList = (m.tips || []).slice();
     G.sel = G.heroes.length ? [G.heroes[0]] : [];
     if (G.kind === 'base') for (const h of G.heroes) h.station = h.rec ? h.rec.job : null;
+    saveCheckpoint('start');
     return G;
   };
 
@@ -285,6 +300,7 @@
   function guardRange(g) {
     let r = G.night ? 4.6 * TILE : 6.5 * TILE;
     if (G.weather === 'fog') r *= 0.72;
+    if (G.ease) r *= G.ease.range;
     if (g.state === 'alert') r *= 1.25;
     if (g.type === 'archer') r *= 1.1;
     return r;
@@ -525,6 +541,10 @@
     h.atkCd -= dt; h.bowT -= dt; h.hurtT -= dt; if (h.flash > 0) h.flash -= dt;
     if (h.strokeCd > 0) h.strokeCd -= dt; if (h.parryT > 0) h.parryT -= dt; if (h.cd > 0) h.cd -= dt;
     if (h.crimeT > 0) h.crimeT -= dt;
+    if (G.ease && G.ease.regen && !h.down && h.hp < h.maxhp && !G.guards.some((g) => g.state === 'alert' && active(g) && d2(g, h) < (5 * TILE) ** 2)) {
+      h.regenT = (h.regenT || 0) + dt;
+      if (h.regenT >= G.ease.regen) { h.regenT = 0; h.hp = Math.min(h.maxhp, h.hp + 1); fx('text', h.x, h.y - 34, '+1 ❤', '#7dff7a', 0.8); }
+    } else h.regenT = 0;
     if (h.down) { h.moving = false; if (h.roof) { h.roof = null; h.climbZ = 0; const n = RH.nearestWalk(G.grid, tileOf(h.x), tileOf(h.y)); if (n >= 0) { h.x = tcx(n % G.grid.w); h.y = tcx((n / G.grid.w) | 0); } } return; }
     if (h.inside) { h.moving = false; if (!h.task) return; }
     if (h.roof && !h.climbing) h.climbZ = roofZ(tileOf(h.x), tileOf(h.y));
@@ -976,9 +996,15 @@
     return 'hit';
   }
 
-  function heroHurt(h, d) {
+  function heroHurt(h, d, src) {
     if (h.down) return;
-    h.hp -= d; h.flash = 0.2;
+    h.hp -= d; h.flash = 0.2; h.hurtT = 4;
+    const n = G.guards.filter((g) => active(g) && g.state === 'alert' && d2(g, h) < (TILE * 1.6) ** 2).length;
+    G.lastHurt = { hero: h.name, arrow: src === 'arrow', type: src && src.type ? (src.sheriff ? 'the Sheriff' : src.name || src.type) : null, n: Math.max(1, n), t: G.time };
+    if (G.ease && G.ease.regen && h.hp > 0 && h.hp <= Math.ceil(h.maxhp * 0.4) && G.time > (G.hurtWarnT || 0)) {
+      G.hurtWarnT = G.time + 20;
+      toast(`❤ ${h.name} is badly hurt! Run away from the fight: he heals when no guard is chasing him.`, 'bad');
+    }
     fx('text', h.x, h.y - 30, '-' + d, '#ff6a5a');
     if (h.hp <= 0) {
       h.hp = 0; h.down = true; h.task = null; h.path = null; h.busy = 0; h.sneak = false;
@@ -1025,7 +1051,7 @@
     }
     for (const g of G.guards) {
       if (!active(g) || g.state === 'alert' || passive(g)) continue;
-      if ((g.x - x) ** 2 + (g.y - y) ** 2 < (10 * TILE) ** 2) {
+      if ((g.x - x) ** 2 + (g.y - y) ** 2 < ((G.ease ? G.ease.alarmR : 10) * TILE) ** 2) {
         g.state = 'investigate'; g.lx = x; g.ly = y; g.path = null; g.sus = Math.max(g.sus, 0.6); g.icon = '?'; g.iconT = 3;
       }
     }
@@ -1045,7 +1071,7 @@
     if (!silentToast && h.kind !== 'ally') toast(`Spotted! ${h.name} has been seen!`, 'bad');
     for (const o of G.guards) {
       if (o === g || !active(o) || o.state === 'alert' || passive(o) || o.coward) continue;
-      if (d2(o, g) < ((GT[g.type] && GT[g.type].callR || 8) * TILE) ** 2) {
+      if (d2(o, g) < (Math.min(G.ease ? G.ease.callR : 99, GT[g.type] && GT[g.type].callR || 8) * TILE) ** 2) {
         o.state = 'alert'; o.target = h; o.sus = 1; o.icon = '!'; o.iconT = 2; o.path = null; o.lx = h.x; o.ly = h.y; o.lostT = 0;
       }
     }
@@ -1095,6 +1121,7 @@
       if (G.alarmT > 0) rate *= 1.3;
       if (d < 1.2 * TILE) rate = 6;
       if (h.kind === 'ally') rate = 6;
+      if (G.ease && h.kind !== 'ally') rate *= G.ease.det;
       if (rate > best) { best = rate; bh = h; }
     }
     g.seeing = bh;
@@ -1104,6 +1131,10 @@
       return;
     }
     if (bh) {
+      if (G.ease && G.ease.det < 1 && bh.kind === 'hero' && g.sus < 0.3 && g.sus + best * dt >= 0.3 && G.time > (G.warnT || 0)) {
+        G.warnT = G.time + 14;
+        toast(`👁 A guard is noticing ${bh.name}! Step out of his green wedge, sneak (🦶) or hide in a bush.`, 'bad');
+      }
       g.sus += best * dt;
       g.lx = bh.x; g.ly = bh.y;
       if (g.sus >= 1) { spot(g, bh); return; }
@@ -1209,7 +1240,7 @@
         const dd = d2(t, g);
         if (g.ranged && dd > (TILE * 2.5) ** 2 && dd < (7 * TILE) ** 2 && g.seeing === t) {
           g.path = null; g.moving = false; g.dir = Math.atan2(t.y - g.y, t.x - g.x);
-          if (g.atkCd <= 0) { g.atkCd = 1.7; g.drawT = 0.3; G.projs.push({ kind: 'garrow', x: g.x, y: g.y - 14, sx: g.x, sy: g.y - 14, target: t, from: g, t: 0 }); sfx('bow'); }
+          if (g.atkCd <= 0) { g.atkCd = 1.7 * (G.ease ? G.ease.atk : 1); g.drawT = 0.3; G.projs.push({ kind: 'garrow', x: g.x, y: g.y - 14, sx: g.x, sy: g.y - 14, target: t, from: g, t: 0 }); sfx('bow'); }
           break;
         }
         if (dd < (TILE * 0.9) ** 2 && !t.roof) {
@@ -1218,11 +1249,11 @@
           if ((g.boss || g.sheriff) && t.kind === 'hero') { duelStep(g, t, dt); break; }
           if (g.stagger > 0) g.stagger -= dt;
           else if (g.atkCd <= 0) {
-            g.atkCd = g.sheriff || g.boss ? 0.9 : g.type === 'knight' ? 1.3 : 1.15; g.swingT = 0.25;
+            g.atkCd = (g.sheriff || g.boss ? 0.9 : g.type === 'knight' ? 1.3 : 1.15) * (G.ease ? G.ease.atk : 1); g.swingT = 0.25;
             if (t.parryT > 0) {
               t.parryT = 0; g.stagger = 1.3; sfx('clang');
               fx('text', t.x, t.y - 40, 'Parried!', '#cfe8ff', 0.9); fx('spark', (t.x + g.x) / 2, (t.y + g.y) / 2 - 12);
-            } else { heroHurt(t, g.dmg); sfx('clang'); }
+            } else { heroHurt(t, g.dmg, g); sfx('clang'); }
           }
         } else {
           g.repathT -= dt;
@@ -1539,7 +1570,7 @@
         p.ang = Math.atan2(dy, dx);
         if (d <= s || p.t > 2) {
           G.projs.splice(i, 1);
-          if (p.kind === 'garrow') { if (!e.down && RH.los(G.grid, p.sx, p.sy, e.x, e.y - 8)) { if (e.parryT > 0) fx('text', e.x, e.y - 40, 'Deflected', '#cfe8ff', 0.7); else heroHurt(e, 1); } continue; }
+          if (p.kind === 'garrow') { if (!e.down && RH.los(G.grid, p.sx, p.sy, e.x, e.y - 8)) { if (e.parryT > 0) fx('text', e.x, e.y - 40, 'Deflected', '#cfe8ff', 0.7); else heroHurt(e, 1, 'arrow'); } continue; }
           if (p.prop) { hitTarget(e, p.miss); continue; }
           if (!active(e)) continue;
           if (p.kind === 'stone') {
@@ -1663,8 +1694,20 @@
     if (G.over) return;
     if (G.failPending) { G.failPending.t -= dt; if (G.failPending.t <= 0) return end(false, G.failPending.reason); }
     const fighters = G.heroes.filter((h) => !h.npc);
-    if (fighters.length && fighters.every((h) => h.down)) return end(false, 'The whole band has fallen.');
+    if (fighters.length && fighters.every((h) => h.down)) {
+      const why = fallReason(fighters.length);
+      if (G.ease && G.ease.auto && G.cp) { // the tutorial never ends in defeat: wake up back at the last safe spot
+        restoreCheckpoint();
+        RH.ui && RH.ui.tip('😵 ' + why.text + ' He comes round back where he was safe. ' + why.tip);
+        sfx('lose');
+        return;
+      }
+      return end(false, why.text + ' ' + why.tip);
+    }
     const objs = game.objectives();
+    const nDone = objs.filter((o) => o.done && !o.neg).length + G.contacts.filter((c) => c.met).length;
+    if (nDone > (G.cpDone || 0)) { G.cpDone = nDone; G.cpWant = true; }
+    if (G.cpWant && !G.guards.some((g) => active(g) && g.state === 'alert') && G.heroes.every((h) => !h.down && !h.climbing)) { G.cpWant = false; saveCheckpoint('progress'); }
     const main = objs.filter((o) => !o.last && !o.neg && !o.opt);
     const mainDone = main.every((o) => o.done);
     G.exitReady = mainDone;
@@ -1676,6 +1719,98 @@
     if (G.chest && G.chest.taken && !G.chest.done && !(G.chest.carrier ? inExit(G.chest.carrier.x, G.chest.carrier.y) : inExit(G.chest.x, G.chest.y))) return;
     end(true);
   }
+
+  function fallReason(nf) {
+    const L = G.lastHurt || {};
+    const who = nf > 1 ? 'The band was' : (L.hero || 'Robin') + ' was';
+    if (L.arrow) return { text: `${who} shot down by an archer.`, tip: 'Archers hit from afar: keep out of their wedges, or put them down first with an arrow or a sling stone.' };
+    if (L.n >= 2) return { text: `${who} beaten down by ${L.n} guards at once.`, tip: 'Never fight a crowd: run, hide in a bush and let them come one at a time, or knock each out from behind before he sees you.' };
+    return { text: `${who} beaten in a sword fight${L.type ? ' with ' + (/^[aeiou]/.test(L.type) ? 'an ' : 'a ') + L.type.replace(/^(an?|the) /, '') : ''}.`, tip: 'Creep up behind a guard and tap him to knock him out before he sees you. In a fight, swipe across him and parry (back and forth).' };
+  }
+  function saveCheckpoint(why) {
+    G.cp = { why, t: G.time, heroes: G.heroes.map((h) => ({ h, x: h.x, y: h.y, roof: h.roof, inside: h.inside })), inv: Object.assign({}, G.inv) };
+    if (why === 'progress') { fx('text', G.heroes[0].x, G.heroes[0].y - 46, '✔ Checkpoint', '#bff5a0', 1.4); }
+  }
+  game.saveCheckpoint = saveCheckpoint;
+  function restoreCheckpoint() {
+    const cp = G.cp; if (!cp) return false;
+    G.over = null; G.failPending = null;
+    for (const { h, x, y } of cp.heroes) {
+      if (h.carry && h.carry !== 'chest') dropCarry(h);
+      Object.assign(h, { x, y, down: false, task: null, path: null, busy: 0, inside: null, roof: null, climbZ: 0, climbing: false, moving: false, queued: null, crimeT: 0 });
+      h.hp = h.maxhp;
+    }
+    for (const g of G.guards) {
+      if (g.reinf && active(g)) { g.state = 'gone'; g.x = g.y = -9999; continue; }
+      if (!active(g)) continue;
+      if (['alert', 'search', 'investigate', 'tohorn', 'horn', 'look', 'flee', 'shaking', 'brawl', 'panic', 'lured', 'counting', 'charmed', 'stunned', 'netted'].includes(g.state) && !g.escort) {
+        const r = g.route[0]; g.x = r.x; g.y = r.y; g.ri = 0; g.wait = 0; g.state = 'patrol'; g.faceTo = r.dir != null ? r.dir : g.dir;
+      }
+      Object.assign(g, { sus: 0, target: null, path: null, icon: '', iconT: 0, seeing: null, lostT: 0, duel: null, rescue: null, rescueB: null, stagger: 0, coin: null });
+    }
+    if (G.horn) G.horn.runner = null;
+    G.alarmT = 0; G.projs.length = 0; G.swarms && (G.swarms.length = 0);
+    G.stats.retries = (G.stats.retries || 0) + 1;
+    if (G.coach) G.coach.t = 0;
+    return true;
+  }
+  game.restoreCheckpoint = restoreCheckpoint;
+  game.retryFromCheckpoint = function () { const ok = restoreCheckpoint(); if (ok) toast('↻ Back at the last checkpoint', 'good'); return ok; };
+
+  // ---------- Coach: step-by-step hints for the first mission ----------
+  const pt = (tx, ty) => ({ x: tcx(tx), y: tcx(ty) });
+  const lead = () => G.heroes.find((h) => !h.npc) || G.heroes[0];
+  const nearPt = (p, r) => p && G.heroes.some((h) => !h.down && (h.x - p.x) ** 2 + (h.y - p.y) ** 2 < (r * TILE) ** 2);
+  const contact = (id) => G.contacts.find((c) => c.id === id);
+  const nearestFoe = () => { const h = lead(); let b = null, bd = 1e12; for (const g of G.guards) if (active(g) && !g.watch && g.route && g.route.length > 1) { const d = d2(g, h); if (d < bd) { bd = d; b = g; } } return b; };
+  const firstBody = () => G.guards.find((g) => g.state === 'ko' && !g.tied && !g.carried && !g.hoisted);
+  const COACH = {
+    m1: [
+      { id: 'walk', text: 'Tap the ground to walk. Head up the road into the village.', at: () => pt(8, 19), done: () => nearPt(pt(8, 19), 2.4) },
+      { id: 'hide', text: 'Guards see whatever is inside their green wedge. Bushes hide you: tap the bush to step into it.', at: () => pt(11, 18), done: () => G.heroes.some((h) => RH.hideAt(G.grid, h.x, h.y)), skip: 30 },
+      { id: 'sneak', text: 'Now tap 🦶 Sneak at the bottom. Sneaking is slower, but guards take much longer to notice you.', ui: 'sneak', done: () => lead().sneak, skip: 25 },
+      { id: 'ko', text: 'A guard walks his rounds in the market. Creep up BEHIND him and tap him to knock him out.', at: () => nearestFoe(), done: () => G.stats.ko > 0, skip: 120 },
+      { id: 'tie', text: 'Tap the knocked-out guard to tie him up. If you don’t, he wakes when his ring of stars runs out.', at: () => firstBody(), need: () => !!firstBody(), done: () => G.stats.tied > 0, skip: 45 },
+      { id: 'beggar', text: 'The beggar hears everything. Tap him to give him £10 and he’ll tell you a secret.', at: () => G.beggars[0], done: () => !G.beggars[0] || G.beggars[0].paid > 0, skip: 90 },
+      { id: 'gate', text: 'Two guards watch the manor gate. Tap the rope mark on the wall to climb over, or tap 💰 Purse and toss it near them.', at: () => G.climbs[0] ? { x: G.climbs[0].wx, y: G.climbs[0].wy } : null, done: () => (G.climbs[0] && G.climbs[0].rope) || G.heroes.some((h) => h.y < tcx(7)), skip: 150 },
+      { id: 'wat', text: 'Find old Wat in the manor yard (💬 over his head) and tap him.', at: () => contact('wat'), done: () => contact('wat') && contact('wat').met },
+      { id: 'gisela', text: 'Wat sent you to Gisela at the mill, east of the village. Tap her to talk.', at: () => contact('gisela'), done: () => contact('gisela') && contact('gisela').met },
+      { id: 'exit', text: 'All done! Walk back down the road to the green exit at the bottom of the map.', at: () => ({ x: (G.exit.x + G.exit.w / 2) * TILE, y: (G.exit.y + G.exit.h / 2) * TILE }), done: () => false },
+    ],
+  };
+  function updCoach(dt) {
+    const C = G.coach; if (!C) return;
+    C.t += dt;
+    let i = C.i;
+    // jump ahead past anything already done (players don't follow the order)
+    for (let k = C.steps.length - 1; k > i; k--) if (C.steps[k].done()) { i = k + 1; break; }
+    const st = C.steps[i];
+    if (st && (st.done() || (st.skip && C.t > st.skip) || (st.need && !st.need()))) i++;
+    if (i !== C.i || !C.shown) {
+      C.i = Math.min(i, C.steps.length - 1); C.t = 0; C.shown = true;
+      const s2 = C.steps[C.i];
+      if (C.i > 0) sfx('select');
+      RH.ui && RH.ui.coach && RH.ui.coach(s2.text, C.i + 1, C.steps.length, s2.ui || null);
+    }
+  }
+  game.coachTarget = function () { const C = G.coach; if (!C) return null; const s2 = C.steps[C.i]; const p = s2 && s2.at && s2.at(); return p && p.x != null ? { x: p.x, y: p.y } : null; };
+
+  // Little John's staff sweep: knocks everyone close around him off their feet
+  game.sweep = function (h) {
+    h = h || G.sel.find((x) => has(x, 'sweep')) || G.heroes.find((x) => has(x, 'sweep'));
+    if (!h || h.down || h.cd > 0) return false;
+    h.cd = 7; h.swingT = 0.45; h.stroke = 'heavy'; h.crimeT = 3; sfx('clang'); fx('ring', h.x, h.y, '', '#ffe08a', 0.6);
+    let n = 0;
+    for (const g of G.guards) {
+      if (!active(g) || d2(g, h) > (1.6 * TILE) ** 2) continue;
+      n++;
+      if (g.boss || g.sheriff || g.type === 'knight') { g.stagger = 1.4; g.hp -= 1; fx('text', g.x, g.y - 40, 'Staggered!', '#ffe6a0', 0.9); if (g.hp <= 0) defeat(g, false); continue; }
+      if (passive(g) || g.state !== 'alert' || g.hp <= 2) { knockOut(g, 30); fx('text', g.x, g.y - 40, 'Swept!', '#ffe6a0', 0.9); }
+      else { g.hp -= 2; g.stagger = 1.6; g.state = g.state === 'alert' ? 'alert' : g.state; fx('text', g.x, g.y - 40, 'Swept off his feet!', '#ffe6a0', 0.9); if (g.hp <= 0) knockOut(g, 30); }
+    }
+    if (!n) fx('text', h.x, h.y - 40, 'Whoosh!', '#fff6c0', 0.8);
+    return n;
+  };
 
   function end(win, reason) {
     const st = G.stats;
@@ -1991,7 +2126,7 @@
     if (D.t > 0) return;
     g.duel = null; g.atkCd = 0.6; g.swingT = 0.3;
     if (t.parryT > 0) { t.parryT = 0; g.stagger = 1.2; sfx('clang'); fx('text', t.x, t.y - 40, 'Parried!', '#cfe8ff', 0.9); }
-    else { heroHurt(t, g.dmg); sfx('clang'); }
+    else { heroHurt(t, g.dmg, g); sfx('clang'); }
   }
   // a robbed cart spills its silver across the road
   function spillGold(x, y, value) {
@@ -2028,6 +2163,7 @@
     updBlazons(dt);
     updListen(dt);
     updWorld(dt);
+    updCoach(dt);
     for (let i = G.fx.length - 1; i >= 0; i--) { const f = G.fx[i]; f.t += dt; if (f.t >= f.life) G.fx.splice(i, 1); }
     for (let i = G.coins.length - 1; i >= 0; i--) { const c = G.coins[i]; if (c.t != null) { c.t -= dt; if (c.t <= 0) c.gone = true; } if (c.gone) G.coins.splice(i, 1); }
     updTips();
