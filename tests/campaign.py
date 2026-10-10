@@ -1,5 +1,5 @@
 # Full v3 campaign run through the real UI. Usage: campaign.py [chromium|webkit] [w] [h] [shots]
-# Wins all 12 story missions, an ambush, the defense mission, walks the base, pays the ransom,
+# Wins all 16 story missions, an ambush, the defense mission, walks the base, pays the ransom,
 # checks save migration and the new mechanics, and fails on any console error.
 import sys, json
 from playwright.sync_api import sync_playwright
@@ -43,7 +43,7 @@ with sync_playwright() as p:
         ok('win ' + label, win and E("__sherwood.screen()") == 'end', json.dumps(r)[:200])
         if winshot: shot(winshot + '_end')
         txt = E("document.body.innerText")
-        ok(label + ' end stats (Money, Spared lives, Time)', all(k in txt for k in ['Money', 'Spared lives', 'Time']))
+        ok(label + ' end stats (Money, Spared lives, Time)', all(k in txt for k in ['Money', 'Lives spared', 'Duration']))
         tap('[data-act=camp]')
         ok(label + ' -> camp', E("__sherwood.screen()") == 'camp')
 
@@ -52,8 +52,8 @@ with sync_playwright() as p:
     E("""localStorage.clear(); localStorage.setItem('sherwood.save.v2', JSON.stringify({v:2, unlocked:3, best:{m1:{stars:2},m2:{stars:1},m3:{stars:3}}, gold:120, arrows:14, potions:2, stones:6, recruits:[{id:'r1',name:'Alan of the Dale',tunic:'#556b2f',hood:'#3a4a20',hair:'#3a2412',skin:'#efc39c',beard:true,train:1,job:'arrows'}], nextRid:2, popularity:30, started:true}))""")
     pg.reload(); pg.wait_for_timeout(800); inject()
     P = E("__sherwood.profile()")
-    ok('v2 save migrates to v3', P.get('v') == 3 and P['gold'] == 120 and len(P['recruits']) == 1 and P['recruits'][0].get('cls') and 'john' in P['heroes'], json.dumps({k: P.get(k) for k in ['v', 'unlocked', 'heroes', 'gold', 'popularity']}))
-    ok('v3 key written', E("!!localStorage.getItem(__sherwood.key3)"))
+    ok('v2 save migrates to v4', P.get('v') == 4 and P['gold'] == 120 and len(P['recruits']) == 1 and P['recruits'][0].get('cls') and 'stutely' in P['heroes'] and P['unlocked'] >= 3, json.dumps({k: P.get(k) for k in ['v', 'unlocked', 'heroes', 'gold', 'popularity']}))
+    ok('v4 key written', E("!!localStorage.getItem(__sherwood.key4)"))
 
     # fresh campaign through the real UI
     E("localStorage.clear()"); pg.reload(); pg.wait_for_timeout(800); inject()
@@ -74,8 +74,9 @@ with sync_playwright() as p:
     tap('#actions [data-id=done]')
     ok('base -> camp', E("__sherwood.screen()") == 'camp')
     amb_done = defense_done = False
-    for i in range(1, 12):
-        if i == 11:  # last mission needs the ransom
+    defs = 0
+    for i in range(1, 16):
+        if i == 15:  # last mission needs the ransom
             E("__sherwood.RH.profile.gold = Math.max(__sherwood.RH.profile.gold, 2000); __sherwood.RH.ui.showCamp()")
             ok('ransom section open', pg.locator('[data-act=ransom]').count() > 0)
             for _ in range(20):
@@ -89,7 +90,7 @@ with sync_playwright() as p:
             tap(sel)
         tap('[data-act=begin]')
         ok(f'm{i+1} started', E("__sherwood.G.m && __sherwood.G.m.id") == f'm{i+1}', E("__sherwood.G.m && __sherwood.G.m.id"))
-        play(f'm{i+1}', f'1{i:02d}_m{i+1}' if i in (2, 4, 6, 7, 10, 11) else None)
+        play(f'm{i+1}', f'1{i:02d}_m{i+1}' if i in (2, 4, 6, 7, 10, 11, 14, 15) else None)
         if not amb_done and E("__sherwood.profile().offers.length") > 0 and i >= 1:
             g0 = E("__sherwood.profile().gold"); r0 = E("__sherwood.profile().recruits.length")
             tap('[data-act=amb]'); tap('[data-act=begin]')
@@ -97,20 +98,22 @@ with sync_playwright() as p:
             play('ambush', '06_ambush')
             ok('ambush pays gold', E("__sherwood.profile().gold") > g0, f'{g0}->{E("__sherwood.profile().gold")} recruits {r0}->{E("__sherwood.profile().recruits.length")}')
             amb_done = True
-        if not defense_done and E("__sherwood.profile().defenseOpen") and pg.locator('[data-act=defense]').count():
+        if E("__sherwood.profile().defenseOpen && !__sherwood.profile().defenseDone") and pg.locator('[data-act=defense]').count():
+            town = E("__sherwood.profile().defTown")
             tap('[data-act=defense]'); tap('[data-act=begin]')
-            ok('defense started', E("__sherwood.G.kind") == 'defense')
-            play('defense', '07_defense')
-            ok('defense recorded', E("__sherwood.profile().defenseDone") >= 1, E("__sherwood.profile().defenseDone"))
-            defense_done = True
+            ok('defence of ' + str(town) + ' started', E("__sherwood.G.kind") == 'defense' and town in E("__sherwood.G.m.title"), E("__sherwood.G.m.title"))
+            play('defense ' + str(town), '07_defense_' + str(town))
+            ok('defence of ' + str(town) + ' recorded', town in E("__sherwood.profile().defDone"), E("JSON.stringify(__sherwood.profile().defDone)"))
+            defense_done = True; defs += 1
     ok('ambush played', amb_done); ok('defense played', defense_done)
-    ok('campaign complete', E("__sherwood.profile().unlocked") >= 12, E("__sherwood.profile().unlocked"))
+    ok('all three town defences played (Lincoln, Derby, York)', defs == 3, defs)
+    ok('campaign complete', E("__sherwood.profile().unlocked") >= 16, E("__sherwood.profile().unlocked"))
     shot('08_final_camp')
     # mechanics lab
     for n, c, info in E("__mech()"): ok('mech: ' + n, c, info)
     ok('zero console errors', not errs, errs[:5])
     b.close()
 fails = [r for r in res if not r[1]]
-json.dump({'tag': tag, 'pass': len(res) - len(fails), 'fail': len(fails), 'fails': fails, 'errors': errs}, open(f'tests/result3_{tag}.json', 'w'), indent=1)
+json.dump({'tag': tag, 'pass': len(res) - len(fails), 'fail': len(fails), 'fails': fails, 'errors': errs}, open(f'tests/result8_{tag}.json', 'w'), indent=1)
 print(f'== {tag}: {len(res)-len(fails)}/{len(res)} passed')
 sys.exit(1 if fails else 0)

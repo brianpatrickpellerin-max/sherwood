@@ -391,7 +391,7 @@
     guards: () => G.guards.map((g, i) => ({ i, tx: Math.floor(g.x / TILE), ty: Math.floor(g.y / TILE), state: g.state, sus: +g.sus.toFixed(2), tied: g.tied, dir: +g.dir.toFixed(2) })),
     profile: () => RH.profile,
     save: () => localStorage.getItem(KEY3),
-    key3: KEY3,
+    key3: KEY3, key4: KEY4,
     screen: () => RH.ui.screen(),
   };
 

@@ -94,21 +94,21 @@ window.__mech = function () {
   let hits = 0; for (const s of ['slash', 'heavy', 'thrust', 'slash', 'heavy', 'slash']) { if (game.swipeStrike(g, s, [h])) hits++; step(0.8); if (h.hp < 3) h.hp = h.maxhp; }
   ok('swipe sword fight defeats a guard', !game.isActive(g), hits + ' strokes, ' + g.state);
   // noble raises the alarm
-  L = lab(7); const nb = L.G.civs.find((c) => c.noble);
+  L = lab(11); L.G.time = 30; const nb = L.G.civs.find((c) => c.noble);
   if (nb) {
     g = guard(L, 4, 0, 'soldier', Math.PI); nb.x = L.c(L.at[0] + 1); nb.y = L.c(L.at[1]); nb.dir = Math.PI; nb.state = 'ok'; nb.wait = 0; h = hero(L, 'robin', -1, 0);
     let rep = false; for (let i = 0; i < 30; i++) { step(0.25); if (nb.state === 'report') rep = true; if (g.state === 'investigate' || g.state === 'alert') break; }
     ok('noble runs to report outlaws', rep && (g.state === 'investigate' || g.state === 'alert'), nb.state + ' guard ' + g.state);
-  } else ok('noble runs to report outlaws', false, 'no noble in m8');
+  } else ok('noble runs to report outlaws', false, 'no noble in m12');
   // pit trap in an ambush
   S.begin({ type: 'ambush', kind: 'wagon', seed: 2 }, []); let G = S.G; G.paused = true;
   const pit = G.traps.find((t) => t.kind === 'pit');
   if (pit) { const pg = G.guards.find((x) => x.type !== 'collector'); pg.x = pit.x; pg.y = pit.y; step(0.3); ok('pit trap swallows a guard', pg.inPit && pg.state === 'ko', pg.state); } else ok('pit trap swallows a guard', false, 'no pit');
   // winch lowers a cage (m6), bell brings allies (m11)
-  S.begin(5, []); G = S.G; G.paused = true; G.guards.forEach((x) => { x.x = -9999; x.y = -9999; });
+  S.begin(8, []); G = S.G; G.paused = true; G.guards.forEach((x) => { x.x = -9999; x.y = -9999; });
   const wn = G.props.find((p) => p.kind === 'winch'); h = G.heroes[0];
   if (wn) { h.x = wn.x + 10; h.y = wn.y + 20; game.orderAction('use', { kind: 'prop', e: wn }, [h]); step(4); const cage = G.prisoners.find((p) => p.cage === wn.id); ok('winch lowers the cage', wn.used && cage && !cage.raised, JSON.stringify({ used: wn.used, raised: cage && cage.raised })); } else ok('winch lowers the cage', false, 'none');
-  S.begin(10, []); G = S.G; G.paused = true;
+  S.begin(14, []); G = S.G; G.paused = true;
   const bell = G.props.find((p) => p.kind === 'bell'); h = G.heroes[0]; G.guards.forEach((x) => { x.x = -9999; x.y = -9999; });
   if (bell) { const a0 = G.allies.length; h.x = bell.x + 10; h.y = bell.y + 20; game.orderAction('use', { kind: 'prop', e: bell }, [h]); step(3); ok('bell calls the villagers to arms', G.allies.length > a0, a0 + '->' + G.allies.length); } else ok('bell calls the villagers to arms', false, 'none');
   // beggar reveals and costs gold
