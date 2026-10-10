@@ -28,10 +28,11 @@ with sync_playwright() as p:
     shot('m1_step1')
     T = 32
     E("(() => { const r=__sherwood.G.heroes[0]; })()")
-    tapw(8.5 * T, 19.5 * T); run(8)
+    C = E("__sherwood.G.m.coach")
+    tapw((C['walk'][0] + 0.5) * T, (C['walk'][1] + 0.5) * T); run(8)
     ok('walking advances the coach', 'Step 2' in coach(), coach())
     shot('m1_step2_bush')
-    tapw(11.5 * T, 18.5 * T); run(4)
+    tapw((C['bush'][0] + 0.5) * T, (C['bush'][1] + 0.5) * T); run(5)
     ok('hide step done', 'Step 3' in coach(), coach())
     ok('sneak button pulses', E("!!document.querySelector('#actions .act.pulse')"))
     shot('m1_step3_sneak')

@@ -1,28 +1,7 @@
 {
  "tag": "c390x844",
- "pass": 114,
- "fail": 4,
- "fails": [
-  [
-   "v2 save migrates to v4",
-   false,
-   "{\"v\": 4, \"unlocked\": 3, \"heroes\": [\"robin\", \"stutely\"], \"gold\": 120, \"popularity\": 30}"
-  ],
-  [
-   "mech: noble runs to report outlaws",
-   false,
-   "no noble in m8"
-  ],
-  [
-   "mech: winch lowers the cage",
-   false,
-   "none"
-  ],
-  [
-   "mech: bell calls the villagers to arms",
-   false,
-   "none"
-  ]
- ],
+ "pass": 118,
+ "fail": 0,
+ "fails": [],
  "errors": []
 }

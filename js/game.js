@@ -1811,7 +1811,7 @@
       { id: 'tie', text: 'Tap the knocked-out guard to tie him up. If you don’t, he wakes when his ring of stars runs out.', at: () => firstBody(), need: () => !!firstBody(), done: () => G.stats.tied > 0, skip: 45 },
       { id: 'beggar', text: 'The beggar hears everything. Tap him to give him a coin and he’ll tell you a secret.', at: () => G.beggars[0], done: () => !G.beggars[0] || G.beggars[0].paid > 0, skip: 90 },
       { id: 'wat', text: 'Find old Wat by the kitchen door (💬 over his head) and tap him.', at: () => contact('wat'), done: () => contact('wat') && contact('wat').met },
-      { id: 'bridge', text: 'Pull the drawbridge winch by the gate to walk out the front, or climb back over the wall.', at: () => G.props.find((p) => p.kind === 'lever'), need: () => G.props.some((p) => p.kind === 'lever' && !p.used), done: () => G.props.some((p) => p.kind === 'lever' && p.used) || !inRect('inside'), skip: 40 },
+      { id: 'bridge', text: 'Pull the drawbridge winch by the gate to walk out the front, or climb back over the wall.', at: () => G.props.find((p) => p.kind === 'lever'), need: () => G.props.some((p) => p.kind === 'lever' && !p.used), done: () => G.props.some((p) => p.kind === 'lever' && p.used) || (!!contact('wat') && contact('wat').met && !inRect('inside')), skip: 40 },
       { id: 'gisela', text: 'Wat sent you to his daughter Gisela in the village below the castle. Tap her to talk.', at: () => contact('gisela'), done: () => contact('gisela') && contact('gisela').met },
       { id: 'exit', text: 'All done! Walk down the road to the green exit at the bottom of the map.', at: () => ({ x: (G.exit.x + G.exit.w / 2) * TILE, y: (G.exit.y + G.exit.h / 2) * TILE }), done: () => false },
     ],
