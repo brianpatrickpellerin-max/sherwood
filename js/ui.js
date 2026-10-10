@@ -627,6 +627,7 @@
     }
     if (h && h.inside) list.push({ id: 'out', ic: '🚪', t: 'Come out' });
     if (h && h.roof && !h.climbing) list.push({ id: 'jump', ic: '⤵️', t: 'Jump down' });
+    if (h && h.tree && !h.climbing) list.push({ id: 'treedown', ic: '🌳', t: 'Climb down' });
     if (h && h.carry) list.push({ id: 'drop', ic: '⬇️', t: 'Drop' });
     if (h && !h.npc && inv.potions > 0 && h.hp < h.maxhp && G.kind !== 'base') list.push({ id: 'potion', ic: '🧪', t: 'Potion', cnt: inv.potions });
     const sig = list.map((a) => a.id + a.t + (a.on ? 1 : 0) + (a.cnt != null ? a.cnt : '') + (a.dis ? 'd' : '') + (G.mode === a.id ? 'A' : '')).join('|');
@@ -654,6 +655,7 @@
       case 'done': RH.saveProfile(); RH.main.toCamp(); return;
       case 'out': RH.game.leaveHouse(G.sel[0]); break;
       case 'sweep': { const n = RH.game.sweep(G.sel[0]); if (n === false) break; ui.toast(n ? `🌀 John’s staff sweeps ${n} off their feet` : '🌀 Nobody close enough'); break; }
+      case 'treedown': { for (const h of G.sel) RH.game.treeDown(h); break; }
       case 'jump': { const h = G.sel[0]; if (h && h.roof) RH.game.startDrop(h, h.x + 40, h.y + 40, null); break; }
       case 'whistle': { const n = RH.game.whistle(G.sel[0]); if (n === false) break; ui.toast(n ? `🎵 ${n} guard${n > 1 ? 's' : ''} turn${n > 1 ? '' : 's'} to look` : '🎵 Nobody close enough to hear'); break; }
       default: setMode(G.mode === id ? null : id);
@@ -680,7 +682,7 @@
     if (!acts.length) return;
     const m = $('ctxmenu');
     const TN = { archer: 'Archer', officer: 'Officer', halberd: 'Halberdier', knight: 'Knight', black: 'Black guard', collector: 'Tax collector', boss: hit.e.name || 'Captain' };
-    const name = { guard: hit.e.sheriff ? 'The Sheriff' : (TN[hit.e.type] || 'Guard'), noble: 'Gentleman', beggar: 'Beggar', scroll: 'Parchment', contact: hit.e.name || 'Stranger', prop: hit.e.name || ({ banner: 'Banner', bell: 'Bell', winch: 'Winch', lever: 'Gate lever', listen: 'Listening spot', target: 'Target', station: 'Work station' }[hit.e.kind] || 'Thing'), body: hit.e.tied ? 'Tied-up guard' : (hit.e.state === 'dead' ? 'Fallen guard' : 'Unconscious guard'), prisoner: 'Prisoner', chest: 'Tax chest', cart: 'Treasure cart', carter: 'The carter', captive: 'Captured outlaw', climb: hit.e.rope ? 'Rope over the wall' : 'Climbing spot', house: hit.e.bodies ? `House (${hit.e.bodies} hidden)` : 'House', ivy: 'Ivy on the wall' }[hit.kind];
+    const name = { guard: hit.e.sheriff ? 'The Sheriff' : (TN[hit.e.type] || 'Guard'), noble: 'Gentleman', beggar: 'Beggar', scroll: 'Parchment', contact: hit.e.name || 'Stranger', prop: hit.e.name || ({ banner: 'Banner', bell: 'Bell', winch: 'Winch', lever: 'Gate lever', listen: 'Listening spot', target: 'Target', station: 'Work station' }[hit.e.kind] || 'Thing'), body: hit.e.tied ? 'Tied-up guard' : (hit.e.state === 'dead' ? 'Fallen guard' : 'Unconscious guard'), prisoner: 'Prisoner', chest: 'Tax chest', cart: 'Treasure cart', carter: 'The carter', captive: 'Captured outlaw', climb: hit.e.rope ? 'Rope over the wall' : 'Climbing spot', house: hit.e.bodies ? `House (${hit.e.bodies} hidden)` : 'House', ivy: 'Ivy on the wall', tree: 'Big tree' }[hit.kind];
     m.innerHTML = `<div class="ttl">${esc(name)} — ${esc(h.name)}</div>` + acts.map((a) => `<button data-id="${a.id}">${esc(a.label)}</button>`).join('');
     m.querySelectorAll('button').forEach((b) => b.addEventListener('click', (e) => {
       e.stopPropagation(); closeCtx(); sfx('tap');
@@ -700,6 +702,21 @@
   const tw = { x: 0, y: 0 };
   function pickRadius() { return Math.max(24, 34 / G.cam.z); }
 
+  const hs = { x: 0, y: 0 };
+  function heroAtScreen(sx, sy) {
+    const z = G.cam.z; let best = null, bd = 1e9;
+    for (const h of G.heroes) {
+      if (h.inside) continue;
+      RH.render.toScreen(h.x, h.y, hs);
+      const fy = hs.y - (h.climbZ || 0) * z;
+      const dx = sx - hs.x, dy = sy - fy;
+      if (Math.abs(dx) > 16 * Math.max(1, z) || dy > 8 * Math.max(1, z) || dy < -46 * Math.max(1, z)) continue;
+      const d = dx * dx + (dy + 18 * z) ** 2 * 0.3;
+      if (d < bd) { bd = d; best = h; }
+    }
+    return best;
+  }
+  ui._heroAtScreen = heroAtScreen;
   function handleTap(sx, sy) {
     if (!G.m || G.over) return;
     if (!$('ctxmenu').classList.contains('hidden')) { closeCtx(); return; }
@@ -721,7 +738,7 @@
       }
       return;
     }
-    const hero = RH.game.heroAt(tw.x, tw.y, r);
+    const hero = heroAtScreen(sx, sy);
     if (hero && !(G.sel.length && hero.down && G.sel.some((x) => RH.game.has(x, 'heal')))) {
       onPortrait(hero);
       return;
@@ -729,7 +746,7 @@
     if (hero && hero.down) { // Tuck selected: tap fallen friend to revive
       RH.game.orderAction('heal', { kind: 'hero', e: hero }, G.sel); return;
     }
-    const hit = RH.game.entityAt(tw.x, tw.y, r);
+    const hit = RH.game.entityAt(tw.x, tw.y, r * 0.8);
     if (hit && G.sel.length) {
       const leader = G.sel.find((x) => !x.down);
       const act = RH.game.defaultAction(hit, leader);
@@ -752,7 +769,7 @@
     const hit = RH.game.entityAt(tw.x, tw.y, r);
     if (hit) { sfx('select'); openCtx(sx, sy, hit); return; }
     // empty ground: start a drag box to pick several outlaws
-    if (gesture && G.heroes.length > 1) { gesture.type = 'box'; gesture.bx = sx; gesture.by = sy; showBox(sx, sy, sx, sy); sfx('select'); }
+    if (gesture && G.heroes.length > 1) { gesture.boxArm = true; gesture.long = false; navigator.vibrate && navigator.vibrate(10); }
   }
   function showBox(x0, y0, x1, y1) {
     const b = $('selbox'); if (!b) return;
@@ -808,6 +825,7 @@
   let touches = new Map();
   let gesture = null; // {type:'tap'|'pan'|'pinch', ...}
   let longTimer = 0;
+  const SLOP = 18, LONG_MS = 550; // finger jitter under SLOP px is still a tap; a pan has to travel further
 
   function setupInput() {
     const opt = { passive: false };
@@ -819,7 +837,7 @@
         const t = [...touches.values()][0];
         gesture = { type: 'tap', sx: t.x, sy: t.y, t0: performance.now(), long: false, swipe: swipeTargetAt(t.x, t.y), pts: [[t.x, t.y]] };
         clearTimeout(longTimer);
-        longTimer = setTimeout(() => { if (gesture && gesture.type === 'tap') { gesture.long = true; handleLong(gesture.sx, gesture.sy); } }, 430);
+        longTimer = setTimeout(() => { if (gesture && gesture.type === 'tap') { gesture.long = true; handleLong(gesture.sx, gesture.sy); } }, LONG_MS);
       } else if (touches.size === 2) {
         clearTimeout(longTimer);
         const [a, b] = [...touches.values()];
@@ -833,8 +851,12 @@
       if (gesture.type === 'box') { const t = [...touches.values()][0]; if (t) { gesture.ex = t.x; gesture.ey = t.y; showBox(gesture.bx, gesture.by, t.x, t.y); } return; }
       if (gesture.type === 'tap' || gesture.type === 'pan' || gesture.type === 'swipe') {
         const t = [...touches.values()][0]; if (!t) return;
-        if (gesture.swipe) { gesture.pts.push([t.x, t.y]); if (gesture.type === 'tap' && Math.hypot(t.x - gesture.sx, t.y - gesture.sy) > 10) { gesture.type = 'swipe'; clearTimeout(longTimer); } return; }
-        if (gesture.type === 'tap' && Math.hypot(t.x - gesture.sx, t.y - gesture.sy) > 10) { gesture.type = 'pan'; clearTimeout(longTimer); }
+        if (gesture.swipe) { gesture.pts.push([t.x, t.y]); if (gesture.type === 'tap' && Math.hypot(t.x - gesture.sx, t.y - gesture.sy) > SLOP) { gesture.type = 'swipe'; clearTimeout(longTimer); } return; }
+        if (gesture.type === 'tap' && Math.hypot(t.x - gesture.sx, t.y - gesture.sy) > SLOP) {
+          clearTimeout(longTimer);
+          if (gesture.boxArm) { gesture.type = 'box'; gesture.bx = gesture.sx; gesture.by = gesture.sy; gesture.ex = t.x; gesture.ey = t.y; showBox(gesture.bx, gesture.by, t.x, t.y); sfx('select'); return; }
+          gesture.type = 'pan'; t.px = gesture.sx; t.py = gesture.sy;
+        }
         if (gesture.type === 'pan') { RH.main.userPanAt = performance.now(); RH.main.panBy(t.x - (t.px != null ? t.px : t.x), t.y - (t.py != null ? t.py : t.y)); }
       } else if (gesture.type === 'pinch' && touches.size >= 2) {
         const [a, b] = [...touches.values()];

@@ -166,6 +166,17 @@ window.RH = window.RH || {};
   };
 
   // Nearest walkable tile to (tx,ty) via BFS ring search
+  // Big climbable trees: a tree tile on the edge of open ground, every third one (by a fixed hash) or any lone
+  // tree. The scene builder draws exactly these with the big crowns so they stand out from bushes and thickets.
+  RH.climbTree = function (g, x, y) {
+    const at = (a, b) => (a < 0 || b < 0 || a >= g.w || b >= g.h) ? 'T' : g.ch[b * g.w + a];
+    if (at(x, y) !== 'T' || x <= 0 || y <= 0 || x >= g.w - 1 || y >= g.h - 1) return false;
+    let open = false;
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const c = at(x + dx, y + dy); if (c !== 'T' && g.walk[(y + dy) * g.w + x + dx] === 1) open = true; }
+    if (!open) return false;
+    let n = 0; for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if ((dx || dy) && at(x + dx, y + dy) === 'T') n++;
+    return n <= 3 || (((x * 73856093) ^ (y * 19349663)) >>> 0) % 3 === 0;
+  };
   RH.nearestWalk = function (grid, tx, ty, taken) {
     for (let r = 0; r < 8; r++) {
       let best = -1, bd = 1e9;

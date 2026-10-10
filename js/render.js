@@ -682,7 +682,7 @@
     for (const h of G.heroes) {
       if (!inView(h.x, h.y, 60)) continue;
       R.toScreen(h.x, h.y, tmp);
-      if (h.roof && !h.inside) tmp.y -= (h.climbZ || 0) * z;
+      if ((h.roof || h.tree || h.climbing) && !h.inside) tmp.y -= (h.climbZ || 0) * z;
       const top = tmp.y - 37 * z;
       if (h.down) { label(ctx, '✚', tmp.x, tmp.y - 16 * z, 17, '#ff6a5a'); continue; }
       if (h.inside) { if (G.sel.includes(h)) { R.toScreen(h.inside.cx, h.inside.cy, tmp); label(ctx, '🏠 ' + h.name, tmp.x, tmp.y + 6, 11, '#bff5a0'); } continue; }
@@ -691,7 +691,8 @@
       else if (h.busy > 0) label(ctx, '…', tmp.x, top - 14, 18, '#fff');
       if (h.parryT > 0) label(ctx, '🛡', tmp.x - 15, top + 8, 13, '#fff');
       if (h.sneak) label(ctx, '🦶', tmp.x + 15, tmp.y - 6, 11, '#fff');
-      if (RH.hideAt(G.grid, h.x, h.y)) label(ctx, 'hidden', tmp.x, tmp.y + 11, 11, '#bff5a0');
+      if (h.tree) label(ctx, RH.game.treeHidden(h) ? '🍃 hidden' : '👁 seen!', tmp.x, tmp.y + 6, 11, RH.game.treeHidden(h) ? '#bff5a0' : '#ffb08a');
+      else if (RH.hideAt(G.grid, h.x, h.y)) label(ctx, 'hidden', tmp.x, tmp.y + 11, 11, '#bff5a0');
     }
     for (const pr of G.prisoners) {
       if (pr.freed || !inView(pr.x, pr.y, 60)) continue;
@@ -809,6 +810,7 @@
       const L = heroLook(u);
       const hidden = RH.hideAt(G.grid, u.x, u.y);
       if (hidden) c.globalAlpha = 0.6;
+      if (u.tree) c.globalAlpha = 0.5;
       if (u.down) lying(c, X, Y, u, L, 'down');
       else {
         figure(c, X, Y - (u.climbZ || 0), u, L);

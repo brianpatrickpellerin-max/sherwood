@@ -338,6 +338,7 @@
     for (const p of G.props) if (!p.used || p.kind === 'target') test(p, p.x, p.y - (p.kind === 'target' ? 16 : 10), 'prop');
     for (const hs of G.houses || []) if (hs.door) test(hs, hs.door.x, hs.door.y - 12, 'house');
     for (const iv of G.ivy || []) test(iv, iv.x, iv.y - 16, 'ivy');
+    for (const tr of G.trees || []) { test(tr, tr.x - 6, tr.y - 6, 'tree'); test(tr, tr.x - 40, tr.y - 40, 'tree'); }
     return best;
   };
 
@@ -357,6 +358,7 @@
       case 'prop': return e.kind === 'target' ? 'shoot' : 'use';
       case 'house': return h && h.carry && h.carry !== 'chest' ? 'stash' : 'enter';
       case 'ivy': return 'roof';
+      case 'tree': return AGILE(h) && !h.carry ? (h.tree === e ? null : 'tree') : null;
     }
     return null;
   };
@@ -387,6 +389,7 @@
     else if (hit.kind === 'contact') out.push({ id: 'talk', label: '💬 Talk' });
     else if (hit.kind === 'prop') out.push({ id: e.kind === 'target' ? 'shoot' : 'use', label: e.label || PROP_LABEL[e.kind] || 'Use' });
     else if (hit.kind === 'house') { if (h.carry && h.carry !== 'chest') out.push({ id: 'stash', label: '🧺 Hide the body inside' }); out.push({ id: 'enter', label: h.inside === e ? '🚪 Come out' : '🏠 Hide inside' }); }
+    else if (hit.kind === 'tree') out.push({ id: 'tree', label: AGILE(h) ? '🌳 Climb up and hide' : '🌳 Climb (Robin, Marian, Will)' });
     else if (hit.kind === 'ivy') out.push({ id: 'roof', label: AGILE(h) ? '🌿 Climb the ivy to the roof' : '🌿 Climb (Robin, Marian, Will)' });
     return out;
   };
@@ -408,7 +411,7 @@
       if (type === 'charm' && !has(h, 'charm')) continue;
       if (type === 'heal' && !has(h, 'heal')) continue;
       if (type === 'climb' && !hit.e.rope && !canLead(h)) continue;
-      if (type === 'roof' && !AGILE(h)) continue;
+      if ((type === 'roof' || type === 'tree') && (!AGILE(h) || h.carry)) continue;
       if (type === 'stash' && (!h.carry || h.carry === 'chest')) continue;
       if ((type === 'carry' || type === 'loot') && h.carry) continue;
       const d = (h.x - hit.e.x) ** 2 + (h.y - hit.e.y) ** 2;
@@ -417,6 +420,7 @@
     }
     if (!best) {
       if (type === 'climb') toast('Only Robin can climb here. Once he is up, he lets down a rope.');
+      else if (type === 'tree') toast('Only Robin, Marian, Will and nimble outlaws climb trees (not while carrying)');
       else if (type === 'roof') toast('Only Robin, Marian, Will and nimble outlaws can climb ivy');
       else if (type === 'stash') toast('Pick up a body first, then bring it to a door');
       else if (type === 'shoot') toast('Nobody here carries a bow');
@@ -426,6 +430,12 @@
       for (const h of heroes) { h.task = { type: 'climb', target: hit.e, kind: 'climb', t: 0 }; h.path = null; h.repathT = 0; }
       sfx('move'); return true;
     }
+    if (best.tree && (type === 'ko' || type === 'attack') && hit.kind === 'guard' && d2(best, hit.e) < (TILE * 2.6) ** 2) {
+      const e = hit.e; treeOff(best); best.climbZ = 40; best.path = null;
+      best.task = { type: 'drop', gx: tileOf(e.x), gy: tileOf(e.y), fall: 0, then: null };
+      sfx('move'); return true;
+    }
+    if (best.tree && type !== 'shoot' && type !== 'sling' && type !== 'charm') treeDown(best);
     if (best.inside && !(type === 'enter' && best.inside === hit.e)) leaveHouse(best);
     else if (type === 'enter' && best.inside === hit.e) { leaveHouse(best); return true; }
     best.task = { type, target: hit.e, kind: hit.kind, t: 0 };
@@ -437,6 +447,30 @@
     return true;
   };
 
+  // flood from the hero and take the reachable tile closest to the tap (for taps on walls, water, closed yards)
+  function nearestReachable(h, tx, ty, taken) {
+    const g = G.grid, W = g.w;
+    let s = tileOf(h.y) * W + tileOf(h.x);
+    if (!RH.isWalk(g, s % W, (s / W) | 0)) { s = RH.nearestWalk(g, s % W, (s / W) | 0); if (s < 0) return -1; }
+    const seen = new Uint8Array(W * g.h); seen[s] = 1; const q = [s];
+    let best = -1, bd = 1e12;
+    for (let qi = 0; qi < q.length; qi++) {
+      const i = q[qi], x = i % W, y = (i / W) | 0;
+      const d = (x - tx) ** 2 + (y - ty) ** 2;
+      if (d < bd && !(taken && taken.has(i))) { bd = d; best = i; }
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const nx = x + dx, ny = y + dy, j = ny * W + nx; if (RH.isWalk(g, nx, ny) && !seen[j]) { seen[j] = 1; q.push(j); } }
+    }
+    return best;
+  }
+  // ---------- Trees: climb up, hide in the crown, climb down ----------
+  function treeOff(h) { h.tree = null; h.climbing = false; }
+  function treeDown(h) {
+    const tr = h.tree; if (!tr) return;
+    h.tree = null; h.climbZ = 0; h.climbing = false; h.x = tr.stand.x; h.y = tr.stand.y; h.path = null;
+    fx('text', h.x, h.y - 34, 'Down', '#cfe8a0', 0.7); sfx('tap');
+  }
+  game.treeDown = treeDown;
+  game.treeHidden = (h) => !!h.tree && G.time >= (h.treeHideAt || 0);
   game.moveSel = function (wx, wy) {
     const heroes = G.sel.filter((h) => !h.down && !h.climbing);
     if (!heroes.length) return false;
@@ -444,7 +478,7 @@
     const tx = tileOf(wx), ty = tileOf(wy);
     const taken = new Set();
     heroes.sort((a, b) => ((a.x - wx) ** 2 + (a.y - wy) ** 2) - ((b.x - wx) ** 2 + (b.y - wy) ** 2));
-    let ok = false;
+    let ok = false, mk = -1;
     for (const h of heroes) {
       if (h.inside) leaveHouse(h);
       if (h.roof) {
@@ -452,13 +486,15 @@
         if (roofMove(h, tx, ty)) { ok = true; continue; }
         startDrop(h, wx, wy, null); ok = true; continue;
       }
-      const n = RH.nearestWalk(g, tx, ty, taken);
-      if (n < 0) continue;
-      taken.add(n);
+      if (h.tree) treeDown(h);
+      let n = RH.nearestWalk(g, tx, ty, taken);
       h.task = null; h.busy = 0;
-      if (setPath(h, n % g.w, (n / g.w) | 0)) { ok = true; h.task = { type: 'move' }; }
+      if (n < 0 || !setPath(h, n % g.w, (n / g.w) | 0)) { n = nearestReachable(h, tx, ty, taken); if (n < 0 || !setPath(h, n % g.w, (n / g.w) | 0)) continue; }
+      taken.add(n);
+      ok = true; h.task = { type: 'move' };
+      if (!mk) mk = n;
     }
-    if (ok) { fx('marker', tcx(tx), tcx(ty), '', '#ffe066', 0.8); sfx('move'); }
+    if (ok) { fx('marker', tcx(mk % g.w), tcx((mk / g.w) | 0), '', '#ffe066', 0.9); sfx('move'); }
     return ok;
   };
 
@@ -523,6 +559,7 @@
   function inRange(h, x, y, r) { return (h.x - x) ** 2 + (h.y - y) ** 2 <= r * r; }
 
   function approach(h, x, y, dt) {
+    if (h.tree) treeDown(h);
     if (h.roof) { startDrop(h, x, y, h.task); return; }
     if (h.inside) leaveHouse(h);
     h.repathT -= dt;
@@ -546,9 +583,11 @@
       h.regenT = (h.regenT || 0) + dt;
       if (h.regenT >= G.ease.regen) { h.regenT = 0; h.hp = Math.min(h.maxhp, h.hp + 1); fx('text', h.x, h.y - 34, '+1 ❤', '#7dff7a', 0.8); }
     } else h.regenT = 0;
+    if (h.down && h.tree) treeDown(h);
     if (h.down) { h.moving = false; if (h.roof) { h.roof = null; h.climbZ = 0; const n = RH.nearestWalk(G.grid, tileOf(h.x), tileOf(h.y)); if (n >= 0) { h.x = tcx(n % G.grid.w); h.y = tcx((n / G.grid.w) | 0); } } return; }
     if (h.inside) { h.moving = false; if (!h.task) return; }
     if (h.roof && !h.climbing) h.climbZ = roofZ(tileOf(h.x), tileOf(h.y));
+    if (h.tree) { h.climbZ = 44; h.moving = false; }
     if (h.carry && h.carry !== 'chest') { h.carry.x = h.x; h.carry.y = h.y; }
     if (h.carry === 'chest') { G.chest.x = h.x; G.chest.y = h.y; }
     for (const c of G.gold) if (!c.taken && inRange(h, c.x, c.y, TILE * 0.7)) {
@@ -565,7 +604,7 @@
     const t = h.task;
     if (!t) {
       h.moving = false;
-      if (!h.npc) for (const g of G.guards) if (g.state === 'alert' && active(g) && inRange(h, g.x, g.y, TILE * 1.1)) { h.task = { type: 'attack', target: g, kind: 'guard', t: 0 }; break; }
+      if (!h.npc && !h.tree) for (const g of G.guards) if (g.state === 'alert' && active(g) && inRange(h, g.x, g.y, TILE * 1.1)) { h.task = { type: 'attack', target: g, kind: 'guard', t: 0 }; break; }
       return;
     }
     if (t.type === 'move') { if (follow(h, heroSpeed(h), dt)) h.task = null; return; }
@@ -580,6 +619,22 @@
         h.path = null; h.moving = false; h.task = null;
         if (h.carry && h.carry !== 'chest') stashBody(h, e);
         if (t.type === 'enter') enterHouse(h, e);
+        return;
+      }
+      case 'tree': {
+        if (!e) { h.task = null; return; }
+        if (!t.up) {
+          if (!inRange(h, e.stand.x, e.stand.y, TILE * 0.5)) { approach(h, e.stand.x, e.stand.y, dt); return; }
+          t.up = true; t.t = 0; h.path = null; h.moving = false; h.climbing = true; sfx('tie');
+          h.dir = Math.atan2(e.y - h.y, e.x - h.x);
+          // seen going up? the guards keep him for a moment before they lose him in the leaves
+          h.treeHideAt = G.time + 0.9 + (G.guards.some((g) => g.seeing === h || (g.state === 'alert' && g.target === h)) ? 2.2 : 0);
+        }
+        t.t += dt / 0.9;
+        const k = Math.min(1, t.t);
+        h.climbZ = 44 * k; h.climbT = k;
+        h.x = RH.lerp(e.stand.x, e.x + 6, k); h.y = RH.lerp(e.stand.y, e.y + 6, k);
+        if (k >= 1) { h.climbing = false; h.climbT = 0; h.tree = e; h.task = null; G.stats.climbs = (G.stats.climbs || 0) + 1; fx('text', h.x, h.y - 80, 'Hidden in the tree', '#cfe8a0', 1.2); }
         return;
       }
       case 'roof': {
@@ -698,12 +753,13 @@
         const item = sling ? 'stones' : 'arrows';
         if (G.inv[item] <= 0) { toast(sling ? 'Out of sling stones' : 'Out of arrows! Fletch more in camp.'); h.task = null; return; }
         const R = sling ? 6 * TILE : G.bowRange;
-        if (!inRange(h, e.x, e.y, R * (h.roof ? 1.15 : 1)) || !(h.roof || RH.los(G.grid, h.x, h.y - 10, e.x, e.y - 10))) { approach(h, e.x, e.y, dt); return; }
+        if (!inRange(h, e.x, e.y, R * ((h.roof || h.tree) ? 1.15 : 1)) || !(h.roof || h.tree || RH.los(G.grid, h.x, h.y - 10, e.x, e.y - 10))) { approach(h, e.x, e.y, dt); return; }
         h.path = null; h.moving = false; h.dir = Math.atan2(e.y - h.y, e.x - h.x);
         if (!t.draw) { t.draw = sling ? 0.3 : 0.45; h.drawT = t.draw; return; }
         t.draw -= dt; h.drawT = t.draw;
         if (t.draw <= 0) {
           G.inv[item]--; h.drawT = 0; h.crimeT = 3;
+          if (h.tree) h.treeHideAt = G.time + 2.5;
           let miss = false;
           if (prop && G.contest && e.kind === 'target' && e.contest) miss = Math.abs(game.sway()) > 0.5;
           G.projs.push({ kind: sling ? 'stone' : 'arrow', x: h.x, y: h.y - 14, target: e, from: h, t: 0, sx: h.x, sy: h.y - 14, prop, miss });
@@ -1131,7 +1187,7 @@
     let best = 0, bh = null;
     const targets = G.allies.length ? G.heroes.concat(G.allies) : G.heroes;
     for (const h of targets) {
-      if (h.down || h.inside || (h.climbing && h.task && h.task.type === 'drop')) continue;
+      if (h.down || h.inside || (h.climbing && h.task && h.task.type === 'drop') || (h.tree && G.time >= (h.treeHideAt || 0))) continue;
       if (h.def && h.def.social && !h.carry && !(h.crimeT > 0) && !(st === 'alert' && g.target === h)) continue; // Marian walks freely
       let R = R0;
       if (G.night && litAt(h.x, h.y)) R = 7.5 * TILE;
@@ -1261,6 +1317,7 @@
           break;
         }
         if (t && (t.inside || (t.def && t.def.social && !t.carry && !(t.crimeT > 0) && g.lostT > 1.5))) { g.lostT = Math.max(g.lostT, 5.1); }
+        if (t && t.tree && G.time >= (t.treeHideAt || 0)) g.lostT = Math.max(g.lostT, 5.1);
         if (!t || t.down || g.lostT > 5 || t.inside) {
           if (g.seeing) { g.target = g.seeing; break; }
           if (G.kind === 'defense' && g.raider) { g.state = 'raid'; g.path = null; g.target = null; break; }
@@ -1272,7 +1329,7 @@
           if (g.atkCd <= 0) { g.atkCd = 1.7 * (G.ease ? G.ease.atk : 1); g.drawT = 0.3; G.projs.push({ kind: 'garrow', x: g.x, y: g.y - 14, sx: g.x, sy: g.y - 14, target: t, from: g, t: 0 }); sfx('bow'); }
           break;
         }
-        if (dd < (TILE * 0.9) ** 2 && !t.roof) {
+        if (dd < (TILE * 0.9) ** 2 && !t.roof && !t.tree) {
           g.path = null; g.moving = false;
           g.dir = Math.atan2(t.y - g.y, t.x - g.x);
           if ((g.boss || g.sheriff) && t.kind === 'hero') { duelStep(g, t, dt); break; }
@@ -1770,7 +1827,8 @@
     G.over = null; G.failPending = null;
     for (const { h, x, y } of cp.heroes) {
       if (h.carry && h.carry !== 'chest') dropCarry(h);
-      Object.assign(h, { x, y, down: false, task: null, path: null, busy: 0, inside: null, roof: null, climbZ: 0, climbing: false, moving: false, queued: null, crimeT: 0 });
+      Object.assign(h, { x, y, down: false, task: null, path: null, busy: 0, inside: null, roof: null, tree: null, climbZ: 0, climbing: false, moving: false, queued: null, crimeT: 0 });
+      if (!RH.isWalk(G.grid, tileOf(h.x), tileOf(h.y))) { const n = RH.nearestWalk(G.grid, tileOf(h.x), tileOf(h.y)); if (n >= 0) { h.x = tcx(n % G.grid.w); h.y = tcx((n / G.grid.w) | 0); } }
       h.hp = h.maxhp;
     }
     for (const g of G.guards) {
@@ -1912,6 +1970,12 @@
     const walk = (x, y) => RH.isWalk(g, x, y);
     const rg = { w: W, h: Hh, walk: new Uint8Array(W * Hh), block: new Uint8Array(W * Hh), see: g.see, hide: g.hide, ch: g.ch };
     G.roofGrid = rg;
+    G.trees = [];
+    for (let y = 0; y < Hh; y++) for (let x = 0; x < W; x++) if (RH.climbTree(g, x, y)) {
+      let st = null;
+      for (const [dx, dy] of [[1, 0], [0, 1], [-1, 0], [0, -1]]) if (walk(x + dx, y + dy)) { st = { tx: x + dx, ty: y + dy }; break; }
+      if (st) G.trees.push({ id: 'tree' + G.trees.length, tx: x, ty: y, x: tcx(x), y: tcx(y), stand: { x: tcx(st.tx), y: tcx(st.ty) }, tree: true });
+    }
     if (m.kind === 'defense' || m.kind === 'base') return;
     const used = new Uint8Array(W * Hh);
     let ivyN = 0;

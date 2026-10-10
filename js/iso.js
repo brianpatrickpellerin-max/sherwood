@@ -1005,7 +1005,7 @@
       const rr = RH.rng(x * 73856093 ^ y * 19349663);
       switch (ch) {
         case 'T': {
-          const big = rr() < 0.2;
+          const big = RH.climbTree(g0, x - M, y - M); rr();
           const spr = big ? treeVarBig[Math.floor(rr() * treeVarBig.length)] : treeVar[Math.floor(rr() * treeVar.length)];
           const jx = (rr() - 0.5) * 14, jy = (rr() - 0.5) * 7;
           add(spr, ax + jx, ay + jy, d + jy * 2, x, y, 80, { fade: 1 });
