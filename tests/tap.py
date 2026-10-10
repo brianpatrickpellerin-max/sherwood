@@ -4,7 +4,8 @@ import sys, json
 from playwright.sync_api import sync_playwright
 eng = sys.argv[1] if len(sys.argv) > 1 else 'chromium'
 MIS = [int(x) for x in (sys.argv[2] if len(sys.argv) > 2 else '0,1,2,4,5,7,10').split(',')]
-URL = 'http://localhost:18431/index.html'
+import os
+URL = os.environ.get('LIVE', 'http://localhost:18431/index.html')
 fails, errs = [], []
 def ok(c, m):
     print(('PASS ' if c else 'FAIL ') + m, flush=True)
