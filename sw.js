@@ -1,5 +1,5 @@
 // Offline cache: cache-first for app files, refreshed when the version changes.
-const VERSION = 'sherwood-v9b-tap-trees';
+const VERSION = 'sherwood-v9c-maps9';
 const FILES = [
   './', 'index.html', 'css/style.css', 'manifest.webmanifest',
   'js/util.js', 'js/data.js', 'js/missions.js', 'js/ambush.js', 'js/audio.js', 'js/game.js', 'js/iso.js', 'js/render.js', 'js/art.js', 'js/ui.js', 'js/main.js',
