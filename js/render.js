@@ -16,12 +16,72 @@
   // ---------- build ----------
   R.buildStatic = function () {
     const m = G.m;
-    scene = RH.iso.buildScene(G.grid, { theme: m.theme || 'forest', night: G.night, torches: G.torches, seed: 1234 + G.idx * 77 });
+    scene = RH.iso.buildScene(G.grid, { theme: m.theme || 'forest', night: G.night, weather: G.weather, torches: G.torches, seed: 1234 + G.idx * 77, ...decoAvoid() });
     R.scene = scene;
     for (const o of scene.objs) if (o.hrect) { const hs = (G.houses || []).find((q) => o.hrect.x >= q.x && o.hrect.x < q.x + q.w && o.hrect.y >= q.y && o.hrect.y < q.y + q.h); o.houseId = hs ? hs.id : -1; }
     R.buildMinimap();
+    buildCrowd();
     if (!glowSprite) glowSprite = RH.iso.glow('rgba(255,170,80,0.55)', 'rgba(255,120,40,0)');
   };
+  // ---------- ambient townsfolk: purely visual merchants and peasants pottering about the squares ----------
+  // (not part of the game state: they never see, block or get tapped, like the background crowds of the original)
+  R.crowd = [];
+  function buildCrowd() {
+    R.crowd = [];
+    const m = G.m, g = G.grid; if (!m || m.kind === 'base' || G.def) return;
+    const th = m.theme || 'forest';
+    let n = th === 'town' ? (G.night ? 3 : G.weather === 'snow' ? 6 : 13) : th === 'castle' ? (G.night ? 0 : 4) : 0;
+    if (G.idx === 0) n = Math.min(n, 2);
+    const r = RH.rng(9001 + (G.idx || 0) * 13);
+    const ok = (tx, ty) => { const ch = g.ch[ty * g.w + tx]; return RH.isWalk(g, tx, ty) && (ch === 'f' || ch === ',' || ch === '.'); };
+    const far = (tx, ty) => G.heroes.every((h) => Math.hypot(h.x / TILE - tx, h.y / TILE - ty) > 7);
+    for (let tries = 0; R.crowd.length < n && tries < 600; tries++) {
+      const tx = Math.floor(r() * g.w), ty = Math.floor(r() * g.h);
+      if (!ok(tx, ty) || !far(tx, ty)) continue;
+      R.crowd.push({ kind: 'civ', crowd: true, x: (tx + 0.5) * TILE, y: (ty + 0.5) * TILE, tx: null, ty: null, dir: r() * 6.28, moving: false, anim: 0, swingT: 0, drawT: 0, state: 'ok', look: Math.floor(r() * 7), wait: r() * 3, r, ok, _dz: 0 });
+    }
+  }
+  function updCrowd(dt) {
+    if (!dt || G.paused || G.over) return;
+    for (const c of R.crowd) {
+      if (c.wait > 0) { c.wait -= dt; c.moving = false; continue; }
+      if (c.tx == null) {
+        for (let k = 0; k < 8; k++) {
+          const tx = Math.floor(c.x / TILE + (c.r() - 0.5) * 9), ty = Math.floor(c.y / TILE + (c.r() - 0.5) * 9);
+          if (tx < 0 || ty < 0 || tx >= G.grid.w || ty >= G.grid.h || !c.ok(tx, ty)) continue;
+          let clear = true; const x1 = (tx + 0.5) * TILE, y1 = (ty + 0.5) * TILE;
+          for (let i = 1; i < 8 && clear; i++) { const sx = Math.floor((c.x + (x1 - c.x) * i / 8) / TILE), sy = Math.floor((c.y + (y1 - c.y) * i / 8) / TILE); if (!RH.isWalk(G.grid, sx, sy)) clear = false; }
+          if (clear) { c.tx = x1; c.ty = y1; break; }
+        }
+        if (c.tx == null) { c.wait = 1; continue; }
+      }
+      const dx = c.tx - c.x, dy = c.ty - c.y, d = Math.hypot(dx, dy), sp = TILE * 0.85 * dt;
+      if (d <= sp) { c.x = c.tx; c.y = c.ty; c.tx = null; c.wait = 1.5 + c.r() * 5; c.moving = false; if (c.r() < 0.5) c.dir = c.r() * 6.28; continue; }
+      c.x += dx / d * sp; c.y += dy / d * sp; c.dir = Math.atan2(dy, dx); c.moving = true; c.anim += dt * 8;
+    }
+  }
+  // tiles that street clutter must keep clear: every unit, prop and goal, plus each guard's patrol path
+  function decoAvoid() {
+    const g = G.grid, w = g.w, out = [];
+    const put = (x, y) => { const tx = Math.floor(x / TILE), ty = Math.floor(y / TILE); if (tx >= 0 && ty >= 0 && tx < w && ty < g.h) out.push(ty * w + tx); };
+    const lists = [G.heroes, G.guards, G.civs, G.props, G.beggars, G.contacts, G.scrolls, G.prisoners, G.gold, G.ivy, G.blazons, G.allies, G.snares, G.traps];
+    for (const L of lists) for (const e of L || []) if (e && e.x != null) put(e.x, e.y);
+    for (const e of [G.chest, G.cart, G.captive, G.treasure, G.log]) if (e && e.x != null) put(e.x, e.y);
+    for (const hs of G.houses || []) if (hs.door) put(hs.door.x, hs.door.y);
+    for (const cl of G.climbs || []) { put(cl.a.x, cl.a.y); put(cl.b.x, cl.b.y); }
+    for (const t of G.trees || []) for (const st of t.stands || []) put(st.x, st.y);
+    const e = G.exit; if (e) for (let y = e.y; y < e.y + e.h; y++) for (let x = e.x; x < e.x + e.w; x++) if (x >= 0 && y >= 0) out.push(y * w + x);
+    const ex = [];
+    for (const gd of G.guards) {
+      const rt = gd.route || [];
+      for (let i = 0; i < rt.length; i++) {
+        const a = rt[i], b = rt[(i + 1) % rt.length]; if (!a || !b || a === b) continue;
+        const p = RH.astar(g, Math.floor(a.x / TILE), Math.floor(a.y / TILE), Math.floor(b.x / TILE), Math.floor(b.y / TILE), 4000);
+        if (p) for (const id of p) ex.push(id);
+      }
+    }
+    return { avoid: out, avoidExact: ex };
+  }
   // standing height on a pitched roof at a tile (ridge highest)
   R.roofZ = function (tx, ty) {
     if (!scene || !scene.roofs) return 0;
@@ -136,6 +196,9 @@
     { tunic: '#6a7a8a', trim: '#e8dcc0', skin: '#e9bf96', hair: '#c09050', legs: '#4a4a4a', dress: true, kerchief: '#e8dcc0' },
     { tunic: '#7a5a7a', trim: '#d8b878', skin: '#d9a77c', hair: '#2a1a10', legs: '#3a3030' },
     { tunic: '#6a7a40', trim: '#3a2a1a', skin: '#f2d0b0', hair: '#8a5a2a', legs: '#4a3a2a', dress: true },
+    { tunic: '#9a5a2a', trim: '#e0c890', skin: '#e8bc94', hair: '#3a2614', legs: '#4a3a2a', hat: '#4a3020' },
+    { tunic: '#b8a882', trim: '#6a5a3a', skin: '#eac6a0', hair: '#5a3a1a', legs: '#5a4a38', dress: true, kerchief: '#d8ccb0' },
+    { tunic: '#5a6a5a', trim: '#2a2a1a', skin: '#dcae88', hair: '#2a2018', legs: '#3a3a30', hood: '#6a5a40' },
   ];
   // the Sheriff's soldiers by class, tinted by the campaign rank colour (blue, yellow, orange, red)
   const TYPE_LOOK = {
@@ -460,6 +523,8 @@
     for (const sn of G.snares || []) if ((sn.armed || G.time - sn.sprung < 0.6) && inView(sn.x, sn.y, 30)) { sn._sn = true; ents.push(sn); }
     for (const g of G.guards) if (!g.carried && inView(g.x, g.y, 60)) { g._dz = 0; ents.push(g); }
     for (const c of G.civs) if (!c.carriedBy && inView(c.x, c.y, 60)) { c._dz = 0; ents.push(c); }
+    updCrowd(dt);
+    for (const c of R.crowd) if (inView(c.x, c.y, 60)) ents.push(c);
     for (const gd of G.gold) if (!gd.taken && inView(gd.x, gd.y, 30)) ents.push(gd);
     if (G.chest && !G.chest.carrier && !G.chest.onCart && !G.chest.done && inView(G.chest.x, G.chest.y, 30)) ents.push(G.chest);
     if (G.cart && inView(G.cart.x, G.cart.y, 100)) ents.push(G.cart);
@@ -636,10 +701,10 @@
       if (!R.fog || R.fog.w !== W || R.fog.h !== H) {
         const fc = document.createElement('canvas'); fc.width = 256; fc.height = 256; const x = fc.getContext('2d');
         const rr = RH.rng(77);
-        for (let i = 0; i < 26; i++) { const cx2 = rr() * 256, cy2 = rr() * 256, r2 = 40 + rr() * 70; for (let ox = -256; ox <= 256; ox += 256) for (let oy = -256; oy <= 256; oy += 256) { const gg = x.createRadialGradient(cx2 + ox, cy2 + oy, 0, cx2 + ox, cy2 + oy, r2); gg.addColorStop(0, 'rgba(225,230,225,0.32)'); gg.addColorStop(1, 'rgba(225,230,225,0)'); x.fillStyle = gg; x.fillRect(0, 0, 256, 256); } } // blobs wrap so the tile is seamless
+        for (let i = 0; i < 26; i++) { const cx2 = rr() * 256, cy2 = rr() * 256, r2 = 40 + rr() * 70; for (let ox = -256; ox <= 256; ox += 256) for (let oy = -256; oy <= 256; oy += 256) { const gg = x.createRadialGradient(cx2 + ox, cy2 + oy, 0, cx2 + ox, cy2 + oy, r2); gg.addColorStop(0, 'rgba(214,198,194,0.3)'); gg.addColorStop(1, 'rgba(214,198,194,0)'); x.fillStyle = gg; x.fillRect(0, 0, 256, 256); } } // blobs wrap so the tile is seamless
         R.fog = { w: W, h: H, pat: ctx.createPattern(fc, 'repeat') };
       }
-      ctx.fillStyle = 'rgba(205,212,208,0.22)'; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = 'rgba(176,156,152,0.16)'; ctx.fillRect(0, 0, W, H);
       ctx.save(); ctx.translate((now * 9) % 256, (now * 3) % 256); ctx.fillStyle = R.fog.pat; ctx.globalAlpha = 0.8; ctx.fillRect(-256, -256, W + 512, H + 512); ctx.restore(); ctx.globalAlpha = 1;
     }
     if (G.weather === 'snow' && !R.flags.noWeather) { ctx.fillStyle = 'rgba(235,240,255,0.10)'; ctx.fillRect(0, 0, W, H); }
