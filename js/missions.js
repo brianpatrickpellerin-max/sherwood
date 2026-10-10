@@ -668,13 +668,13 @@
   "kind": "story",
   "type": "Night rescue",
   "captive": [
-   7,
-   3
+   29,
+   8
   ],
   "climbs": [
    [
     11,
-    18,
+    20,
     11,
     16
    ]
@@ -683,28 +683,28 @@
   "outro": "Will Scarlet rubs his wrists, then grins and draws a sling from his boot. “They took my sword. They didn’t think to take this.”\n\nA sling, a short temper and a quick blade: the band is three. In Nottingham, a message waits for Robin at the chapel of St Anne.",
   "heroes": {
    "robin": [
-    13,
-    24
+    8,
+    30
    ],
    "stutely": [
-    14,
-    24
+    9,
+    30
    ]
   },
   "need": [
    "robin"
   ],
   "exit": {
-   "x": 9,
-   "y": 23,
-   "w": 10,
+   "x": 1,
+   "y": 28,
+   "w": 3,
    "h": 3
   },
   "prisoners": [
    {
     "id": "scarlet",
-    "x": 17,
-    "y": 2
+    "x": 10,
+    "y": 5
    }
   ],
   "objectives": [
@@ -713,182 +713,209 @@
   ],
   "torches": [
    [
-    9,
-    5
+    15,
+    20
    ],
    [
-    19,
-    5
+    18,
+    20
    ],
    [
-    13,
+    16,
+    15
+   ],
+   [
+    10,
     9
    ],
    [
-    3,
-    12
+    23,
+    9
    ],
    [
-    24,
-    12
-   ],
-   [
-    20,
-    16
-   ],
-   [
-    21,
-    18
+    25,
+    21
    ],
    [
     17,
-    18
+    8
+   ],
+   [
+    12,
+    7
    ]
   ],
   "guards": [
    {
     "route": [
      [
-      19,
-      18,
+      15,
+      20,
       0
      ]
     ],
+    "type": "soldier",
     "looks": [
-     1.5707963267948966,
-     2.0707963267948966,
-     1.5707963267948966,
-     0.9707963267948966
+     0.6707963267948965,
+     0.3707963267948966
     ]
    },
    {
     "route": [
      [
-      21,
       18,
+      20,
       0
      ]
     ],
+    "type": "soldier",
     "looks": [
-     1.5707963267948966,
-     1.0707963267948966,
-     1.5707963267948966,
-     2.1707963267948966
+     2.4707963267948965,
+     2.7707963267948967
     ]
    },
    {
-    "type": "archer",
     "route": [
      [
       3,
-      15,
-      3,
-      0
+      22,
+      2
      ],
      [
-      9,
-      15,
-      3,
-      3.141592653589793
+      28,
+      22,
+      2
      ]
     ]
    },
    {
     "route": [
      [
-      8,
-      12,
+      22,
+      24,
       1
      ],
      [
-      19,
-      12,
+      27,
+      24,
       1
      ],
      [
-      19,
-      6,
+      26,
+      28,
       1
      ],
      [
-      8,
-      6,
+      22,
+      29,
       1
      ]
     ]
    },
    {
-    "route": [
-     [
-      12,
-      5,
-      2,
-      -1.5707963267948966
-     ],
-     [
-      21,
-      5,
-      2,
-      -1.5707963267948966
-     ]
-    ]
-   },
-   {
-    "type": "archer",
     "route": [
      [
       25,
-      9,
+      22,
       0
      ]
     ],
+    "type": "officer",
     "looks": [
      3.141592653589793,
-     2.541592653589793,
-     3.741592653589793
+     3.641592653589793,
+     -1.5707963267948966
     ]
    },
    {
     "route": [
      [
-      24,
-      15,
-      2
+      10,
+      9,
+      1
      ],
      [
-      24,
-      6,
-      2
+      23,
+      9,
+      1
+     ],
+     [
+      23,
+      15,
+      1
+     ],
+     [
+      13,
+      16,
+      1
      ]
     ]
    },
    {
-    "type": "officer",
     "route": [
      [
       16,
-      3,
+      16,
       0
      ]
     ],
+    "type": "soldier",
+    "looks": [
+     -1.5707963267948966,
+     -1.0707963267948966,
+     -2.0707963267948966
+    ]
+   },
+   {
+    "route": [
+     [
+      12,
+      5,
+      0
+     ]
+    ],
+    "type": "soldier",
+    "looks": [
+     3.141592653589793,
+     1.5707963267948966
+    ]
+   },
+   {
+    "route": [
+     [
+      17,
+      5,
+      0
+     ]
+    ],
+    "type": "soldier",
+    "looks": [
+     1.5707963267948966,
+     2.0707963267948966,
+     1.0707963267948966
+    ]
+   },
+   {
+    "route": [
+     [
+      20,
+      14,
+      0
+     ]
+    ],
+    "type": "archer",
     "looks": [
      1.5707963267948966,
      3.141592653589793,
-     1.5707963267948966,
-     0
+     0.0
     ]
    }
   ],
   "gold": [
    [
-    6,
-    2,
-    20
-   ],
-   [
-    21,
-    3,
-    20
+    18,
+    4,
+    40
    ],
    [
     2,
@@ -896,8 +923,13 @@
     15
    ],
    [
-    24,
-    20,
+    29,
+    28,
+    15
+   ],
+   [
+    22,
+    13,
     15
    ]
   ],
@@ -920,35 +952,67 @@
    }
   ],
   "map": [
-   "############################",
-   "#rrrrrrrrrrrrrrrrrrrrrrrrrr#",
-   "#rrr#ffff#ffff#ffff#ffff#rr#",
-   "#rrr#ffff#ffff#ffff#ffff#rr#",
-   "#rrr##ff###ff###ff###ff##rr#",
-   "#ffffffffffffffffffffffffff#",
-   "#ffffffffffffffffffffffffff#",
-   "#ffhhfff##ffffffffff##ffhhf#",
-   "#fffffff##ffffffffff##fffff#",
-   "#ffffffffffffffffffffffffff#",
-   "#ffccfffffffwwwwfffffffccff#",
-   "#fffffffffffwwwwfffffffffff#",
-   "#ffffffffffffffffffffffffff#",
-   "#fffffff##ffffffffff##fffff#",
-   "#ffhffff##ffffffffff##ffhff#",
-   "#ffffffffffffffffffffffffff#",
-   "#ffffffffffffffffffffffffff#",
-   "#####ff############ff#######",
-   "TT..b,,...........b,,.....TT",
-   "TTwww,,wwwwwwwwwwwww,,wwwwTT",
-   "TT...,,.....bb.....,,....bTT",
-   "TTT..,,..T.........,,..T.TTT",
-   "TTTb.,,,,,,,,,,,,,,,,....TTT",
-   "TTTT..........,.......bTTTTT",
-   "TTTTTb........,........TTTTT",
-   "TTTTTTT.......,......TTTTTTT",
-   "TTTTTTTTTTTTTTTTTTTTTTTTTTTT"
+   "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+   "T.....wwwwwwwwwwwwwwwwwwwwww...T",
+   "T.....wwwwwwwwwwwwwwwwwwwwww...T",
+   "T.....ww##################ww.T.T",
+   "TT....ww#dddd#f#dddd#ffff#ww...T",
+   "T.....ww#dddd#f#dddd#ffff#ww...T",
+   "TT....ww#ddddff#dddd#ffff#ww.T.T",
+   "T.....ww#dddd#f##f###ffff#ww...T",
+   "T..T..ww######fffffffffff#ww...T",
+   "T.....ww#ffffffffffffffff#ww...T",
+   "T.....ww#ffffffffffffrrrr#ww...T",
+   "T.....ww#frrrffffffffrrrr#ww..TT",
+   "T.....ww#frrrffcfffffrrrr#ww...T",
+   "T.....ww#frrrffffffffffff#ww...T",
+   "T.....ww#frrrffffffcfffff#ww.T.T",
+   "TT....ww#fffffhfffffffcff#ww..TT",
+   "T...T.ww#ffffffffffffffff#ww.T.T",
+   "T.TT..ww########ff########ww...T",
+   "T.....wwwwwwwwwwddwwwwwwwwww...T",
+   "T.....wwwwwwwwwwddwwwwwwwwww..TT",
+   "T.....T.......T.,,........rrr..T",
+   "T..........T....,,........rrr..T",
+   "TT,,,,,,,,,,,,,,,,,,,,,,,,,,,,.T",
+   "T...T.....T.....,,.............T",
+   "T..b.b.b.b.b....,,.............T",
+   "T...............,,.....rr......T",
+   "TTTb.b.b.b.b....,,.....rr.T....T",
+   "T.........TT....,,.rrr.........T",
+   "T....b.b.b.b....,,.rrr.........T",
+   "T...............,,.........T...T",
+   "T...............,,.............T",
+   "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT"
   ],
-  "town": "Leicester"
+  "town": "Leicester",
+  "props": [
+   {
+    "id": "bridge",
+    "kind": "lever",
+    "x": 18,
+    "y": 15,
+    "gate": [
+     [
+      16,
+      18
+     ],
+     [
+      17,
+      18
+     ],
+     [
+      16,
+      19
+     ],
+     [
+      17,
+      19
+     ]
+    ],
+    "say": "The drawbridge creaks down over the moat. The rest of the band can come in by the gate."
+   }
+  ]
  },
  {
   "id": "m4",
@@ -964,31 +1028,31 @@
   "kind": "story",
   "type": "Beggars’ trail",
   "captive": [
-   22,
-   14
+   4,
+   11
   ],
   "intro": "A note in a lady’s hand: “At vespers, St Anne’s. Come alone, or come quietly.” No name, only a pressed rose.\n\nThe chapel is somewhere in the back streets, and the Sheriff’s men are thick on the ground. Follow the beggars: each knows a little, and each will point you to the next. Gentlemen out late will run for the watch if they see you.",
   "outro": "Lady Marian of Leaford lowers her hood. “The Sheriff dines at my father’s table and talks too much. I can be your eyes in his house.”\n\nShe has heard that Prince John meets his barons at Derby castle in three days. Whatever he plans, the outlaws mean to hear it.\n\nMarian will not come to Sherwood, not yet: she is more use to the band with the Sheriff’s ear.",
   "heroes": {
    "robin": [
-    10,
-    25
+    14,
+    29
    ],
    "stutely": [
-    11,
-    25
+    15,
+    29
    ],
    "scarlet": [
-    12,
-    25
+    14,
+    30
    ]
   },
   "need": [
    "robin"
   ],
   "exit": {
-   "x": 7,
-   "y": 24,
+   "x": 12,
+   "y": 27,
    "w": 8,
    "h": 3
   },
@@ -1000,8 +1064,8 @@
    {
     "id": "marian",
     "name": "the hooded lady",
-    "x": 10,
-    "y": 5,
+    "x": 26,
+    "y": 13,
     "hidden": true,
     "female": true,
     "say": "“You took your time, Robin of Locksley.”"
@@ -1010,8 +1074,8 @@
   "beggars": [
    {
     "id": "b1",
-    "x": 6,
-    "y": 21,
+    "x": 11,
+    "y": 25,
     "price": 10,
     "pays": [
      "b2"
@@ -1022,8 +1086,8 @@
    },
    {
     "id": "b2",
-    "x": 22,
-    "y": 9,
+    "x": 15,
+    "y": 7,
     "hidden": true,
     "price": 15,
     "pays": [
@@ -1036,8 +1100,8 @@
    },
    {
     "id": "b3",
-    "x": 3,
-    "y": 10,
+    "x": 24,
+    "y": 18,
     "hidden": true,
     "price": 10,
     "pays": [
@@ -1051,8 +1115,8 @@
   "scrolls": [
    {
     "id": "s1",
-    "x": 12,
-    "y": 15,
+    "x": 5,
+    "y": 19,
     "hidden": true,
     "gold": 10,
     "item": [
@@ -1064,164 +1128,193 @@
   ],
   "torches": [
    [
-    11,
-    8
+    15,
+    7
    ],
    [
-    7,
-    11
+    13,
+    9
    ],
    [
-    17,
-    11
+    9,
+    13
    ],
    [
-    11,
-    21
+    20,
+    16
    ],
    [
-    2,
-    15
+    16,
+    19
    ],
    [
-    23,
-    15
+    13,
+    26
    ],
    [
-    14,
-    3
+    24,
+    22
    ]
   ],
   "guards": [
    {
-    "type": "halberd",
     "route": [
      [
-      11,
+      15,
+      6,
+      0
+     ]
+    ],
+    "type": "halberd",
+    "looks": [
+     1.5707963267948966,
+     1.9707963267948965,
+     1.1707963267948966
+    ]
+   },
+   {
+    "route": [
+     [
+      16,
+      6,
+      0
+     ]
+    ],
+    "type": "soldier",
+    "looks": [
+     1.5707963267948966,
+     1.1707963267948966
+    ]
+   },
+   {
+    "route": [
+     [
+      13,
       8,
       0
      ]
     ],
-    "looks": [
-     1.5707963267948966,
-     0.9707963267948966,
-     2.1707963267948966
-    ]
-   },
-   {
     "type": "officer",
+    "looks": [
+     0.0,
+     1.5707963267948966
+    ]
+   },
+   {
     "route": [
      [
-      7,
-      11,
-      2
+      19,
+      14,
+      1
      ],
      [
-      22,
-      11,
-      2
+      19,
+      19,
+      1
+     ],
+     [
+      12,
+      19,
+      1
+     ],
+     [
+      12,
+      12,
+      1
      ]
     ]
    },
    {
     "route": [
      [
-      2,
+      9,
       12,
-      2
-     ],
-     [
-      2,
-      17,
-      2
+      0
      ]
+    ],
+    "type": "soldier",
+    "looks": [
+     0.0,
+     0.4,
+     1.5707963267948966
+    ]
+   },
+   {
+    "route": [
+     [
+      20,
+      15,
+      0
+     ]
+    ],
+    "type": "soldier",
+    "looks": [
+     3.141592653589793,
+     1.5707963267948966
+    ]
+   },
+   {
+    "route": [
+     [
+      13,
+      25,
+      0
+     ]
+    ],
+    "type": "soldier",
+    "looks": [
+     -1.5707963267948966,
+     -1.0707963267948966,
+     0.0
     ]
    },
    {
     "route": [
      [
       23,
-      20,
-      2
-     ],
-     [
       23,
-      12,
-      2
-     ]
-    ]
-   },
-   {
-    "route": [
-     [
-      7,
-      2,
       1
      ],
      [
-      14,
-      2,
+      29,
+      23,
       1
-     ],
-     [
-      14,
-      8,
-      1
-     ],
-     [
-      7,
-      8,
-      1
-     ]
-    ]
-   },
-   {
-    "route": [
-     [
-      8,
-      20,
-      2
-     ],
-     [
-      17,
-      20,
-      2
      ]
     ]
    }
   ],
   "nobles": [
    [
-    12,
-    13
+    16,
+    10
    ],
    [
-    16,
+    8,
     21
    ]
   ],
   "gold": [
    [
     2,
-    22,
+    23,
     10
    ],
    [
-    23,
-    5,
+    29,
+    8,
     15
    ],
    [
-    23,
-    18,
+    28,
+    26,
     10
    ]
   ],
   "treasure": {
    "id": "cup",
    "name": "the Abbot’s silver cup",
-   "x": 22,
-   "y": 2
+   "x": 27,
+   "y": 16
   },
   "reward": 60,
   "tips": [
@@ -1237,36 +1330,41 @@
    }
   ],
   "map": [
-   "TTTTTTTTTTTTTTTTTTTTTTTTTT",
-   "T########################T",
-   "T#rrrr.ffffffff.rrrrr...#T",
-   "T#rrrr.f######f.rrrrr...#T",
-   "T#rrrr.f#dddd#f.rrrrr...#T",
-   "T#.....f#dddd#f.........#T",
-   "T#.h...f#dddd#f....h....#T",
-   "T#rrr..f##dd##f..rrrrr..#T",
-   "T#rrr..ffffffff..rrrrr..#T",
-   "T#rrr..f......f..rrrrr..#T",
-   "T#.....f.rrrr.f.........#T",
-   "T#ffffff.rrrr.ffffffffff#T",
-   "T#f......rrrr..........f#T",
-   "T#f.rrr..........rrrr..f#T",
-   "T#f.rrr..cc..h...rrrr..f#T",
-   "T#f.rrr..........rrrr..f#T",
-   "T#f.......rrrrr........f#T",
-   "T#ffffff..rrrrr..ffffff.#T",
-   "T#rrrr.f..rrrrr..f.rrrr.#T",
-   "T#rrrr.f.........f.rrrr.#T",
-   "T#rrrr.ffffffffff..rrrr.#T",
-   "T#.........f..........h.#T",
-   "T#.c.rrrr..f..rrrrr.....#T",
-   "T#...rrrr..f..rrrrr..c..#T",
-   "T#####.....f......#######T",
-   "TTTTT......,......TTTTTTTT",
-   "TTTTTT....,,,....TTTTTTTTT",
-   "TTTTTTTTTTTTTTTTTTTTTTTTTT"
+   "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+   "T########rrrrrrrrrrrrrr########T",
+   "T########rrrrrrrrrrrrrr########T",
+   "T########rrrrrrrrrrrrrr########T",
+   "T########rrrrrrrrrrrrrr########T",
+   "T##############ff##############T",
+   "TffffffffffffffffffffffffffffffT",
+   "TfffffffffrrrffffrrrfffffffffffT",
+   "TfffffffffrrrffffrrrfffffffffffT",
+   "Tf#######frrrffffrrrf#########fT",
+   "Tf#ddddd#ffffffffffff#ddddccc#fT",
+   "Tf#dddddffffmffffffff#ddddccc#fT",
+   "Tf#ddddd#ffffffffffmf#ddddddd#fT",
+   "Tf#ddddd#ffff,,,,,,fffddddddd#fT",
+   "Tf#######ffff,,,,,,fffddddddd#fT",
+   "Tffffffffffff,,cc,,ff#ddddddd#fT",
+   "Tfffcfcffffff,,,,,,ff#ddddddd#fT",
+   "Tffffffffmfff,,,,,,ff#########fT",
+   "Tfrrrffffffff,,,,,,ffffffffffffT",
+   "TfrrrffffffffffffffffffmfffffffT",
+   "TfrrrfffffrrrffffffrrrrffrrrrffT",
+   "TfffffffffrrrffffffrrrrffrrrrffT",
+   "TffffhffffrrrffffffrrrrffrrrrffT",
+   "TffffffmfffffffffffffffffffffffT",
+   "TfrrrrfffffffffffffffffffffffffT",
+   "TfrrrrffffffffffffffhfffrrrrfffT",
+   "TfrrrrffffffffffffffffffrrrrfffT",
+   "T###########ffffff#############T",
+   "T.......T..T..,,..T.....T.T.T..T",
+   "T.......T.....,,...T.T..T...T..T",
+   "T.....TT.T....,,TT...T...TTT..TT",
+   "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT"
   ],
-  "town": "Nottingham"
+  "town": "Nottingham",
+  "climbs": []
  },
  {
   "id": "m5",
@@ -1287,30 +1385,30 @@
   ],
   "climbs": [
    [
-    6,
-    20,
-    6,
-    18
+    27,
+    23,
+    27,
+    21
    ]
   ],
   "intro": "Prince John has called his barons to Derby castle. Fog lies thick on the moat: a gift from God, says a friar’s cousin, who sold us the plan of the hall.\n\nReach the listening gallery at the east end of the great hall and stand there unseen until you have heard enough. Knights in great helms guard the Prince: arrows glance off them. Halberdiers won’t stoop for coins.",
   "outro": "“…and while my brother rots in an Austrian prison, his ransom will rot in my treasury.”\n\nKing Richard is alive and held for ransom, and the Prince means to keep him there. The outlaws will raise the ransom themselves, one stolen purse at a time. Pay into the King’s Ransom chest at camp.",
   "heroes": {
    "robin": [
-    14,
-    25
+    15,
+    29
    ],
    "stutely": [
-    15,
-    25
+    16,
+    29
    ],
    "marian": [
-    13,
-    25
+    14,
+    29
    ],
    "scarlet": [
-    12,
-    25
+    17,
+    29
    ]
   },
   "need": [
@@ -1318,8 +1416,8 @@
    "marian"
   ],
   "exit": {
-   "x": 10,
-   "y": 23,
+   "x": 12,
+   "y": 28,
    "w": 8,
    "h": 3
   },
@@ -1331,7 +1429,7 @@
    {
     "id": "gallery",
     "kind": "listen",
-    "x": 24,
+    "x": 14,
     "y": 5,
     "dur": 5,
     "say": "The Prince’s voice carries: “Let Richard’s ransom gather dust. By Michaelmas the crown is mine.” You have heard enough."
@@ -1339,166 +1437,198 @@
   ],
   "nobles": [
    [
-    14,
-    3
+    12,
+    5
    ],
    [
-    10,
-    4
+    16,
+    6
    ],
    [
-    18,
-    3
+    13,
+    7
    ]
   ],
   "guards": [
    {
-    "type": "knight",
     "route": [
      [
-      12,
-      2,
-      0
-     ]
-    ],
-    "looks": [
-     1.5707963267948966,
-     0,
-     1.5707963267948966
-    ]
-   },
-   {
-    "type": "knight",
-    "route": [
-     [
-      20,
-      5,
-      2
+      6,
+      25,
+      1
      ],
      [
-      5,
-      5,
-      2
+      25,
+      25,
+      1
      ]
     ]
    },
    {
-    "type": "halberd",
     "route": [
      [
       13,
-      7,
+      23,
       0
      ]
     ],
-    "looks": [
-     1.5707963267948966,
-     0.9707963267948966,
-     1.9707963267948965
-    ]
-   },
-   {
     "type": "halberd",
-    "route": [
-     [
-      16,
-      7,
-      0
-     ]
-    ],
     "looks": [
-     1.5707963267948966,
-     2.1707963267948966,
-     1.1707963267948966
+     3.141592653589793,
+     3.541592653589793
     ]
    },
    {
     "route": [
      [
-      9,
-      14,
-      1
-     ],
-     [
-      20,
-      14,
-      1
-     ],
-     [
-      20,
-      17,
-      1
-     ],
-     [
-      9,
-      17,
-      1
-     ]
-    ]
-   },
-   {
-    "route": [
-     [
-      12,
       18,
+      23,
       0
      ]
     ],
+    "type": "halberd",
+    "looks": [
+     0.0,
+     -0.4
+    ]
+   },
+   {
+    "route": [
+     [
+      4,
+      24,
+      0
+     ]
+    ],
+    "type": "archer",
+    "looks": [
+     0.0,
+     -1.5707963267948966
+    ]
+   },
+   {
+    "route": [
+     [
+      8,
+      17,
+      0
+     ]
+    ],
+    "type": "soldier",
     "looks": [
      1.5707963267948966,
-     1.0707963267948966,
+     0.0
+    ]
+   },
+   {
+    "route": [
+     [
+      6,
+      21,
+      1
+     ],
+     [
+      26,
+      21,
+      1
+     ]
+    ]
+   },
+   {
+    "route": [
+     [
+      15,
+      13,
+      0
+     ]
+    ],
+    "type": "halberd",
+    "looks": [
      1.5707963267948966
     ]
    },
    {
-    "type": "archer",
     "route": [
      [
-      4,
+      16,
+      13,
+      0
+     ]
+    ],
+    "type": "halberd",
+    "looks": [
+     1.5707963267948966
+    ]
+   },
+   {
+    "route": [
+     [
+      14,
       10,
       0
      ]
     ],
+    "type": "knight",
     "looks": [
-     0,
-     -0.6,
-     0.6
+     1.5707963267948966,
+     3.141592653589793,
+     0.0
     ]
    },
    {
     "route": [
      [
-      1,
-      14,
-      3,
-      1.5707963267948966
+      22,
+      5,
+      0
+     ]
+    ],
+    "type": "archer",
+    "looks": [
+     3.141592653589793,
+     1.5707963267948966
+    ]
+   },
+   {
+    "route": [
+     [
+      26,
+      9,
+      0
+     ]
+    ],
+    "type": "soldier",
+    "looks": [
+     3.141592653589793
+    ]
+   },
+   {
+    "route": [
+     [
+      5,
+      10,
+      1
      ],
      [
-      1,
       18,
-      3,
-      -1.5707963267948966
+      10,
+      1
      ]
-    ]
+    ],
+    "type": "officer"
    },
    {
-    "type": "officer",
     "route": [
      [
-      24,
-      7,
-      2
-     ],
-     [
-      28,
-      7,
-      2
-     ],
-     [
-      28,
-      16,
-      2
+      12,
+      8,
+      0
      ]
+    ],
+    "type": "knight",
+    "looks": [
+     -1.5707963267948966,
+     0.0
     ]
    }
   ],
@@ -1509,26 +1639,26 @@
     20
    ],
    [
-    1,
-    12,
+    5,
+    10,
     20
    ],
    [
     5,
-    2,
+    7,
     25
    ],
    [
     24,
-    12,
+    18,
     15
    ]
   ],
   "treasure": {
    "id": "seal",
    "name": "the Great Seal of the barons",
-   "x": 25,
-   "y": 2
+   "x": 26,
+   "y": 4
   },
   "reward": 80,
   "tips": [
@@ -1544,33 +1674,38 @@
    }
   ],
   "map": [
-   "##############################",
-   "#rrrrrrrrrrrrrrrrrrrrrrrrrrrr#",
-   "#rr#dddddddddddddddddddddd#rr#",
-   "#rr#dddddddddddddddddddddd#rr#",
-   "#rr#dd##dddddddddddddd##dd#rr#",
-   "#rr#dddddddddddddddddddddd#rr#",
-   "#rr##########dddd#####dd###rr#",
-   "#ffffffffffffffffffffffffffff#",
-   "#########ffffffffffff#########",
-   "#fffffff#ffffffffffff#hhfffff#",
-   "#ffffffffffffffffffffffffffff#",
-   "#fffffff#ffffffffffff#fffffff#",
-   "#fffffff#ffffwwwwffff#ccfffff#",
-   "#########ffffwwwwffff#########",
-   "#ffffffffffffffffffffffffffff#",
-   "#ffhff##ffffffffffffff##ffhff#",
-   "#ffffffffffffffffffffffffffff#",
-   "#ccfffffffffffffffffffffffccf#",
-   "#ffffffffffffffffffffffffffff#",
-   "##f#########ffff##############",
-   "TT..b.......,,,,.......b...TTT",
-   "TT,wwwwwwwww,,,,wwwwwwwwwwwwTT",
-   "TT.....b....,,,,....b......TTT",
-   "TTT.........,,,,.........TTTTT",
-   "TTTTb.......,,,,.......bTTTTTT",
-   "TTTTTT......,,,,......TTTTTTTT",
-   "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT"
+   "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+   "T...........T........TTT.T...T.T",
+   "T..##########################.TT",
+   "T..#rrrrrf##########ffffffff#..T",
+   "T..#rrrrrf#ddddddd##ffffcfff#..T",
+   "T.T#rrrrrf#ddddddd##ffffffff#..T",
+   "T..#rrrrrf#ddddddd##ffffffff#..T",
+   "T..#ffffff#ddddddd##ffffffff#T.T",
+   "T.T#ffffff#ddddddd##ffffffff#..T",
+   "T..#ffffff####f#####ffffffff#..T",
+   "TT.#fffffffffffffff#fcffffff#..T",
+   "T..#fffffffffffffff#ffffffff#.TT",
+   "T.T############ff#####f######..T",
+   "T..#ffffffffffffffffffffffff#T.T",
+   "T..#frrrfffffffffffrrrffffff#..T",
+   "T..#frrrfffrrrfffffrrrffrrrf#..T",
+   "T.T#frrrfffrrrfffffrrrffrrrf#..T",
+   "T.T#ffffffffffffffffffffrrrf#.TT",
+   "T..#fffffhfffffffcffffffffff#..T",
+   "T.T#ffrrrffffcffffffrrrfffff#..T",
+   "T..#ffrrrfffffffffffrrrfffhf#..T",
+   "T..#ffffffffffffffffffffffff#..T",
+   "T..#,,#######################..T",
+   "T..T,,,,,,,,b,,,,,,,,,,,,b,,...T",
+   "T...,,,,,,,,,,,,,,,,,T,,,,,b.T.T",
+   "T...,,,,b,,T,,,,,b,,,,,,,,,,...T",
+   "T...,,,,,,,,,b,,,b,,,,,,b,,,...T",
+   "T...,,T,,b,,,,,,,,,,,,,,,,,,...T",
+   "T...,,,,,,,,,,,,,,,,,,,,T,,,...T",
+   "T...,,,,,,,,b,,,,,,,,,,,,,,,...T",
+   "T...b,,,,T,,,,,,,,,,,,,,,,,,...T",
+   "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT"
   ],
   "town": "Derby"
  },
@@ -2344,17 +2479,17 @@
   "map": [
    "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
    "Twww.........................T",
-   "Twww.b......b################T",
+   "TwwwTb......b################T",
    "Twww....b....#fffffffff######T",
    "Twww.rrr.rrr.#ff######f#ddd##T",
    "Twww.rrr.rrr.#ff#dddd#f#ddd##T",
    "Twww.rrr.rrr.#ff#dddd#f#ddd##T",
-   "Twww.b.......#ff#dddd#f#ddd##T",
+   "Twww.b......T#ff#dddd#f#ddd##T",
    "Twww.........#ff#dddd#f##f###T",
    "Twww.rrr.rrr.#ff##ff##ffffff#T",
    "Twww.rrr.rrr.#ffffffffffffhf#T",
    "Twwwb........#fcffffffffffff#T",
-   "Twww.........#fcffffffrrrrrr#T",
+   "Twww....T....#fcffffffrrrrrr#T",
    "Twwwddd......#ffffffffrrrrrr#T",
    "Twwwddd,,,,,,fffffffffrrrfff#T",
    "Twwwddd,,,,,,ffffffmffffffff#T",
@@ -2363,12 +2498,12 @@
    "Twww.rrrbrrr.#ffffffffffffff#T",
    "Twww.rrr.rrr.###f##fffffffff#T",
    "Twww.rrr.rrr.##ddd#frrrfffff#T",
-   "Twww.......b.##ddd#frrrfrrrf#T",
-   "Twww.........##ddd#frrrfrrrf#T",
+   "TwwwT......b.##ddd#frrrfrrrf#T",
+   "Twww........T##ddd#frrrfrrrf#T",
    "Twww.rrr.b..b##ddd#fffffrrrf#T",
    "Twww.rrr.rrr.##ddd#fffffffff#T",
    "Twww.....rrr.######fffffffff#T",
-   "Twww..b......################T",
+   "Twww..bT.....################T",
    "Twww........b................T",
    "Twww....brr..................T",
    "Twww.....rr.b................T",
@@ -2798,43 +2933,39 @@
   "night": true,
   "kind": "story",
   "type": "Cage rescue",
-  "captive": [
-   2,
-   4
-  ],
   "intro": "Friar Tuck preached against the Prince on Derby’s market cross. Now he hangs in an iron cage over the inner yard, singing hymns loudly enough to annoy the whole garrison.\n\nThe moat is too wide to swim. Shoot through the rope that holds the drawbridge plank. Inside, work the winch to lower the cage, then cut Tuck out.",
   "outro": "“My knees,” groans Tuck, “were not made for cages.” Then, brightening: “But I know a brewer in Sherwood who owes me a favour, and my bees will be missing me.”\n\nTuck brings his ale and his beehives to camp. Set men to the brewery and the skeps.",
   "heroes": {
    "robin": [
-    12,
-    22
+    15,
+    27
    ],
    "john": [
-    13,
-    22
+    16,
+    27
    ],
    "stutely": [
-    11,
-    22
+    14,
+    27
    ],
    "scarlet": [
-    14,
-    22
+    17,
+    27
    ]
   },
   "need": [
    "robin"
   ],
   "exit": {
-   "x": 9,
-   "y": 21,
+   "x": 11,
+   "y": 25,
    "w": 8,
    "h": 3
   },
   "prisoners": [
    {
     "id": "tuck",
-    "x": 13,
+    "x": 25,
     "y": 11,
     "cage": "winch"
    }
@@ -2848,16 +2979,16 @@
    {
     "id": "plankT",
     "kind": "target",
-    "x": 9,
-    "y": 16,
+    "x": 21,
+    "y": 11,
     "plank": [
      [
-      12,
-      17
+      20,
+      13
      ],
      [
-      12,
-      18
+      20,
+      14
      ]
     ],
     "label": "🎯 Shoot the plank rope"
@@ -2865,137 +2996,111 @@
    {
     "id": "winch",
     "kind": "winch",
-    "x": 20,
-    "y": 5
+    "x": 27,
+    "y": 10
    },
    {
     "id": "council",
     "kind": "listen",
-    "x": 22,
-    "y": 3,
+    "x": 24,
+    "y": 5,
     "dur": 5,
     "say": "Behind the shutters the Prince’s steward counts aloud: “A hundred thousand marks for the King’s ransom, and not a penny of it raised. Let Austria keep him.”"
    }
   ],
   "torches": [
    [
-    5,
-    14
+    15,
+    23
    ],
    [
-    20,
-    14
+    7,
+    15
    ],
    [
-    13,
+    22,
+    15
+   ],
+   [
+    14,
+    9
+   ],
+   [
+    24,
     10
    ],
    [
-    4,
-    4
-   ],
-   [
-    21,
-    4
-   ],
-   [
-    12,
-    3
+    5,
+    9
    ]
   ],
   "guards": [
    {
     "route": [
      [
-      12,
-      12,
-      0
-     ]
-    ],
-    "looks": [
-     1.5707963267948966,
-     3.141592653589793,
-     1.5707963267948966
-    ]
-   },
-   {
-    "route": [
-     [
       14,
-      12,
+      22,
       0
      ]
     ],
+    "type": "soldier",
     "looks": [
-     1.5707963267948966,
-     0,
-     1.5707963267948966
-    ]
-   },
-   {
-    "route": [
-     [
-      4,
-      14,
-      0
-     ]
-    ],
-    "looks": [
-     1.5707963267948966,
-     0.9707963267948966,
-     0
-    ]
-   },
-   {
-    "route": [
-     [
-      21,
-      14,
-      0
-     ]
-    ],
-    "looks": [
-     1.5707963267948966,
-     2.1707963267948966,
+     -1.5707963267948966,
      3.141592653589793
     ]
    },
    {
-    "type": "archer",
     "route": [
      [
-      3,
-      10,
-      2
-     ],
-     [
-      8,
-      10,
-      2
+      17,
+      22,
+      0
      ]
+    ],
+    "type": "soldier",
+    "looks": [
+     -1.5707963267948966,
+     0.0
     ]
    },
    {
+    "route": [
+     [
+      5,
+      26,
+      0
+     ]
+    ],
     "type": "officer",
+    "looks": [
+     -1.5707963267948966,
+     3.141592653589793
+    ]
+   },
+   {
     "route": [
      [
-      18,
+      25,
+      26,
+      0
+     ]
+    ],
+    "type": "archer",
+    "looks": [
+     -1.5707963267948966,
+     0.0
+    ]
+   },
+   {
+    "route": [
+     [
       4,
+      20,
       1
      ],
      [
-      23,
-      4,
-      1
-     ],
-     [
-      23,
-      11,
-      1
-     ],
-     [
-      18,
-      11,
+      27,
+      20,
       1
      ]
     ]
@@ -3003,47 +3108,117 @@
    {
     "route": [
      [
-      2,
-      3,
-      2
-     ],
+      7,
+      15,
+      0
+     ]
+    ],
+    "type": "soldier",
+    "looks": [
+     1.5707963267948966,
+     1.9707963267948965
+    ]
+   },
+   {
+    "route": [
      [
       8,
-      3,
-      2
+      15,
+      0
      ]
+    ],
+    "type": "halberd",
+    "looks": [
+     1.5707963267948966,
+     1.1707963267948966
     ]
    },
    {
-    "type": "halberd",
     "route": [
      [
-      21,
+      13,
+      10,
+      0
+     ]
+    ],
+    "type": "soldier",
+    "looks": [
+     1.5707963267948966,
+     0.0,
+     3.141592653589793
+    ]
+   },
+   {
+    "route": [
+     [
+      22,
+      11,
+      0
+     ]
+    ],
+    "type": "soldier",
+    "looks": [
+     3.141592653589793,
+     1.5707963267948966
+    ]
+   },
+   {
+    "route": [
+     [
+      27,
+      12,
+      0
+     ]
+    ],
+    "type": "archer",
+    "looks": [
+     3.141592653589793,
+     -1.5707963267948966
+    ]
+   },
+   {
+    "route": [
+     [
+      20,
+      6,
+      0
+     ]
+    ],
+    "type": "halberd",
+    "looks": [
+     3.141592653589793,
+     1.5707963267948966
+    ]
+   },
+   {
+    "route": [
+     [
+      12,
       5,
       0
      ]
     ],
+    "type": "officer",
     "looks": [
-     3.141592653589793,
      1.5707963267948966,
-     -1.5707963267948966
+     0.0
     ]
    }
   ],
   "gold": [
    [
-    1,
-    13,
+    4,
+    11,
     15
    ],
    [
-    24,
-    13,
+    28,
+    15,
     15
    ],
    [
-    12,
-    2,
+    16,
+    4,
     20
    ]
   ],
@@ -3061,34 +3236,39 @@
    }
   ],
   "map": [
-   "##########################",
-   "#rrrrrrrr#ffffff#rrrrrrrr#",
-   "#rrrrrrrr#ffffff#rrrrrrrr#",
-   "#ffffffff#ffffff#ffffffff#",
-   "#ffhhffffffffffffffffccff#",
-   "#ffffffffffffffffffffffff#",
-   "#fffccffff######fffffffff#",
-   "#ffffffff#rrrrrr#ffffhhff#",
-   "#ffffffff#rrrrrr#ffffffff#",
-   "#ffffffff#rrrrrr#ffffffff#",
-   "#ffffffffffffffffffffffff#",
-   "#ffccfffffffffffffffccfff#",
-   "#ffffffffffffffffffffffff#",
-   "#ffffhfffffffffffffffffff#",
-   "#ffffffffffffffffffhhffff#",
-   "####ff##############ff####",
-   "T.b.,,.....b.........,,.TT",
-   "wwwwwwwwwwwwwwwwwwwwwwwwww",
-   "wwwwwwwwwwwwwwwwwwwwwwwwww",
-   "T.b..........b......b...TT",
-   "T.........,,,,.........TTT",
-   "TT.......,,,,,,.......TTTT",
-   "TTb......,,,,,,......bTTTT",
-   "TTT.......,,,,.......TTTTT",
-   "TTTTT......,,......TTTTTTT",
-   "TTTTTTTTTTTTTTTTTTTTTTTTTT"
+   "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+   "T..............................T",
+   "T.############################.T",
+   "T.#rrrrrff#########ff#########.T",
+   "T.#rrrrrff#ddddddd#ff#dddddd##.T",
+   "T.#rrrrrff#ddddddd#ff#dddddd##.T",
+   "T.#rrrrrff#ddddddd#fffdddddd##.T",
+   "T.#fffffff#ddddddd#ff#dddddd##.T",
+   "T.#fffffff####f####ff#dddddd##.T",
+   "T.#ffffffffffffffffff#########.T",
+   "T.#ffffffcffffffffffff,,,,,,f#.T",
+   "T.#ffffffffffffffffcff,,,,,,f#.T",
+   "T.#fffffffffffffffffff,,,,,,f#.T",
+   "T.#wwwwddwwwwwwwwwwwwwwwwwwww#.T",
+   "T.#wwwwddwwwwwwwwwwwwwwwwwwww#.T",
+   "T.#ffffffffffffffffffffffffff#.T",
+   "T.#frrrffffffhffffrrrffffffff#.T",
+   "T.#frrrfffrrrfffffrrrfffrrrff#.T",
+   "T.#frrrfffrrrfffffrrrfffrrrff#.T",
+   "T.#fffffffffffcfffffffffrrrff#.T",
+   "T.#ffffffffffffffffffffffffff#.T",
+   "T.#frrrfffffffffcffffrrrfffff#.T",
+   "T.#frrrffffffffffffffrrrfffhf#.T",
+   "T.#ffffffffffffffffffffffffff#.T",
+   "T.#############ff#############.T",
+   "T..............,,..T.T.TT......T",
+   "T.......T...T..,,..............T",
+   "T....T..T.T....,,..T...........T",
+   "T.............T,,.TT...........T",
+   "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT"
   ],
-  "town": "Derby"
+  "town": "Derby",
+  "climbs": []
  },
  {
   "id": "m10",
@@ -3103,14 +3283,14 @@
   "kind": "story",
   "type": "Archery contest",
   "captive": [
-   24,
-   18
+   29,
+   3
   ],
   "intro": "The Sheriff offers an arrow of silver to the finest archer in England. Every fool in the shire knows it is bait for Robin Hood, and Robin is going anyway, in a borrowed hood.\n\nHit three targets. The aim sways: loose your arrow when the ring is steady. John and Tuck are hidden in the town in case it goes wrong.",
   "outro": "They found the silver arrow afterwards, still quivering in the Sheriff’s own chair. Nobody quite remembers how it got there.\n\nBut there is worse news. Sir Hugo de Vane, the Prince’s man, has claimed Marian’s hand. The wedding is at York minster, and it is tomorrow.",
   "heroes": {
    "robin": [
-    13,
+    15,
     10
    ]
   },
@@ -3119,9 +3299,9 @@
   ],
   "slots": 0,
   "exit": {
-   "x": 8,
-   "y": 24,
-   "w": 12,
+   "x": 12,
+   "y": 28,
+   "w": 8,
    "h": 3
   },
   "contest": {
@@ -3131,14 +3311,14 @@
    {
     "id": "john",
     "x": 4,
-    "y": 4,
+    "y": 5,
     "friend": true,
     "name": "Little John"
    },
    {
     "id": "tuck",
-    "x": 25,
-    "y": 11,
+    "x": 27,
+    "y": 12,
     "friend": true,
     "name": "Friar Tuck"
    }
@@ -3154,71 +3334,43 @@
     "id": "t1",
     "kind": "target",
     "contest": true,
-    "x": 10,
-    "y": 4
+    "x": 12,
+    "y": 6
    },
    {
     "id": "t2",
     "kind": "target",
     "contest": true,
-    "x": 13,
-    "y": 4
+    "x": 15,
+    "y": 6
    },
    {
     "id": "t3",
     "kind": "target",
     "contest": true,
-    "x": 16,
-    "y": 4
+    "x": 18,
+    "y": 6
    }
   ],
   "guards": [
    {
     "route": [
      [
-      6,
+      8,
       5,
       0
      ]
     ],
     "looks": [
-     0,
-     -0.4
+     0.0
     ],
     "watch": true
    },
    {
     "route": [
      [
-      21,
+      23,
       5,
-      0
-     ]
-    ],
-    "looks": [
-     3.141592653589793,
-     3.541592653589793
-    ],
-    "watch": true
-   },
-   {
-    "route": [
-     [
-      6,
-      9,
-      0
-     ]
-    ],
-    "looks": [
-     0
-    ],
-    "watch": true
-   },
-   {
-    "route": [
-     [
-      21,
-      9,
       0
      ]
     ],
@@ -3228,108 +3380,162 @@
     "watch": true
    },
    {
-    "type": "officer",
-    "route": [
-     [
-      13,
-      13,
-      0
-     ]
-    ],
-    "looks": [
-     -1.5707963267948966,
-     -1.1707963267948966
-    ],
-    "watch": true
-   },
-   {
-    "type": "archer",
-    "route": [
-     [
-      4,
-      13,
-      0
-     ]
-    ],
-    "looks": [
-     0
-    ],
-    "watch": true
-   },
-   {
     "route": [
      [
       8,
-      19,
-      2
+      12,
+      0
+     ]
+    ],
+    "looks": [
+     0.0
+    ],
+    "watch": true
+   },
+   {
+    "route": [
+     [
+      23,
+      12,
+      0
+     ]
+    ],
+    "looks": [
+     3.141592653589793
+    ],
+    "watch": true
+   },
+   {
+    "route": [
+     [
+      15,
+      14,
+      0
+     ]
+    ],
+    "type": "officer",
+    "looks": [
+     -1.5707963267948966
+    ],
+    "watch": true
+   },
+   {
+    "route": [
+     [
+      5,
+      14,
+      0
+     ]
+    ],
+    "type": "archer",
+    "looks": [
+     0.0,
+     -1.5707963267948966
+    ],
+    "watch": true
+   },
+   {
+    "route": [
+     [
+      5,
+      6,
+      0
+     ]
+    ],
+    "type": "soldier",
+    "looks": [
+     0.0
+    ]
+   },
+   {
+    "route": [
+     [
+      23,
+      11,
+      0
+     ]
+    ],
+    "type": "knight",
+    "looks": [
+     0.0,
+     1.5707963267948966
+    ]
+   },
+   {
+    "route": [
+     [
+      3,
+      21,
+      1
      ],
      [
-      19,
-      19,
-      2
+      28,
+      21,
+      1
      ]
     ]
    },
    {
     "route": [
      [
-      13,
-      22,
+      15,
+      26,
       0
      ]
     ],
+    "type": "soldier",
     "looks": [
-     1.5707963267948966,
-     -1.5707963267948966
+     -1.5707963267948966,
+     -1.1707963267948966
     ]
    },
    {
-    "type": "knight",
     "route": [
      [
+      12,
       24,
-      13,
       0
      ]
     ],
+    "type": "halberd",
     "looks": [
-     3.141592653589793,
-     1.5707963267948966
+     0.0,
+     -1.5707963267948966
     ]
    }
   ],
   "civilians": [
    [
-    5,
-    3
+    11,
+    2
    ],
    [
-    22,
-    3
+    14,
+    2
    ],
    [
-    5,
-    11
+    18,
+    2
    ],
    [
-    22,
-    11
+    21,
+    2
    ],
    [
-    10,
-    13
-   ],
-   [
-    17,
-    13
-   ],
-   [
-    4,
-    17
+    8,
+    10
    ],
    [
     23,
-    17
+    9
+   ],
+   [
+    8,
+    7
+   ],
+   [
+    23,
+    7
    ]
   ],
   "nobles": [],
@@ -3340,21 +3546,21 @@
     15
    ],
    [
-    26,
+    29,
     22,
     15
    ],
    [
     2,
-    18,
+    16,
     10
    ]
   ],
   "treasure": {
    "id": "arrow",
    "name": "the Silver Arrow",
-   "x": 14,
-   "y": 3
+   "x": 15,
+   "y": 5
   },
   "reward": 80,
   "tips": [
@@ -3370,36 +3576,41 @@
    }
   ],
   "map": [
-   "############################",
-   "#rrrr..................rrrr#",
-   "#rrrr..xxxxxxxxxxxxxx..rrrr#",
-   "#......x............x......#",
-   "#.hh...x............x...hh.#",
-   "#......x............x......#",
-   "#rrr...x............x...rrr#",
-   "#rrr...x............x...rrr#",
-   "#rrr...x............x...rrr#",
-   "#......x............x......#",
-   "#.mm...x............x...mm.#",
-   "#......x............x......#",
-   "#rrr...xxxxxx..xxxxxx...rrr#",
-   "#rrr......................r#",
-   "#.rrrr..ffffffffffff..rrrr.#",
-   "#.rrrr..f..........f..rrrr.#",
-   "#.rrrr..f..rrrrrr..f..rrrr.#",
-   "#.......f..rrrrrr..f.......#",
-   "#.h.....f..rrrrrr..f.....c.#",
-   "#.......ffffffffffff.......#",
-   "#rrrrr.......ff.......rrrrr#",
-   "#rrrrr.......ff.......rrrrr#",
-   "#.....b......ff......b.....#",
-   "#######......ff......#######",
-   "TTTTTT#......ff......#TTTTTT",
-   "TTTTTT#..............#TTTTTT",
-   "TTTTTTTT............TTTTTTTT",
-   "TTTTTTTTTTTTTTTTTTTTTTTTTTTT"
+   "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+   "TffffffffffffffffffffffffffffffT",
+   "Tf######fffffffffffffffffrrrrffT",
+   "Tf#dddd#ffmmmmmmmmmmmmfffrrrrffT",
+   "Tf#dddd#fxxxxxxxxxxxxxxffrrrrffT",
+   "Tf#ddddffx............xffffffffT",
+   "Tf#dddd#fx............xcffTffffT",
+   "Tf#dddd#fx............xffffffffT",
+   "Tf######fx............xf######fT",
+   "Tffffffffx............xf#dddd#fT",
+   "Tffffffffx............xf#dddd#fT",
+   "TfrrrffTfx............xffdddd#fT",
+   "Tfrrrffffx............xf#dddd#fT",
+   "Tfrrrffffxxxxxx..xxxxxxf#dddd#fT",
+   "Tfffffffffffffffffffffff#dddd#fT",
+   "Tfffffcfffffffffffffffff######fT",
+   "TffffffffrrrfffffffrrrfffffhfffT",
+   "TfrrrffffrrrfffffffrrrfffffffffT",
+   "TfrrrfffffffffddfffffffffrrrrffT",
+   "TfrrrffffffffffffffffffTfrrrrffT",
+   "TfffffffhfffffffffcffffffrrrrffT",
+   "TffffffffffffffffffffffffffffffT",
+   "TffffrrrfffffffffffffffffffffffT",
+   "TffffrrrffffcfffffffffrrrrfffffT",
+   "TffffrrrffffffffffffffrrrrfffffT",
+   "TffffffTfffffffffffffffffffffffT",
+   "TffffffffffffffffffffffffffffffT",
+   "T###########ffffffff###########T",
+   "T.T..T........T,,....T...T...T.T",
+   "T..T...TT..T...,,...T.T.T..TT..T",
+   "TT..TTT....T..T,,.T............T",
+   "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT"
   ],
-  "town": "Nottingham"
+  "town": "Nottingham",
+  "climbs": []
  },
  {
   "id": "m11",
@@ -3828,43 +4039,43 @@
   "kind": "story",
   "type": "Wedding rescue",
   "captive": [
-   26,
+   28,
    19
   ],
   "intro": "The bells of York ring for a wedding nobody wants. Marian stands at the altar beside Sir Hugo de Vane, and half the Prince’s guard stands in the square.\n\nRaise the King’s banner over the east gate: every loyal Prince’s man in the square will run to tear it down. Then storm the church, free Marian and beat Sir Hugo. He is a master swordsman and won’t leave the church: retreat and heal if you must.",
   "outro": "Sir Hugo de Vane is found that evening, still tied to the bell rope, ringing every time he struggles.\n\nMarian is safe. But in the rush, Robin was taken at the church door and dragged to Nottingham gaol. Without him, the band must find its own way.",
   "heroes": {
    "robin": [
-    12,
-    28
+    14,
+    32
    ],
    "john": [
-    13,
-    28
+    15,
+    32
    ],
    "tuck": [
-    14,
-    28
+    13,
+    32
    ],
    "scarlet": [
-    15,
-    28
+    16,
+    32
    ]
   },
   "need": [
    "robin"
   ],
   "exit": {
-   "x": 9,
-   "y": 27,
-   "w": 10,
-   "h": 3
+   "x": 11,
+   "y": 31,
+   "w": 8,
+   "h": 2
   },
   "prisoners": [
    {
     "id": "marian",
-    "x": 2,
-    "y": 2
+    "x": 4,
+    "y": 4
    }
   ],
   "objectives": [
@@ -3878,10 +4089,10 @@
     "id": "banner",
     "kind": "banner",
     "x": 26,
-    "y": 8,
+    "y": 9,
     "to": [
-     22,
-     9
+     24,
+     8
     ],
     "lure": [
      "sq"
@@ -3891,142 +4102,30 @@
   ],
   "guards": [
    {
-    "boss": true,
-    "name": "Sir Hugo de Vane",
-    "type": "boss",
-    "route": [
-     [
-      5,
-      3,
-      0
-     ]
-    ],
-    "looks": [
-     1.5707963267948966,
-     0,
-     1.5707963267948966
-    ],
-    "hp": 12
-   },
-   {
-    "tag": "sq",
-    "route": [
-     [
-      5,
-      7,
-      0
-     ]
-    ],
-    "looks": [
-     1.5707963267948966,
-     1.0707963267948966
-    ]
-   },
-   {
-    "tag": "sq",
     "route": [
      [
       6,
-      7,
+      5,
       0
      ]
     ],
+    "type": "boss",
     "looks": [
-     1.5707963267948966,
-     2.0707963267948966
-    ]
+     1.5707963267948966
+    ],
+    "boss": true,
+    "name": "Sir Hugo de Vane",
+    "hp": 12
    },
    {
-    "tag": "sq",
-    "type": "officer",
     "route": [
      [
       9,
-      11,
-      2
-     ],
-     [
-      24,
-      11,
-      2
-     ]
-    ]
-   },
-   {
-    "tag": "sq",
-    "route": [
-     [
-      10,
-      8,
-      1
-     ],
-     [
-      24,
-      8,
-      1
-     ],
-     [
-      24,
-      15,
-      1
-     ],
-     [
-      10,
-      15,
-      1
-     ]
-    ]
-   },
-   {
-    "tag": "sq",
-    "route": [
-     [
-      24,
-      15,
-      1
-     ],
-     [
-      10,
-      15,
-      1
-     ],
-     [
-      10,
-      8,
-      1
-     ],
-     [
-      24,
-      8,
-      1
-     ]
-    ]
-   },
-   {
-    "tag": "sq",
-    "type": "halberd",
-    "route": [
-     [
-      16,
-      13,
+      4,
       0
      ]
     ],
-    "looks": [
-     1.5707963267948966,
-     3.141592653589793,
-     0
-    ]
-   },
-   {
     "type": "knight",
-    "route": [
-     [
-      8,
-      3,
-      0
-     ]
-    ],
     "looks": [
      3.141592653589793,
      1.5707963267948966
@@ -4035,84 +4134,220 @@
    {
     "route": [
      [
-      8,
-      20,
-      2
-     ],
-     [
-      19,
-      20,
-      2
-     ]
-    ]
-   },
-   {
-    "type": "archer",
-    "route": [
-     [
-      13,
-      23,
+      6,
+      12,
       0
      ]
     ],
     "looks": [
-     3.141592653589793,
-     -1.5707963267948966,
+     1.5707963267948966
+    ],
+    "tag": "sq"
+   },
+   {
+    "route": [
+     [
+      9,
+      12,
+      0
+     ]
+    ],
+    "looks": [
+     1.5707963267948966
+    ],
+    "tag": "sq"
+   },
+   {
+    "route": [
+     [
+      7,
+      13,
+      0
+     ]
+    ],
+    "type": "officer",
+    "looks": [
+     1.5707963267948966,
+     0.0
+    ],
+    "tag": "sq"
+   },
+   {
+    "route": [
+     [
+      4,
+      9,
+      0
+     ]
+    ],
+    "looks": [
+     0.0
+    ],
+    "tag": "sq"
+   },
+   {
+    "route": [
+     [
+      12,
+      13,
+      0
+     ]
+    ],
+    "type": "halberd",
+    "looks": [
+     1.5707963267948966,
+     3.141592653589793
+    ],
+    "tag": "sq"
+   },
+   {
+    "route": [
+     [
+      10,
+      9,
+      0
+     ]
+    ],
+    "looks": [
+     1.5707963267948966
+    ],
+    "tag": "sq"
+   },
+   {
+    "route": [
+     [
+      24,
+      12,
+      0
+     ]
+    ],
+    "type": "soldier",
+    "looks": [
+     1.5707963267948966,
+     3.141592653589793
+    ]
+   },
+   {
+    "route": [
+     [
+      21,
+      8,
+      0
+     ]
+    ],
+    "type": "archer",
+    "looks": [
      0.0,
+     1.5707963267948966
+    ]
+   },
+   {
+    "route": [
+     [
+      8,
+      17,
+      0
+     ]
+    ],
+    "type": "soldier",
+    "looks": [
+     1.5707963267948966,
+     0.0
+    ]
+   },
+   {
+    "route": [
+     [
+      22,
+      17,
+      0
+     ]
+    ],
+    "type": "soldier",
+    "looks": [
+     1.5707963267948966,
+     3.141592653589793
+    ]
+   },
+   {
+    "route": [
+     [
+      3,
+      22,
+      1
+     ],
+     [
+      28,
+      22,
+      1
+     ]
+    ]
+   },
+   {
+    "route": [
+     [
+      24,
+      28,
+      0
+     ]
+    ],
+    "type": "archer",
+    "looks": [
+     3.141592653589793,
      -1.5707963267948966
     ]
    }
   ],
   "nobles": [
    [
-    8,
-    5
+    16,
+    7
    ],
    [
     3,
-    5
-   ],
-   [
-    19,
-    3
+    13
    ],
    [
     20,
     13
+   ],
+   [
+    20,
+    23
    ]
   ],
   "civilians": [
    [
     12,
-    9
-   ],
-   [
-    18,
     12
    ],
    [
+    18,
+    18
+   ],
+   [
     21,
-    20
+    24
    ],
    [
     6,
-    20
+    22
    ]
   ],
   "gold": [
    [
     5,
-    16,
+    17,
     15
    ],
    [
-    26,
+    29,
     20,
     15
    ],
    [
-    2,
-    9,
+    1,
+    8,
     15
    ]
   ],
@@ -4130,38 +4365,43 @@
    }
   ],
   "map": [
-   "############################",
-   "#dddddddddd#rrrrrrrrrrrrrrr#",
-   "#dddddddddd#rrrrrrrrrrrrrrr#",
-   "#dddddddddd#...............#",
-   "#dddddddddd#..rrrr...rrrr..#",
-   "#dddddddddd#..rrrr...rrrr..#",
-   "#####dd#####..rrrr...rrrr..#",
-   "#....ff....................#",
-   "#.b..ff..ffffffffffffffff..#",
-   "#....ff..f..............f..#",
-   "#rrr.ff..f..mm....mm....f..#",
-   "#rrr.ffffffffffffffffffff..#",
-   "#rrr.ff..f..............f..#",
-   "#....ff..f..mm....mm....f..#",
-   "#.h..ff..f..............f..#",
-   "#....ff..ffffffffffffffff..#",
-   "#rrrr..........hh......rrrr#",
-   "#rrrr.....rrrrrr.......rrrr#",
-   "#rrrr.....rrrrrr.......rrrr#",
-   "#.........rrrrrr...........#",
-   "#..c.....................c.#",
-   "#rrrrr..ffffffffffff..rrrrr#",
-   "#rrrrr..f..........f..rrrrr#",
-   "#rrrrr..f..b....b..f..rrrrr#",
-   "#.......f..........f.......#",
-   "######..f..........f..######",
-   "TTTTT#..ffffffffffff..#TTTTT",
-   "TTTTT##.....ffff.....##TTTTT",
-   "TTTTTTT#....ffff....#TTTTTTT",
-   "TTTTTTTT............TTTTTTTT"
+   "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+   "TffffffffffffffffffffffffffffffT",
+   "Tf###########ffffff###########fT",
+   "Tf#ddddddddd#frrrff#fffffrrrr#fT",
+   "Tf#ddddddddd#frrrff#fffffrrrr#fT",
+   "Tf#ddddddddd#frrrff#fffffrrrr#fT",
+   "Tf#ddddddddd#ffffff#fffffrrrr#fT",
+   "Tf#ddddddddd#ffffff#fffffffff#fT",
+   "Tf#ddddddddd#frrrff#fffffffff#fT",
+   "Tf#ddddddddd#frrrff#fffffffff#fT",
+   "Tf#ddddddddd#frrrff#fffffffff#fT",
+   "Tf#####ff####ffffff#####f#####fT",
+   "TffffffffffffffffffffffffffffffT",
+   "TfffffcffffffffffcfffffffffdddfT",
+   "TffffffffffffffffffffffffffffffT",
+   "TwwwwwwwddwwwwwwwwwwwwddwwwwwwwT",
+   "TwwwwwwwddwwwwwwwwwwwwddwwwwwwwT",
+   "TffffffffffffffffffffffffffffffT",
+   "TfrrrffffffffrrrfffffffffffddffT",
+   "TfrrrffrrrfffrrrffrrrffffffffffT",
+   "TfrrrffrrrfffrrrffrrrfffrrrffffT",
+   "TffffffrrrffffffffrrrfffrrrffffT",
+   "TfffffffffffcfffffffffffrrrffffT",
+   "TffffmffffffffffmfffffcfffffhffT",
+   "TfrrrfffffrrrffffffffffffffffffT",
+   "TfrrrfffffrrrffffffrrrfffrrrfffT",
+   "TfrrrffffffffffffffrrrfffrrrfffT",
+   "TffffffffffffffffffffffffrrrfffT",
+   "TfffffcfffffffffhffffffffffffffT",
+   "TffffffffffffffffffffffffffffffT",
+   "T###########fffffff############T",
+   "TT..T.T.T...T.,,....T..........T",
+   "T..T..........,,......T.T..T..TT",
+   "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT"
   ],
-  "town": "York"
+  "town": "York",
+  "climbs": []
  },
  {
   "id": "m13",
@@ -4177,51 +4417,44 @@
   "kind": "story",
   "type": "Escape",
   "captive": [
-   8,
-   2
+   3,
+   22
   ],
-  "climbs": [
-   [
-    5,
-    10,
-    5,
-    8
-   ]
-  ],
+  "climbs": [],
   "intro": "Robin is in Nottingham gaol, and the Sheriff has sent to London for a hangman worthy of him.\n\nWithout Robin, Marian or Will can climb at the rope mark. The sergeant of the watch checks on his gate guard every round: if the man is missing, he rings the alarm. Charm him, slip past him, or leave him standing.",
   "outro": "“You took your time,” says Robin, which Marian points out is her line.\n\nIn the gaol office they find a sealed letter, taken from a royal messenger. It bears King Richard’s own seal, and it must reach the Queen Mother’s boatman at York’s river stairs before dawn.",
   "heroes": {
    "john": [
-    12,
-    26
+    15,
+    30
    ],
    "marian": [
-    11,
-    26
+    16,
+    30
    ],
    "tuck": [
-    13,
-    26
+    14,
+    30
    ],
    "scarlet": [
-    14,
-    26
+    17,
+    30
    ]
   },
   "need": [
    "marian"
   ],
   "exit": {
-   "x": 9,
-   "y": 25,
+   "x": 12,
+   "y": 29,
    "w": 8,
    "h": 2
   },
   "prisoners": [
    {
     "id": "robin",
-    "x": 5,
-    "y": 2
+    "x": 6,
+    "y": 4
    }
   ],
   "objectives": [
@@ -4230,185 +4463,199 @@
   ],
   "guards": [
    {
-    "tag": "gate",
     "route": [
      [
-      12,
-      10,
+      14,
+      19,
       0
      ]
     ],
+    "type": "halberd",
     "looks": [
-     1.5707963267948966,
-     0.9707963267948966,
+     3.141592653589793,
+     0.9707963267948966
+    ]
+   },
+   {
+    "route": [
+     [
+      17,
+      19,
+      0
+     ]
+    ],
+    "type": "halberd",
+    "looks": [
+     0.0,
      2.1707963267948966
     ]
    },
    {
+    "route": [
+     [
+      16,
+      16,
+      0
+     ]
+    ],
     "type": "officer",
+    "looks": [
+     1.5707963267948966,
+     0.0
+    ],
     "name": "the sergeant",
     "check": [
-     12,
+     10,
      11,
      "gate"
-    ],
-    "route": [
-     [
-      7,
-      12,
-      1
-     ],
-     [
-      12,
-      11,
-      2
-     ],
-     [
-      18,
-      12,
-      1
-     ],
-     [
-      12,
-      11,
-      2
-     ]
     ]
    },
    {
     "route": [
      [
-      3,
-      5,
-      2
-     ],
-     [
-      22,
-      5,
-      2
-     ]
-    ]
-   },
-   {
-    "type": "archer",
-    "route": [
-     [
-      20,
-      7,
+      10,
+      11,
       0
      ]
     ],
     "looks": [
+     -1.5707963267948966,
+     0.0
+    ],
+    "tag": "gate"
+   },
+   {
+    "route": [
+     [
+      8,
+      10,
+      0
+     ]
+    ],
+    "type": "soldier",
+    "looks": [
+     1.5707963267948966,
+     0.0
+    ]
+   },
+   {
+    "route": [
+     [
+      14,
+      10,
+      1
+     ],
+     [
+      26,
+      10,
+      1
+     ],
+     [
+      26,
+      16,
+      1
+     ],
+     [
+      14,
+      16,
+      1
+     ]
+    ]
+   },
+   {
+    "route": [
+     [
+      10,
+      5,
+      0
+     ]
+    ],
+    "type": "soldier",
+    "looks": [
      3.141592653589793,
-     2.541592653589793,
      1.5707963267948966
     ]
    },
    {
     "route": [
      [
-      6,
-      6,
-      0
-     ]
-    ],
-    "looks": [
-     -1.5707963267948966,
-     3.141592653589793,
-     0
-    ]
-   },
-   {
-    "type": "halberd",
-    "route": [
-     [
-      22,
-      2,
-      0
-     ]
-    ],
-    "looks": [
-     1.5707963267948966,
-     3.141592653589793
-    ]
-   },
-   {
-    "route": [
-     [
-      1,
-      14,
-      2
-     ],
-     [
-      1,
-      22,
-      2
-     ],
-     [
-      24,
-      22,
-      2
-     ],
-     [
-      24,
-      14,
-      2
-     ]
-    ]
-   },
-   {
-    "route": [
-     [
-      15,
-      15,
-      2
-     ],
-     [
+      25,
       8,
-      15,
-      2
+      0
      ]
+    ],
+    "type": "archer",
+    "looks": [
+     3.141592653589793,
+     1.5707963267948966
+    ]
+   },
+   {
+    "route": [
+     [
+      4,
+      23,
+      0
+     ]
+    ],
+    "type": "black",
+    "looks": [
+     0.0
+    ]
+   },
+   {
+    "route": [
+     [
+      22,
+      25,
+      0
+     ]
+    ],
+    "type": "soldier",
+    "looks": [
+     3.141592653589793,
+     -1.5707963267948966
     ]
    }
   ],
   "nobles": [
    [
-    17,
-    19
+    20,
+    25
    ]
   ],
   "civilians": [
    [
-    7,
-    20
+    9,
+    24
    ],
    [
     18,
-    16
+    19
    ]
   ],
   "gold": [
    [
-    23,
-    4,
+    24,
+    3,
     20
    ],
    [
-    1,
-    13,
+    2,
+    19,
     10
    ],
    [
-    22,
-    24,
+    28,
+    29,
     15
    ]
   ],
   "treasure": {
    "id": "keys",
    "name": "the Sheriff’s golden keys",
-   "x": 21,
-   "y": 3
+   "x": 22,
+   "y": 8
   },
   "reward": 90,
   "tips": [
@@ -4424,34 +4671,38 @@
    }
   ],
   "map": [
-   "TTTTTTTTTTTTTTTTTTTTTTTTTT",
-   "T########################T",
-   "T#dd#dd#dd#rrrrrrrr#ffff#T",
-   "T#dd#dd#dd#rrrrrrrr#ffff#T",
-   "T##f##f##f#rrrrrrrr#fccf#T",
-   "T#ffffffffffffffffffffff#T",
-   "T#ffffffffffffffffffffff#T",
-   "T#fhhffffffffffffffffhff#T",
-   "T#ffffffffffffffffffffff#T",
-   "T###########ff###########T",
-   "T..........,ff,..........T",
-   "T.rrrr.....,,,,.....rrrr.T",
-   "T.rrrr..............rrrr.T",
-   "T.rrrr..b........b..rrrr.T",
-   "T........................T",
-   "T..rrrr..ffffffff..rrrr..T",
-   "T..rrrr..f......f..rrrr..T",
-   "T..rrrr..f..hh..f..rrrr..T",
-   "T........f......f........T",
-   "T.rrr....ffffffff....rrr.T",
-   "T.rrr................rrr.T",
-   "T.rrr..c..........c..rrr.T",
-   "T........................T",
-   "TT.b....rrr....rrr....b.TT",
-   "TTT.....rrr....rrr.....TTT",
-   "TTTT......,,,,,,......TTTT",
-   "TTTTT.....,,,,,,.....TTTTT",
-   "TTTTTTTTTTTTTTTTTTTTTTTTTT"
+   "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+   "T...............T........T.....T",
+   "T...########################...T",
+   "T...#dddddddd#fffffffffffff#...T",
+   "T.T.#dddddddd#fhfrrrffrrrrf#...T",
+   "T...#dddddddd#fffrrrffrrrrf#...T",
+   "T...#ddddddddcfffrrrffrrrrf#..TT",
+   "T...#dddddddd#fffffffffffff#...T",
+   "T...#dddddddd#fffffffffffff#...T",
+   "T...#####f####ffffffcffffff#...T",
+   "T...#fffff,,fffffffffffffff#...T",
+   "T...#fffff,,fffffffffffffff#...T",
+   "T...#frrrffffffffrrrffrrrrf#..TT",
+   "TT..#frrrfffffcffrrrffrrrrf#..TT",
+   "T...#frrrffffffffrrrffrrrrf#...T",
+   "T...#ffffffffffffffffffffff#...T",
+   "T...#fffhffffffffffffffffcf#...T",
+   "T...#ffffffffffffffffffffff#...T",
+   "TTT.###########ff###########...T",
+   "T..............,,..b...........T",
+   "T.,,,,,,,,,,,,,,,,,,,,,,,,,,,,.T",
+   "T.######..rrr..,,..rrr........bT",
+   "T.#dddd#..rrr..,,..rrr..rrr....T",
+   "T.#ddddf.b.....,,..rrr..rrr....T",
+   "T.#dddd#.....c.,,...........T..T",
+   "T.######.......,,.c.....b......T",
+   "Tb........rrrb.,,.........rrr..T",
+   "T....b.b..rrr.b,,....rrr..rrr..T",
+   "T...T.....rrrb.,,....rrr..rrr..T",
+   "T..............,,..T...........T",
+   "T...........Tb.,,......bT......T",
+   "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT"
   ],
   "town": "Nottingham"
  },
@@ -4469,53 +4720,53 @@
   "kind": "story",
   "type": "Courier",
   "captive": [
-   2,
+   22,
    5
   ],
   "intro": "King Richard’s letter must reach the boatman at the end of the north pier tonight. Whoever carries it walks at full speed, but hold on to it: if he falls, it falls with him.\n\nThe Queen Mother has asked one thing. Not a drop of blood tonight: a single death and the boatman will not sail. Use nets, ale, the sling and bare fists.",
   "outro": "The boatman tucks the letter inside his coat and pushes off into the mist without a word.\n\nIn a week, the barons will know the King lives. Some will stay loyal to the Prince. Some will march with us. Robin calls them to York.",
   "heroes": {
    "robin": [
-    4,
-    25
+    3,
+    28
    ],
    "john": [
-    5,
-    25
+    4,
+    28
    ],
    "marian": [
-    3,
-    25
+    2,
+    28
    ],
    "tuck": [
-    6,
-    25
+    5,
+    29
    ],
    "scarlet": [
-    4,
-    26
+    3,
+    29
    ]
   },
   "need": [
    "robin"
   ],
   "exit": {
-   "x": 2,
-   "y": 24,
-   "w": 6,
+   "x": 1,
+   "y": 27,
+   "w": 5,
    "h": 3
   },
   "chest": {
    "x": 6,
-   "y": 24,
+   "y": 29,
    "letter": true
   },
   "contacts": [
    {
     "id": "boatman",
     "name": "the boatman",
-    "x": 26,
-    "y": 7,
+    "x": 28,
+    "y": 13,
     "needs": "letter",
     "wait": "“No letter, no boat.”",
     "say": "“For the King.” He tucks it away and casts off."
@@ -4527,178 +4778,203 @@
   ],
   "torches": [
    [
-    20,
-    6
+    8,
+    17
    ],
    [
-    20,
+    22,
+    17
+   ],
+   [
+    26,
     12
    ],
    [
-    20,
-    19
-   ],
-   [
-    10,
-    6
-   ],
-   [
-    10,
-    12
-   ],
-   [
-    2,
-    19
+    13,
+    22
    ],
    [
     24,
-    7
+    13
+   ],
+   [
+    7,
+    12
+   ],
+   [
+    18,
+    28
    ]
   ],
   "guards": [
    {
     "route": [
      [
-      21,
-      7,
-      0
-     ]
-    ],
-    "looks": [
-     3.141592653589793,
-     1.5707963267948966,
-     -1.5707963267948966
-    ]
-   },
-   {
-    "route": [
-     [
-      20,
-      2,
-      2
-     ],
-     [
-      20,
+      8,
       17,
-      2
-     ]
-    ]
-   },
-   {
-    "type": "officer",
-    "route": [
-     [
-      3,
-      6,
-      1
-     ],
-     [
-      19,
-      6,
-      1
-     ]
-    ]
-   },
-   {
-    "route": [
-     [
-      19,
-      12,
-      1
-     ],
-     [
-      3,
-      12,
-      1
-     ]
-    ]
-   },
-   {
-    "type": "archer",
-    "route": [
-     [
-      19,
-      4,
       0
      ]
     ],
+    "type": "soldier",
     "looks": [
      1.5707963267948966,
+     0.0
+    ]
+   },
+   {
+    "route": [
+     [
+      9,
+      14,
+      0
+     ]
+    ],
+    "type": "soldier",
+    "looks": [
+     -1.5707963267948966,
      3.141592653589793
     ]
    },
    {
-    "route": [
-     [
-      3,
-      19,
-      2
-     ],
-     [
-      19,
-      19,
-      2
-     ]
-    ]
-   },
-   {
-    "type": "halberd",
     "route": [
      [
       22,
-      19,
+      17,
       0
      ]
     ],
+    "type": "halberd",
     "looks": [
-     3.141592653589793,
-     -1.5707963267948966
+     1.5707963267948966
     ]
    },
    {
     "route": [
      [
-      2,
+      23,
+      14,
+      0
+     ]
+    ],
+    "type": "soldier",
+    "looks": [
+     -1.5707963267948966,
+     0.0
+    ]
+   },
+   {
+    "route": [
+     [
       8,
+      22,
       1
      ],
      [
-      2,
-      17,
+      28,
+      22,
       1
      ]
     ]
    },
    {
-    "type": "knight",
     "route": [
      [
+      26,
       12,
+      0
+     ]
+    ],
+    "type": "officer",
+    "looks": [
+     0.0,
+     1.5707963267948966
+    ]
+   },
+   {
+    "route": [
+     [
+      28,
       17,
       0
      ]
     ],
+    "type": "archer",
     "looks": [
      -1.5707963267948966,
-     0,
      3.141592653589793
+    ]
+   },
+   {
+    "route": [
+     [
+      2,
+      12,
+      1
+     ],
+     [
+      25,
+      12,
+      1
+     ]
+    ]
+   },
+   {
+    "route": [
+     [
+      20,
+      24,
+      0
+     ]
+    ],
+    "type": "soldier",
+    "looks": [
+     3.141592653589793,
+     1.5707963267948966
+    ]
+   },
+   {
+    "route": [
+     [
+      14,
+      13,
+      0
+     ]
+    ],
+    "type": "knight",
+    "looks": [
+     1.5707963267948966,
+     0.0
+    ]
+   },
+   {
+    "route": [
+     [
+      16,
+      27,
+      0
+     ]
+    ],
+    "type": "soldier",
+    "looks": [
+     3.141592653589793,
+     -1.5707963267948966
     ]
    }
   ],
   "gold": [
    [
     17,
-    5,
+    6,
     20
    ],
    [
     9,
-    18,
+    22,
     15
    ],
    [
-    23,
-    19,
+    27,
+    29,
     20
    ]
   ],
@@ -4711,36 +4987,44 @@
    }
   ],
   "map": [
-   "TTTTTTTTTTTTTTTTTTTTwwwwwwww",
-   "Trrrrr..rrrrrr..rrr.fwwwwwww",
-   "Trrrrr..rrrrrr..rrr.fwwwwwww",
-   "Trrrrr..rrrrrr..rrr.fwwwwwww",
-   "T...................fwwwwwww",
-   "T..cc......h......c.fwwwwwww",
-   "T.ffffffffffffffffffffwwwwww",
-   "T.f.................fddddddw",
-   "T.f.rrrr..rrrr..rr..fwwwwwww",
-   "T.f.rrrr..rrrr..rr..fwwwwwww",
-   "T.f.rrrr..rrrr......fwwwwwww",
-   "T.f.................fwwwwwww",
-   "T.ffffffffffffffffffffwwwwww",
-   "T.....c...h.....cc..fwwwwwww",
-   "Trrrr..rrrrr..rrrr..fwwwwwww",
-   "Trrrr..rrrrr..rrrr..fwwwwwww",
-   "Trrrr..rrrrr..rrrr..fwwwwwww",
-   "T...................fwwwwwww",
-   "T..h...cc......c....fwwwwwww",
-   "T.ffffffffffffffffffddddwwww",
-   "T.f.................fwwwwwww",
-   "T.f.rrrrr..rrrr..rr.fwwwwwww",
-   "T.f.rrrrr..rrrr..rr.fwwwwwww",
-   "T.f.................fwwwwwww",
-   "Tb..................fwwwwwww",
-   "T..,,,,.....b.......fwwwwwww",
-   "TT.,,,,............TTwwwwwww",
-   "TTTTTTTTTTTTTTTTTTTTwwwwwwww"
+   "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+   "TffffffffffffffffffffffffffffffT",
+   "Tf###########ffffff###########fT",
+   "Tf#ddddddddd#frrrff#fffffrrrr#fT",
+   "Tf#ddddddddd#frrrff#fffffrrrr#fT",
+   "Tf#ddddddddd#frrrff#fffffrrrr#fT",
+   "Tf#ddddddddd#ffffff#fffffrrrr#fT",
+   "Tf#ddddddddd#ffffff#fffffffff#fT",
+   "Tf#ddddddddd#frrrff#fffffffff#fT",
+   "Tf#ddddddddd#frrrff#fffffffff#fT",
+   "Tf#ddddddddd#frrrff#fffffffff#fT",
+   "Tf#####ff####ffffff#####f#####fT",
+   "TffffffffffffffffffffffffffffffT",
+   "TfffffcffffffffffcfffffffffdddfT",
+   "TffffffffffffffffffffffffffffffT",
+   "TwwwwwwwddwwwwwwwwwwwwddwwwwwwwT",
+   "TwwwwwwwddwwwwwwwwwwwwddwwwwwwwT",
+   "TffffffffffffffffffffffffffffffT",
+   "TfrrrffffffffrrrfffffffffffddffT",
+   "TfrrrffrrrfffrrrffrrrffffffffffT",
+   "TfrrrffrrrfffrrrffrrrfffrrrffffT",
+   "TffffffrrrffffffffrrrfffrrrffffT",
+   "TfffffffffffcfffffffffffrrrffffT",
+   "TffffmffffffffffmfffffcfffffhffT",
+   "TfrrrfffffrrrffffffffffffffffffT",
+   "TfrrrfffffrrrffffffrrrfffrrrfffT",
+   "TfrrrffffffffffffffrrrfffrrrfffT",
+   "TffffffffffffffffffffffffrrrfffT",
+   "TfffffcfffffffffhffffffffffffffT",
+   "TffffffffffffffffffffffffffffffT",
+   "T###########fffffff############T",
+   "T..TT..T......,,......T.T.T....T",
+   "TT....T.TT....,,...T......T.T.TT",
+   "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT"
   ],
-  "town": "York"
+  "town": "York",
+  "weather": "snow",
+  "climbs": []
  },
  {
   "id": "m15",
@@ -5251,37 +5535,30 @@
   "night": true,
   "kind": "story",
   "type": "Final challenge",
-  "climbs": [
-   [
-    6,
-    20,
-    6,
-    18
-   ]
-  ],
+  "climbs": [],
   "needRansom": true,
   "intro": "The ransom is paid, and King Richard is on the road home. One debt is left to settle.\n\nThe band goes in from two sides: Robin, Marian and Will by the moat, John and Tuck from the hay cart already inside the lower yard. Capture the Sheriff alive and tie him up, take the tax chest from the treasury, and get everyone out over the moat.",
   "outro": "The Sheriff, trussed like a Michaelmas goose, is left on the abbey steps with a note pinned to his cloak, in a hand that every child in the shire now knows.\n\nThe taxes go home. The King comes home. And somewhere in Sherwood an arrow is fitted to a string, just in case.",
   "heroes": {
    "robin": [
-    14,
-    25
+    20,
+    1
    ],
    "marian": [
-    13,
-    25
+    21,
+    1
    ],
    "scarlet": [
-    12,
-    25
+    19,
+    1
    ],
    "john": [
-    2,
-    15
+    15,
+    30
    ],
    "tuck": [
-    3,
-    15
+    16,
+    30
    ]
   },
   "need": [
@@ -5289,18 +5566,18 @@
    "john"
   ],
   "exit": {
-   "x": 10,
-   "y": 23,
+   "x": 12,
+   "y": 29,
    "w": 8,
-   "h": 3
+   "h": 2
   },
   "chest": {
-   "x": 2,
-   "y": 10
+   "x": 6,
+   "y": 3
   },
   "sheriff": {
-   "x": 14,
-   "y": 3
+   "x": 10,
+   "y": 5
   },
   "objectives": [
    "sheriff",
@@ -5309,209 +5586,71 @@
   ],
   "reinforce": [
    [
-    14,
-    18,
+    15,
+    17,
     "knight"
    ],
    [
-    15,
-    18,
+    16,
+    17,
     "soldier"
    ],
    [
-    13,
-    17,
+    14,
+    16,
     "archer"
    ]
   ],
   "torches": [
    [
+    20,
+    3
+   ],
+   [
+    9,
+    10
+   ],
+   [
+    15,
+    17
+   ],
+   [
+    16,
+    17
+   ],
+   [
     13,
     7
    ],
    [
-    16,
-    7
+    22,
+    15
    ],
    [
     10,
-    15
+    20
    ],
    [
-    19,
-    15
-   ],
-   [
-    11,
-    18
-   ],
-   [
-    16,
-    18
-   ],
-   [
-    6,
-    2
-   ],
-   [
-    23,
-    2
-   ],
-   [
-    8,
-    9
+    20,
+    20
    ]
   ],
   "guards": [
    {
-    "type": "knight",
     "route": [
-     [
-      5,
-      5,
-      2
-     ],
-     [
-      24,
-      5,
-      2
-     ]
-    ]
-   },
-   {
-    "type": "black",
-    "route": [
-     [
-      12,
-      7,
-      0
-     ]
-    ],
-    "looks": [
-     1.5707963267948966,
-     0.9707963267948966,
-     1.9707963267948965
-    ]
-   },
-   {
-    "type": "black",
-    "route": [
-     [
-      17,
-      7,
-      0
-     ]
-    ],
-    "looks": [
-     1.5707963267948966,
-     2.1707963267948966,
-     1.1707963267948966
-    ]
-   },
-   {
-    "route": [
-     [
-      9,
-      14,
-      1
-     ],
      [
       20,
-      14,
-      1
-     ],
-     [
-      20,
-      17,
-      1
-     ],
-     [
-      9,
-      17,
-      1
-     ]
-    ]
-   },
-   {
-    "type": "halberd",
-    "route": [
-     [
-      12,
-      18,
+      3,
       0
      ]
     ],
+    "type": "soldier",
     "looks": [
      1.5707963267948966,
-     1.0707963267948966,
-     1.5707963267948966
+     2.0707963267948966
     ]
    },
    {
-    "route": [
-     [
-      15,
-      18,
-      0
-     ]
-    ],
-    "looks": [
-     1.5707963267948966,
-     2.0707963267948966,
-     1.5707963267948966
-    ]
-   },
-   {
-    "type": "officer",
-    "route": [
-     [
-      4,
-      10,
-      0
-     ]
-    ],
-    "looks": [
-     0,
-     -0.6,
-     0.6
-    ]
-   },
-   {
-    "route": [
-     [
-      4,
-      17,
-      3
-     ],
-     [
-      10,
-      17,
-      3
-     ]
-    ]
-   },
-   {
-    "type": "archer",
-    "route": [
-     [
-      24,
-      7,
-      2
-     ],
-     [
-      28,
-      7,
-      2
-     ],
-     [
-      28,
-      16,
-      2
-     ]
-    ]
-   },
-   {
-    "type": "black",
     "route": [
      [
       22,
@@ -5519,31 +5658,195 @@
       0
      ]
     ],
+    "type": "archer",
+    "looks": [
+     1.5707963267948966,
+     0.0
+    ]
+   },
+   {
+    "route": [
+     [
+      8,
+      5,
+      0
+     ]
+    ],
+    "type": "knight",
+    "looks": [
+     0.0,
+     1.5707963267948966
+    ]
+   },
+   {
+    "route": [
+     [
+      11,
+      7,
+      0
+     ]
+    ],
+    "type": "black",
+    "looks": [
+     -1.5707963267948966,
+     3.141592653589793
+    ]
+   },
+   {
+    "route": [
+     [
+      9,
+      10,
+      0
+     ]
+    ],
+    "type": "black",
+    "looks": [
+     1.5707963267948966
+    ]
+   },
+   {
+    "route": [
+     [
+      16,
+      8,
+      0
+     ]
+    ],
+    "type": "black",
+    "looks": [
+     1.5707963267948966,
+     3.141592653589793
+    ]
+   },
+   {
+    "route": [
+     [
+      14,
+      19,
+      0
+     ]
+    ],
+    "type": "halberd",
+    "looks": [
+     3.141592653589793,
+     0.9707963267948966
+    ]
+   },
+   {
+    "route": [
+     [
+      17,
+      19,
+      0
+     ]
+    ],
+    "type": "halberd",
+    "looks": [
+     0.0,
+     2.1707963267948966
+    ]
+   },
+   {
+    "route": [
+     [
+      14,
+      10,
+      1
+     ],
+     [
+      26,
+      10,
+      1
+     ],
+     [
+      26,
+      16,
+      1
+     ],
+     [
+      14,
+      16,
+      1
+     ]
+    ]
+   },
+   {
+    "route": [
+     [
+      20,
+      15,
+      0
+     ]
+    ],
+    "type": "officer",
     "looks": [
      3.141592653589793,
      1.5707963267948966
+    ]
+   },
+   {
+    "route": [
+     [
+      3,
+      20,
+      1
+     ],
+     [
+      28,
+      20,
+      1
+     ]
+    ]
+   },
+   {
+    "route": [
+     [
+      25,
+      7,
+      0
+     ]
+    ],
+    "type": "archer",
+    "looks": [
+     3.141592653589793,
+     -1.5707963267948966
+    ]
+   },
+   {
+    "route": [
+     [
+      6,
+      16,
+      0
+     ]
+    ],
+    "type": "soldier",
+    "looks": [
+     0.0,
+     -1.5707963267948966
     ]
    }
   ],
   "gold": [
    [
-    27,
-    9,
-    20
-   ],
-   [
-    1,
-    12,
+    24,
+    3,
     20
    ],
    [
     5,
-    2,
+    17,
+    20
+   ],
+   [
+    16,
+    4,
     25
    ],
    [
-    24,
-    12,
+    29,
+    27,
     15
    ]
   ],
@@ -5561,33 +5864,38 @@
    }
   ],
   "map": [
-   "##############################",
-   "#rrrrrrrrrrrrrrrrrrrrrrrrrrrr#",
-   "#rr#dddddddddddddddddddddd#rr#",
-   "#rr#dddddddddddddddddddddd#rr#",
-   "#rr#dd##dddddddddddddd##dd#rr#",
-   "#rr#dddddddddddddddddddddd#rr#",
-   "#rr##########dddd#####dd###rr#",
-   "#ffffffffffffffffffffffffffff#",
-   "#########ffffffffffff#########",
-   "#fffffff#ffffffffffff#hhfffff#",
-   "#ffffffffffffffffffffffffffff#",
-   "#fffffff#ffffffffffff#fffffff#",
-   "#fffffff#ffffwwwwffff#ccfffff#",
-   "#########ffffwwwwffff#########",
-   "#ffffffffffffffffffffffffffff#",
-   "#fhhff##ffffffffffffff##ffhff#",
-   "#ffffffffffffffffffffffffffff#",
-   "#ccfffffffffffffffffffffffccf#",
-   "#ffffffffffffffffffffffffffff#",
-   "##f#########ffff##############",
-   "TT..b.......,,,,.......b...TTT",
-   "TT,wwwwwwwww,,,,wwwwwwwwwwwwTT",
-   "TT.....b....,,,,....b......TTT",
-   "TTT.........,,,,.........TTTTT",
-   "TTTTb.......,,,,.......bTTTTTT",
-   "TTTTTT......,,,,......TTTTTTTT",
-   "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT"
+   "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+   "T...............T..,,,,..T.....T",
+   "T...################ff######...T",
+   "T...#dddddddd#fffffffffffff#...T",
+   "T.T.#dddddddd#fhfrrrffrrrrf#...T",
+   "T...#dddddddd#fffrrrffrrrrf#...T",
+   "T...#ddddddddcfffrrrffrrrrf#..TT",
+   "T...#dddddddd#fffffffffffff#...T",
+   "T...#dddddddd#fffffffffffff#...T",
+   "T...#####f####ffffffcffffff#...T",
+   "T...#fffff,,fffffffffffffff#...T",
+   "T...#fffff,,fffffffffffffff#...T",
+   "T...#frrrffffffffrrrffrrrrf#..TT",
+   "TT..#frrrfffffcffrrrffrrrrf#..TT",
+   "T...#frrrffffffffrrrffrrrrf#...T",
+   "T...#ffffffffffffffffffffff#...T",
+   "T...#fffhffffffffffffffffcf#...T",
+   "T...#ffffffffffffffffffffff#...T",
+   "TTT.###########ff###########...T",
+   "T..............,,..b...........T",
+   "T.,,,,,,,,,,,,,,,,,,,,,,,,,,,,.T",
+   "T.######..rrr..,,..rrr........bT",
+   "T.#dddd#..rrr..,,..rrr..rrr....T",
+   "T.#ddddf.b.....,,..rrr..rrr....T",
+   "T.#dddd#.....c.,,...........T..T",
+   "T.######.......,,.c.....b......T",
+   "Tb........rrrb.,,.........rrr..T",
+   "T....b.b..rrr.b,,....rrr..rrr..T",
+   "T...T.....rrrb.,,....rrr..rrr..T",
+   "T..............,,..T...........T",
+   "T...........Tb.,,......bT......T",
+   "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT"
   ],
   "town": "Nottingham"
  }

@@ -276,6 +276,8 @@ m = old('m12', id='m16', rank=15, town='Nottingham')
 retext(m, [('Blackmere', 'York')])
 MS.append(m)
 WALK = set('.,fdbh')
+import campaign_c
+campaign_c.apply(MS, G, S, W, N, E)
 def snap(rows, x, y):
     if 0 <= y < len(rows) and 0 <= x < len(rows[0]) and rows[y][x] in WALK: return x, y
     for r in range(1, 6):

@@ -53,6 +53,7 @@ def m07():
     M.pts([(15, 11), (15, 12), (27, 17)], 'c'); M.pts([(19, 15), (21, 17)], 'm'); M.pts([(26, 10), (14, 17)], 'h')
     M.rect(5, 27, 12, 30, '.'); M.rect(9, 28, 10, 29, 'r')   # the windmill
     M.scatter(4, 1, 12, 30, 'b', 0.06, seed=21, on='.')
+    M.pts([(4, 2), (12, 7), (4, 21), (12, 22), (7, 26), (8, 12)], 'T')   # lone oaks along the lane (climbable)
     return M
 def m08():
     # Lincoln castle at night (original M8): the same castle as mission 1, entered by the ivy on the north-east

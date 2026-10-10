@@ -623,6 +623,12 @@
       }
       case 'tree': {
         if (!e) { h.task = null; return; }
+        if (!t.st) { // the foot of the tree he can reach soonest
+          let best = null, bl = 1e9;
+          for (const s of e.stands || [e.stand]) { const p = RH.astar(G.grid, tileOf(h.x), tileOf(h.y), tileOf(s.x), tileOf(s.y)); if (p && p.length < bl) { bl = p.length; best = s; } }
+          if (!best) { toast('Can’t reach that tree from here'); h.task = null; return; }
+          t.st = best; e.stand = best;
+        }
         if (!t.up) {
           if (!inRange(h, e.stand.x, e.stand.y, TILE * 0.5)) { approach(h, e.stand.x, e.stand.y, dt); return; }
           t.up = true; t.t = 0; h.path = null; h.moving = false; h.climbing = true; sfx('tie');
@@ -1974,7 +1980,8 @@
     for (let y = 0; y < Hh; y++) for (let x = 0; x < W; x++) if (RH.climbTree(g, x, y)) {
       let st = null;
       for (const [dx, dy] of [[1, 0], [0, 1], [-1, 0], [0, -1]]) if (walk(x + dx, y + dy)) { st = { tx: x + dx, ty: y + dy }; break; }
-      if (st) G.trees.push({ id: 'tree' + G.trees.length, tx: x, ty: y, x: tcx(x), y: tcx(y), stand: { x: tcx(st.tx), y: tcx(st.ty) }, tree: true });
+      const stands = [[1, 0], [0, 1], [-1, 0], [0, -1]].filter(([dx, dy]) => walk(x + dx, y + dy)).map(([dx, dy]) => ({ x: tcx(x + dx), y: tcx(y + dy) }));
+      if (st) G.trees.push({ id: 'tree' + G.trees.length, tx: x, ty: y, x: tcx(x), y: tcx(y), stand: { x: tcx(st.tx), y: tcx(st.ty) }, stands, tree: true });
     }
     if (m.kind === 'defense' || m.kind === 'base') return;
     const used = new Uint8Array(W * Hh);

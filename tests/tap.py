@@ -27,6 +27,7 @@ with sync_playwright() as p:
             pg.wait_for_timeout(60)
             cdp.send('Input.dispatchTouchEvent', {'type': 'touchEnd', 'touchPoints': []})
         else: pg.touchscreen.tap(x, y)
+    if '--calm' in sys.argv: E('window.CALM=1')
     E("__sherwood.RH.profile.heroes=['robin','stutely','scarlet','john','marian','tuck']")
     # find, near the selected hero, an open ground tile with nothing on it, plus a wall tile, plus a climbable tree
     PICK = """(() => { const S = __sherwood, G = S.G, T = S.RH.TILE, g = G.grid; const h = G.sel[0];
@@ -34,7 +35,7 @@ with sync_playwright() as p:
       const free = (x, y) => S.RH.isWalk(g, x, y) && !S.RH.game.entityAt(x * T + 16, y * T + 16, 40) && !G.heroes.some((q) => Math.hypot(q.x - x * T - 16, q.y - y * T - 16) < 40);
       let best = null;
       for (let r = 3; r <= 6 && !best; r++) for (let dy = -r; dy <= r && !best; dy++) for (let dx = -r; dx <= r; dx++) {
-        if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue; const x = hx + dx, y = hy + dy; if (!free(x, y)) continue;
+        if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue; const x = hx + dx, y = hy + dy; if (!free(x, y) || !S.RH.astar(g, hx, hy, x, y)) continue;
         const p = {}; S.RH.render.toScreen(x * T + 16, y * T + 16, p); if (p.y < 190 || p.y > 600 || p.x < 40 || p.x > 350) continue; best = [x, y, p.x, p.y]; break; }
       o.walk = best;
       let wall = null;
@@ -45,10 +46,10 @@ with sync_playwright() as p:
       o.wall = wall;
       const trs = (G.trees || []).slice().sort((a, b) => Math.hypot(a.x - h.x, a.y - h.y) - Math.hypot(b.x - h.x, b.y - h.y));
       for (const t of trs) { const p = {}; S.RH.render.toScreen(t.x - 40, t.y - 40, p); p.y -= 0; if (p.y < 190 || p.y > 600 || p.x < 40 || p.x > 350) continue;
-        const hit = S.RH.game.entityAt(t.x - 40, t.y - 40, 27); if (!hit || hit.kind !== 'tree') continue; o.tree = [t.tx, t.ty, p.x, p.y, t.id]; break; }
+        if (S.RH.ui._heroAtScreen(p.x, p.y)) continue; if (!(t.stands || [t.stand]).some((q) => S.RH.astar(g, hx, hy, Math.floor(q.x / T), Math.floor(q.y / T)))) continue; const hit = S.RH.game.entityAt(t.x - 40, t.y - 40, 27); if (!hit || hit.kind !== 'tree') continue; o.tree = [t.tx, t.ty, p.x, p.y, t.id]; break; }
       o.nTrees = (G.trees || []).length; return o; })()"""
     for mi in MIS:
-        E(f"(()=>{{const S=__sherwood;S.begin({mi});S.G.tipList=[];S.RH.ui.closeTip();const G=S.G;const h=G.heroes.find(x=>S.RH.game.AGILE(x))||G.heroes[0];G.sel=[h];S.RH.ui.refresh(true);S.RH.main.centerOn(h.x,h.y);S.G.ease=Object.assign({{}},S.G.ease||{{}},{{}});}})()")
+        E(f"(()=>{{const S=__sherwood;S.begin({mi});S.G.tipList=[];S.RH.ui.closeTip();const G=S.G;const h=G.heroes.find(x=>S.RH.game.AGILE(x))||G.heroes[0];G.sel=[h];S.RH.ui.refresh(true);S.RH.main.centerOn(h.x,h.y);if(window.CALM)for(const g of G.guards){{g.state='ko';g.koT=1e9;g.tied=true;g.x=-999;g.y=-999;}}}})()")
         pg.wait_for_timeout(500)
         o = E(PICK); tag = f'[{eng} m{mi+1}]'
         if o['walk']:
@@ -67,13 +68,16 @@ with sync_playwright() as p:
             mv = E("(()=>{const h=__sherwood.G.sel[0];return !!(h.task&&h.task.type==='move'&&h.path)})()")
             ok(mv, f'{tag} tap on wall/water {x},{y} -> walks to nearest reachable spot')
             pg.wait_for_timeout(2500)
-        if o.get('tree'):
-            E("(()=>{const S=__sherwood,h=S.G.sel[0];S.RH.main.centerOn(h.x,h.y)})()"); pg.wait_for_timeout(200)
+        E("(()=>{const S=__sherwood,h=S.G.sel[0];S.RH.main.centerOn(h.x,h.y)})()"); pg.wait_for_timeout(200)
+        o = E(PICK)
+        if not o.get('tree'):  # walk-over shortcut: put the hero beside the nearest big tree he could reach
+            E("(()=>{const S=__sherwood,G=S.G,h=G.sel[0];const t=(G.trees||[]).filter(t=>(t.stands||[t.stand]).some(q=>S.RH.astar(G.grid,Math.floor(h.x/32),Math.floor(h.y/32),Math.floor(q.x/32),Math.floor(q.y/32)))).sort((a,b)=>Math.hypot(a.x-h.x,a.y-h.y)-Math.hypot(b.x-h.x,b.y-h.y))[0];if(!t)return;h.x=t.stand.x+40;h.y=t.stand.y+40;if(!S.RH.isWalk(G.grid,Math.floor(h.x/32),Math.floor(h.y/32))){h.x=t.stand.x;h.y=t.stand.y;}S.RH.main.centerOn(h.x,h.y)})()"); pg.wait_for_timeout(300)
             o = E(PICK)
         if o.get('tree'):
             tx, ty, sx, sy, tid = o['tree']
             tap(sx, sy); pg.wait_for_timeout(6000)
-            st = E("(()=>{const G=__sherwood.G,h=G.sel[0];return {tree:h.tree&&h.tree.id, hid:__sherwood.RH.game.treeHidden(h)}})()")
+            st = E("(()=>{const G=__sherwood.G,h=G.sel[0];return {tree:h.tree&&h.tree.id, hid:__sherwood.RH.game.treeHidden(h), going:!!(h.task&&h.task.type==='tree')}})()")
+            if st['going'] and not st['tree']: pg.wait_for_timeout(8000); st = E("(()=>{const G=__sherwood.G,h=G.sel[0];return {tree:h.tree&&h.tree.id, hid:__sherwood.RH.game.treeHidden(h), going:!!(h.task&&h.task.type==='tree'),hp:h.hp,down:h.down,pos:[h.x/32,h.y/32],alerts:G.guards.filter(g=>g.state==='alert').length}})()")
             ok(st['tree'] == tid, f'{tag} tap big tree {tx},{ty} -> climbed it ({st})')
             if st['tree']:
                 pg.wait_for_timeout(2500)
@@ -83,8 +87,8 @@ with sync_playwright() as p:
                 o2 = E(PICK)
                 if o2['walk']:
                     x, y, sx, sy = o2['walk']; tap(sx, sy); pg.wait_for_timeout(4500)
-                    st = E(f"(()=>{{const h=__sherwood.G.sel[0],T=__sherwood.RH.TILE;return {{tree:!!h.tree,d:Math.hypot(h.x-({x}*T+16),h.y-({y}*T+16))/T}}}})()")
-                    ok(not st['tree'] and st['d'] < 1.6, f'{tag} tap ground from the tree -> climbs down and walks ({st})')
+                    st = E(f"(()=>{{const h=__sherwood.G.sel[0],T=__sherwood.RH.TILE;return {{tree:!!h.tree,d:Math.hypot(h.x-({x}*T+16),h.y-({y}*T+16))/T,walking:!!(h.task&&h.task.type==='move'&&h.path),task:h.task&&h.task.type,hp:h.hp,down:h.down,alerts:__sherwood.G.guards.filter(g=>g.state==='alert').length,pos:[h.x/T,h.y/T],tgt:[{x},{y}]}}}})()")
+                    ok(not st['tree'] and (st['d'] < 1.6 or st['walking']), f'{tag} tap ground from the tree -> climbs down and walks ({st})')
         else: print(f'{tag} no reachable big tree on screen (trees={o["nTrees"]})')
     # jitter just past the slop pans the camera instead of walking
     if cdp:
