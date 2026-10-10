@@ -58,7 +58,7 @@
       exit: { x: hx - 1, y: hy - 1, w: 3, h: 3 },
       guards: [], gold: [], traps: [], props: [], tips: [],
     };
-    ['robin', 'john', 'marian', 'tuck', 'scarlet'].forEach((k, i) => { m.heroes[k] = [hx - 2 + i, hy]; });
+    ['robin', 'john', 'marian', 'tuck', 'scarlet', 'stutely'].forEach((k, i) => { m.heroes[k] = [hx - 2 + (i % 5), hy + ((i / 5) | 0)]; });
     // leaf-covered pits on the road and a trap net on a post
     [5 + Math.floor(r() * 5), 18 + Math.floor(r() * 6)].forEach((y, i) => m.traps.push({ kind: i ? 'snare' : 'pit', x: road(y) + (r() < 0.5 ? 0 : 1), y }));
     const ny = 9 + Math.floor(r() * 3);
@@ -147,10 +147,41 @@
     'TTTTTTTTTT...,,...TTTTTTTTTT',
     'TTTTTTTTTTTTT,,TTTTTTTTTTTTT',
   ];
-  const campHeroes = () => ({ robin: [12, 15], john: [15, 15], marian: [11, 14], tuck: [16, 14], scarlet: [13, 16] });
+  const campHeroes = () => ({ robin: [12, 15], john: [15, 15], marian: [11, 14], tuck: [16, 14], scarlet: [13, 16], stutely: [14, 16] });
 
-  RH.defenseMission = function (rank) {
+  // the towns the band holds and must defend once each (the original's three defensive missions)
+  const DEF_TOWN = {
+    Lincoln: { mi: 'm8', fire: [16, 14], from: [[15, 30], [4, 26], [27, 26]] },
+    Derby: { mi: 'm10', fire: [14, 16], from: [[14, 31], [15, 31], [14, 30]] },
+    York: { mi: 'm15', fire: [15, 20], from: [[15, 33], [16, 33], [15, 32]] },
+  };
+  RH.DEF_TOWN = DEF_TOWN;
+  RH.defenseMission = function (rank, town) {
     rank = rank || 1;
+    const D = town && DEF_TOWN[town], src = D && (RH.MISSIONS || []).find((m) => m.id === D.mi);
+    const m = baseDefense(rank);
+    if (!src) return m;
+    const [fx, fy] = D.fire;
+    m.map = src.map.slice(); m.theme = src.theme; m.weather = src.weather || null; m.night = true;
+    m.title = 'The Defence of ' + town; m.place = town; m.town = town;
+    m.heroes = { robin: [fx - 1, fy + 1], john: [fx + 1, fy + 1], marian: [fx - 2, fy], tuck: [fx + 2, fy], scarlet: [fx, fy + 2], stutely: [fx - 1, fy + 2] };
+    const gr = RH.makeGrid(m.map), used = new Set();
+    for (const k of Object.keys(m.heroes)) {
+      let [x, y] = m.heroes[k];
+      if (!gr.walk[y * gr.w + x] || used.has(y * gr.w + x)) { const n = RH.nearestWalk(gr, x, y, used); if (n >= 0) { x = n % gr.w; y = (n / gr.w) | 0; } }
+      used.add(y * gr.w + x); m.heroes[k] = [x, y];
+    }
+    m.band = [fx, fy + 1];
+    m.props = [{ id: 'fire', kind: 'fire', x: fx, y: fy }];
+    m.torches = [[fx, fy], [fx - 3, fy - 2], [fx + 3, fy - 2]];
+    m.defense.fire = [fx, fy];
+    m.defense.waves.forEach((w, i) => { w.from = [D.from[i % D.from.length], D.from[(i + 1) % D.from.length]]; });
+    m.intro = 'The Prince wants ' + town + ' back. Three companies are marching on the town tonight, making for the beacon in the castle yard where our colours fly.\n\nKnock them down before they reach the beacon: if four get through, ' + town + ' is lost. Every blazon you bought or scouted turns two of his men away before the fight.';
+    m.outro = 'By dawn the Prince\u2019s men are tied in a long, embarrassed row outside the gate of ' + town + '. Tuck walks along it handing out ale.\n\nThe town is ours. Let them come again.';
+    m.tips = [{ id: 'def', when: 'start', text: 'They come up the roads from the south. Wait for them in cover and knock them down as they pass. Arrows and nets are your friends tonight.' }];
+    return m;
+  };
+  function baseDefense(rank) {
     return {
       id: 'defense', kind: 'defense', rank, theme: 'forest', night: true, title: 'The Defence of Sherwood', place: 'Our camp in Sherwood', type: 'Base defence', ic: '🛡',
       map: CAMP.slice(), heroes: campHeroes(), band: [14, 16], slots: 8,
@@ -172,7 +203,7 @@
       reward: 80,
       tips: [{ id: 'def', when: 'start', text: 'They come down the trails from the north, east and west. Wait for them in the bushes and knock them down as they pass. Arrows and nets are your friends tonight.' }],
     };
-  };
+}
 
   RH.JOBPOS = { rest: [13, 15], arrows: [9, 11], purses: [17, 11], nets: [9, 16], potions: [17, 16], apples: [5, 9], ale: [21, 9], hives: [7, 21], train: [20, 20], hunt: [4, 12], scout: [13, 4] };
   RH.baseMission = function () {

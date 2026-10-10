@@ -82,7 +82,7 @@
       stats: { ko: 0, kills: 0, tied: 0, gold: 0, spotted: false, alarm: false, alms: 0, treasures: [], hidden: 0, snared: 0, drops: 0, counters: 0, reinf: 0 },
       inv: {
         arrows: P.arrows, potions: P.potions, purses: P.purses, nets: P.nets, apples: P.apples, ale: P.ale, hives: P.hives,
-        stones: 5,
+        stones: 5, clovers: P.clovers | 0,
       },
       spent: 0, flags: {}, revealed: {},
       tipsShown: {}, tipQ: [], torches: (m.torches || []).map(([x, y]) => ({ x: tcx(x), y: tcx(y) })),
@@ -195,6 +195,7 @@
       G.log = { x: cv.path[cv.logStop][0] * TILE, y: cv.path[cv.logStop][1] * TILE + TILE * 1.2 };
     }
     (m.gold || []).forEach(([x, y, v]) => G.gold.push({ x: tcx(x), y: tcx(y), v, taken: false }));
+    (m.clovers || []).forEach(([x, y]) => G.gold.push({ x: tcx(x), y: tcx(y), v: 0, clover: true, taken: false }));
     G.ease = (G.kind === 'story' && EASE[m.id]) || NOEASE;
     for (const h of G.heroes) { h.maxhp += G.ease.hp; h.hp = h.maxhp; }
     if (G.ease.ghp < 1) for (const g of G.guards) if (!g.boss && !g.sheriff) { g.hp = g.maxhp = Math.max(1, Math.round(g.maxhp * G.ease.ghp)); }
@@ -535,7 +536,7 @@
       if (d > 2) { const s = Math.min(d, heroSpeed(h) * dt); const nx = h.x + dx / d * s, ny = h.y + dy / d * s; if (RH.isWalk(G.grid, tileOf(nx), tileOf(ny))) { h.x = nx; h.y = ny; } h.dir = Math.atan2(dy, dx); h.moving = true; }
     }
   }
-  const lethalOf = (h) => h.def.weapon === 'sword' && !h.staff && !G.objs.some((o) => o.k === 'nokill'); // on no-kill nights the band fights with the flat of the blade
+  const lethalOf = (h) => h.def.weapon === 'sword' && !h.staff && !(G.m && G.m.staff) && !G.objs.some((o) => o.k === 'nokill'); // on no-kill nights the band fights with the flat of the blade
 
   function updHero(h, dt) {
     h.atkCd -= dt; h.bowT -= dt; h.hurtT -= dt; if (h.flash > 0) h.flash -= dt;
@@ -551,7 +552,9 @@
     if (h.carry && h.carry !== 'chest') { h.carry.x = h.x; h.carry.y = h.y; }
     if (h.carry === 'chest') { G.chest.x = h.x; G.chest.y = h.y; }
     for (const c of G.gold) if (!c.taken && inRange(h, c.x, c.y, TILE * 0.7)) {
-      c.taken = true; G.stats.gold += c.v; fx('text', c.x, c.y - 20, '+' + c.v, '#ffd84a'); sfx('coin');
+      c.taken = true;
+      if (c.clover) { G.inv.clovers = (G.inv.clovers | 0) + 1; G.stats.clovers = (G.stats.clovers | 0) + 1; fx('text', c.x, c.y - 24, '☘ Four-leaf clover!', '#9dff8a', 1.6); sfx('win'); continue; }
+      G.stats.gold += c.v; fx('text', c.x, c.y - 20, '+' + c.v, '#ffd84a'); sfx('coin');
     }
     const tr = G.treasure;
     if (tr && !tr.taken && inRange(h, tr.x, tr.y, TILE * 0.8)) {
@@ -625,7 +628,7 @@
       case 'tie': {
         if (!e || e.state !== 'ko' || e.tied || e.carried) { h.task = null; return; }
         if (!inRange(h, e.x, e.y, TILE * 0.9)) { approach(h, e.x, e.y, dt); return; }
-        h.path = null; h.busy = 1.0; h.busyType = 'tie'; h.busyTarget = e; h.task = null; sfx('tie'); h.crimeT = 3;
+        h.path = null; h.busy = h.def.quickTie ? 0.45 : 1.0; h.busyType = 'tie'; h.busyTarget = e; h.task = null; sfx('tie'); h.crimeT = 3;
         return;
       }
       case 'search': {
@@ -799,6 +802,8 @@
     if (c.say) RH.ui && RH.ui.tip('💬 ' + c.say);
     for (const id of (c.reveals || [])) G.revealed[id] = true;
     if (c.joins) joinHero(c.joins, c);
+    if (c.allies) { for (const [x, y] of c.allies) spawnAlly(x, y); toast(c.alliesSay || 'His men break out to fight beside you!', 'good'); }
+    if (c.reinforce) spawnGroup(c.reinforce, c.reinforceSay);
     fx('text', c.x, c.y - 40, '✓', '#9dff8a', 1.2);
   }
   function joinHero(key, at) {
@@ -820,11 +825,7 @@
       case 'banner':
         p.used = true; sfx('bell'); fx('text', p.x, p.y - 50, 'The King\u2019s banner!', '#ffe680', 2);
         toast(p.say || 'The banner flies! Guards are running to tear it down.', 'good');
-        for (const g of G.guards) if (active(g) && (!p.lure || p.lure.includes(g.tag))) {
-          const to = p.to || [tileOf(p.x), tileOf(p.y) + 2];
-          g.route = [{ tx: to[0], ty: to[1], x: tcx(to[0]), y: tcx(to[1]), wait: 0 }]; g.looks = [N, N - 0.6, N + 0.6]; g.ri = 0; g.wait = 0;
-          if (g.state !== 'alert') { g.state = 'patrol'; g.path = null; g.icon = '!'; g.iconT = 2; }
-        }
+        lureGuards(p);
         break;
       case 'bell':
         p.used = true; sfx('bell'); fx('ring', p.x, p.y, '', '#ffe680', 1.6);
@@ -849,6 +850,28 @@
         break;
     }
   }
+  // send the tagged guards (or all) to a spot and keep them there
+  function lureGuards(p) {
+    let k = 0;
+    for (const g of G.guards) if (active(g) && (!p.lure || p.lure.includes(g.tag))) {
+      const to = p.to || [tileOf(p.x), tileOf(p.y) + 2];
+      const tx = to[0] + (k % 3) - 1, ty = to[1] + ((k / 3) | 0); k++;
+      const ok = RH.isWalk(G.grid, tx, ty);
+      g.route = [{ tx: ok ? tx : to[0], ty: ok ? ty : to[1], x: tcx(ok ? tx : to[0]), y: tcx(ok ? ty : to[1]), wait: 0 }]; g.looks = p.looks || [N, N - 0.6, N + 0.6]; g.ri = 0; g.wait = 0;
+      if (g.state !== 'alert') { g.state = 'patrol'; g.path = null; g.icon = '!'; g.iconT = 2; }
+    }
+  }
+  // soldiers pour out of a tower or a church (the original's locked towers and hidden guards)
+  function spawnGroup(list, say) {
+    for (const [x, y, type] of list) {
+      const g = mkGuard(x, y, type || 'soldier', G.m.rank);
+      g.route = [{ tx: x, ty: y, x: g.x, y: g.y, wait: 0 }]; g.looks = [S, S - 0.6, S + 0.6]; g.home = { x: g.x, y: g.y }; g.faceTo = g.dir;
+      g.state = 'investigate'; g.lx = G.heroes[0] ? G.heroes[0].x : g.x; g.ly = G.heroes[0] ? G.heroes[0].y : g.y; g.sus = 0.6; g.icon = '!'; g.iconT = 3;
+      G.guards.push(g); G.stats.reinf = (G.stats.reinf | 0) + 1;
+    }
+    sfx('alarm'); toast(say || 'Soldiers burst out to hunt for you!', 'bad');
+  }
+  game.spawnGroup = spawnGroup;
   function hitTarget(p, miss) {
     if (miss) { fx('text', p.x, p.y - 40, 'Wide!', '#ffb08a', 1); sfx('tap'); return; }
     p.hits++; sfx('hit'); fx('text', p.x, p.y - 44, 'Bull\u2019s-eye!', '#ffe680', 1.2);
@@ -859,6 +882,7 @@
     }
     if (p.used) return;
     p.used = true;
+    if (p.lure) { lureGuards(p); if (p.say) toast(p.say, 'good'); }
     if (p.plank) {
       for (const [x, y] of p.plank) { const i = y * G.grid.w + x; G.grid.block[i] = 0; G.grid.walk[i] = 1; }
       G.planks = (G.planks || []).concat(p.plank);
@@ -1007,6 +1031,11 @@
     }
     fx('text', h.x, h.y - 30, '-' + d, '#ff6a5a');
     if (h.hp <= 0) {
+      if (h.kind !== 'ally' && (G.inv.clovers | 0) > 0) {
+        G.inv.clovers--; h.hp = h.maxhp; h.hurtT = 0; fx('text', h.x, h.y - 40, '☘ Saved by a clover!', '#9dff8a', 1.8); sfx('win');
+        toast(h.name + ' was saved by a four-leaf clover (' + G.inv.clovers + ' left)', 'good');
+        return;
+      }
       h.hp = 0; h.down = true; h.task = null; h.path = null; h.busy = 0; h.sneak = false;
       if (h.carry) dropCarry(h);
       sfx('down');
@@ -1447,7 +1476,9 @@
       if (b.cap) continue;
       const near = G.heroes.some((h) => !h.down && (h.x - b.x) ** 2 + (h.y - b.y) ** 2 < (TILE * 1.3) ** 2);
       const foe = G.guards.some((g) => active(g) && !passive(g) && (g.x - b.x) ** 2 + (g.y - b.y) ** 2 < (TILE * 3.5) ** 2);
-      if (near && !foe) { b.t += dt; if (b.t >= 3) { b.cap = true; sfx('win'); fx('text', b.x, b.y - 50, b.label + ' taken!', '#b8ffb0', 1.6); toast(b.label + ' is ours!', 'good'); } }
+      if (near && !foe) { b.t += dt; if (b.t >= 3) { b.cap = true; sfx('win'); fx('text', b.x, b.y - 50, b.label + ' taken!', '#b8ffb0', 1.6); toast(b.label + ' is ours!', 'good');
+        // the allied army only advances when a blazon falls (the original's siege rule)
+        if (G.m.allyWave) { const i0 = G.allyI | 0; const q = (G.m.allies || []).slice(i0, i0 + G.m.allyWave); G.allyI = i0 + q.length; for (const [x, y] of q) spawnAlly(x, y); if (q.length) toast('The King\u2019s men advance!', 'good'); } } }
       else b.t = Math.max(0, b.t - dt * 0.5);
     }
   }
@@ -1681,6 +1712,7 @@
         case 'gold': out.push({ text: (tx || 'Rob them of £' + o.n) + ` (£${G.stats.gold}/${o.n})`, done: G.stats.gold >= o.n, instant: true }); break;
         case 'deliver': out.push({ text: tx || 'Deliver the letter', done: !!(G.chest && G.chest.done) }); break;
         case 'noalarm': out.push({ text: tx || 'Don\u2019t raise the alarm', done: !G.alarmed, neg: true }); break;
+        case 'clear': { const left = G.guards.filter((g) => active(g) && !g.civ && !g.passive && (!o.id || g.tag === o.id)).length; out.push({ text: (tx || 'Knock out every soldier in the castle') + ` (${left} left)`, done: (!o.after || G.contacts.some((c) => c.id === o.after && c.met)) && left === 0 }); break; }
         case 'nokill': out.push({ text: tx || 'Kill no one', done: G.stats.kills === 0, neg: true }); break;
       }
     }
@@ -1764,18 +1796,23 @@
   const contact = (id) => G.contacts.find((c) => c.id === id);
   const nearestFoe = () => { const h = lead(); let b = null, bd = 1e12; for (const g of G.guards) if (active(g) && !g.watch && g.route && g.route.length > 1) { const d = d2(g, h); if (d < bd) { bd = d; b = g; } } return b; };
   const firstBody = () => G.guards.find((g) => g.state === 'ko' && !g.tied && !g.carried && !g.hoisted);
+  // Mission 1 is a tutorial: points come from the mission's own coach table so the map can change freely
+  const inRect = (k) => { const r = (G.m.coach || {})[k], h = lead(); return !!r && !!h && tileOf(h.x) >= r[0] && tileOf(h.y) >= r[1] && tileOf(h.x) <= r[2] && tileOf(h.y) <= r[3]; };
+  const cpt = (k) => { const c = (G.m.coach || {})[k]; return c ? pt(c[0], c[1]) : null; };
   const COACH = {
     m1: [
-      { id: 'walk', text: 'Tap the ground to walk. Head up the road into the village.', at: () => pt(8, 19), done: () => nearPt(pt(8, 19), 2.4) },
-      { id: 'hide', text: 'Guards see whatever is inside their green wedge. Bushes hide you: tap the bush to step into it.', at: () => pt(11, 18), done: () => G.heroes.some((h) => RH.hideAt(G.grid, h.x, h.y)), skip: 30 },
+      { id: 'walk', text: 'Tap the ground to walk. Head for the old shed under the castle wall.', at: () => cpt('walk'), done: () => nearPt(cpt('walk'), 2.4) },
+      { id: 'hide', text: 'Guards see whatever is inside their green wedge. Bushes hide you: tap the bush to step into it.', at: () => cpt('bush'), done: () => G.heroes.some((h) => RH.hideAt(G.grid, h.x, h.y)), skip: 30 },
       { id: 'sneak', text: 'Now tap 🦶 Sneak at the bottom. Sneaking is slower, but guards take much longer to notice you.', ui: 'sneak', done: () => lead().sneak, skip: 25 },
-      { id: 'ko', text: 'A guard walks his rounds in the market. Creep up BEHIND him and tap him to knock him out.', at: () => nearestFoe(), done: () => G.stats.ko > 0, skip: 120 },
+      { id: 'climb', text: 'Robin can climb. Tap the rope mark on the wall to go over it into the castle yard.', at: () => G.climbs[0] ? { x: G.climbs[0].wx, y: G.climbs[0].wy } : null, done: () => inRect('inside'), skip: 120 },
+      { id: 'shoot', text: 'The archers won’t leave their butts until somebody hits one. Tap 🏹 Bow, then tap a straw target: they’ll walk off to admire it.', at: () => G.props.find((p) => p.kind === 'target' && !p.used), need: () => G.props.some((p) => p.kind === 'target' && !p.used), done: () => G.props.some((p) => p.kind === 'target' && p.used), skip: 90 },
+      { id: 'ko', text: 'A guard walks in front of the kitchen. Creep up BEHIND him and tap him to knock him out.', at: () => nearestFoe(), done: () => G.stats.ko > 0, skip: 120 },
       { id: 'tie', text: 'Tap the knocked-out guard to tie him up. If you don’t, he wakes when his ring of stars runs out.', at: () => firstBody(), need: () => !!firstBody(), done: () => G.stats.tied > 0, skip: 45 },
-      { id: 'beggar', text: 'The beggar hears everything. Tap him to give him £10 and he’ll tell you a secret.', at: () => G.beggars[0], done: () => !G.beggars[0] || G.beggars[0].paid > 0, skip: 90 },
-      { id: 'gate', text: 'Two guards watch the manor gate. Tap the rope mark on the wall to climb over, or tap 💰 Purse and toss it near them.', at: () => G.climbs[0] ? { x: G.climbs[0].wx, y: G.climbs[0].wy } : null, done: () => (G.climbs[0] && G.climbs[0].rope) || G.heroes.some((h) => h.y < tcx(7)), skip: 150 },
-      { id: 'wat', text: 'Find old Wat in the manor yard (💬 over his head) and tap him.', at: () => contact('wat'), done: () => contact('wat') && contact('wat').met },
-      { id: 'gisela', text: 'Wat sent you to Gisela at the mill, east of the village. Tap her to talk.', at: () => contact('gisela'), done: () => contact('gisela') && contact('gisela').met },
-      { id: 'exit', text: 'All done! Walk back down the road to the green exit at the bottom of the map.', at: () => ({ x: (G.exit.x + G.exit.w / 2) * TILE, y: (G.exit.y + G.exit.h / 2) * TILE }), done: () => false },
+      { id: 'beggar', text: 'The beggar hears everything. Tap him to give him a coin and he’ll tell you a secret.', at: () => G.beggars[0], done: () => !G.beggars[0] || G.beggars[0].paid > 0, skip: 90 },
+      { id: 'wat', text: 'Find old Wat by the kitchen door (💬 over his head) and tap him.', at: () => contact('wat'), done: () => contact('wat') && contact('wat').met },
+      { id: 'bridge', text: 'Pull the drawbridge winch by the gate to walk out the front, or climb back over the wall.', at: () => G.props.find((p) => p.kind === 'lever'), need: () => G.props.some((p) => p.kind === 'lever' && !p.used), done: () => G.props.some((p) => p.kind === 'lever' && p.used) || !inRect('inside'), skip: 40 },
+      { id: 'gisela', text: 'Wat sent you to his daughter Gisela in the village below the castle. Tap her to talk.', at: () => contact('gisela'), done: () => contact('gisela') && contact('gisela').met },
+      { id: 'exit', text: 'All done! Walk down the road to the green exit at the bottom of the map.', at: () => ({ x: (G.exit.x + G.exit.w / 2) * TILE, y: (G.exit.y + G.exit.h / 2) * TILE }), done: () => false },
     ],
   };
   function updCoach(dt) {
@@ -1816,6 +1853,11 @@
     const st = G.stats;
     st.foes = G.guards.filter((g) => !g.civ).length; st.spared = Math.round(100 * Math.max(0, st.foes - st.kills) / Math.max(1, st.foes));
     st.time = G.time;
+    // the original's mission score: objectives, enemies left unconscious (worth more than dead, dead more than
+    // untouched), and the gold found; time does not count
+    const objs = (G.objs || []).length;
+    st.lost = G.heroes.filter((h) => h.rid && h.down).length;
+    st.score = win ? Math.round(objs * 400 + st.ko * 40 + st.tied * 20 + st.kills * 15 + st.gold * 3 + (st.foes - st.kills) * 10) : 0;
     const stars = win ? 1 + (!st.spotted && !st.alarm ? 1 : 0) + (st.kills === 0 ? 1 : 0) : 0;
     G.over = { win, reason, stars, stats: st };
     sfx(win ? 'win' : 'lose');
@@ -2066,6 +2108,15 @@
     }
   }
   function updWorld(dt) {
+    // trip zones: walking into one springs an ambush (soldiers out of locked towers, a false beggar's friends)
+    for (const z of (G.m.triggers || [])) {
+      if (G.flags['trip' + z.id]) continue;
+      if (G.heroes.some((h) => !h.down && tileOf(h.x) >= z.x && tileOf(h.x) < z.x + z.w && tileOf(h.y) >= z.y && tileOf(h.y) < z.y + z.h)) {
+        G.flags['trip' + z.id] = true;
+        if (z.tip) RH.ui && RH.ui.tip(z.tip);
+        spawnGroup(z.reinforce || [], z.say);
+      }
+    }
     for (let i = G.swarms.length - 1; i >= 0; i--) { G.swarms[i].t -= dt; if (G.swarms[i].t <= 0) G.swarms.splice(i, 1); }
     for (const g of G.guards) if (g.hoisted) g.hoistT = Math.min(1, (g.hoistT || 0) + dt * 2.5);
     const H = G.horn;

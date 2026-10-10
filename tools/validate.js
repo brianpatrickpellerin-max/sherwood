@@ -51,6 +51,6 @@ function check(m, label) {
 }
 (RH.MISSIONS || []).forEach((m, i) => check(m, m.id));
 if (RH.ambush) { for (let s = 1; s < 40; s++) for (const k of ['wagon', 'collector', 'supply']) check(RH.ambush.make(k, s, 1), 'amb-' + k + s); }
-if (RH.defenseMission) check(RH.defenseMission(), 'defense');
+if (RH.defenseMission) { check(RH.defenseMission(), 'defense'); for (const t of Object.keys(RH.DEF_TOWN || {})) { const d = RH.defenseMission(3, t); check(d, 'defense-' + t); for (const w of d.defense.waves) for (const [x, y] of w.from) { const g = RH.makeGrid(d.map); if (!g.walk[y * g.w + x]) { console.log('defense-' + t, 'spawn not walkable', x, y); bad++; } } } }
 if (RH.baseMission) check(RH.baseMission(), 'base');
 console.log(bad ? bad + ' problems' : 'all maps ok', (RH.MISSIONS || []).length, 'missions');

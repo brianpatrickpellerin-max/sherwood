@@ -922,8 +922,9 @@
   function coneGrads(ctx) {
     const mk = (a0, a1, rgb) => { const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 1); g.addColorStop(0, `rgba(${rgb},${a0})`); g.addColorStop(0.75, `rgba(${rgb},${(a0 + a1) / 2})`); g.addColorStop(1, `rgba(${rgb},${a1})`); return g; };
     CONE_G = {
-      norm: mk(0.24, 0.04, '96,214,84'), sus: mk(0.4, 0.1, '255,206,60'), alert: mk(0.52, 0.16, '255,34,20'), charm: mk(0.28, 0.06, '255,130,190'),
-      normN: mk(0.22, 0.05, '120,226,120'),
+      // flat, sharp-edged lime wedges like the original's (sampled about #8ee04a at 40-45%)
+      norm: mk(0.4, 0.34, '142,224,74'), sus: mk(0.46, 0.38, '255,214,60'), alert: mk(0.52, 0.42, '255,40,24'), charm: mk(0.34, 0.28, '255,130,190'),
+      normN: mk(0.32, 0.26, '142,224,74'),
     };
   }
   function drawCones(ctx, inView, worldT) {
@@ -940,7 +941,7 @@
       if (g.state === 'alert' || g.state === 'tohorn' || g.state === 'horn') { fill = CONE_G.alert; line = 'rgba(255,40,20,0.85)'; lw = 1.7; flash = 0.55 + 0.45 * Math.abs(Math.sin(now * 9 + g.id)); }
       else if (g.state === 'charmed') { fill = CONE_G.charm; line = 'rgba(255,140,190,0.55)'; }
       else if (g.sus > 0.25 || g.state === 'investigate' || g.state === 'search') { fill = CONE_G.sus; line = 'rgba(255,214,60,0.85)'; lw = 1.5; }
-      else { fill = G.night ? CONE_G.normN : CONE_G.norm; line = 'rgba(130,255,120,0.5)'; }
+      else { fill = G.night ? CONE_G.normN : CONE_G.norm; line = 'rgba(170,250,110,0.55)'; }
       const half = g.fov / 2, ox = g.x, oy = g.y;
       worldT();
       ctx.translate(ox, oy); ctx.scale(range, range);

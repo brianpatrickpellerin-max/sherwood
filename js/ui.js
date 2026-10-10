@@ -160,77 +160,109 @@
     <button class="btn" data-act="${back || 'title'}">◀ Back</button>`);
   };
 
-  // Parchment campaign map of the shire: forest, river, roads, town, castle and mission seals
+  // The parchment map of England (after the original's campaign map: a horizontal scroll with rolled ends,
+  // Sherwood as a green blob in the middle, five towns sketched in sepia under blue starred banners, roads,
+  // gold seals for today's ambushes and a red shield on the next story mission). Art is our own.
+  const TOWNS = { York: [22, 15], Lincoln: [77, 18], Derby: [17, 40], Nottingham: [60, 47], Leicester: [74, 63], Sherwood: [45, 39] };
+  RH.MAP_TOWNS = TOWNS;
+  function townSketch(x, y, big) {
+    const s = big ? 1.15 : 1;
+    return `<g transform="translate(${x} ${y}) scale(${s})" opacity="0.92">
+      <path d="M-9 4 Q-10 1 -7 0 L7 0 Q10 1 9 4 Z" fill="#c8b48a" stroke="#6a4a2a" stroke-width="0.35"/>
+      <rect x="-6" y="-5" width="12" height="5.5" fill="#e6d6ae" stroke="#5a3a1a" stroke-width="0.35"/>
+      <path d="M-6 -5 h1.5 v-1 h1.5 v1 h1.5 v-1 h1.5 v1 h1.5 v-1 h1.5 v1 h1.5 v-1 h1.5 v1" fill="none" stroke="#5a3a1a" stroke-width="0.3"/>
+      <rect x="-8" y="-9" width="3.4" height="9.5" fill="#e0cfa4" stroke="#5a3a1a" stroke-width="0.35"/>
+      <rect x="4.6" y="-8" width="3.4" height="8.5" fill="#e0cfa4" stroke="#5a3a1a" stroke-width="0.35"/>
+      <rect x="-1.8" y="-11" width="3.6" height="7" fill="#eadcb8" stroke="#5a3a1a" stroke-width="0.35"/>
+      <path d="M-8.4 -9 L-6.3 -11.8 L-4.2 -9 Z M4.2 -8 L6.3 -10.6 L8.4 -8 Z M-2.2 -11 L0 -14 L2.2 -11 Z" fill="#b8a07a" stroke="#5a3a1a" stroke-width="0.3"/>
+      <path d="M-0.8 -2 h1.6 v2.5 h-1.6 Z M-6.8 -6 h1 v1.4 h-1 Z M5.6 -5 h1 v1.4 h-1 Z" fill="#5a3a1a"/>
+      <path d="M0 -14 L0 -20" stroke="#4a3018" stroke-width="0.4"/>
+      <path d="M0 -20 L6.5 -19 Q5.5 -18 6.5 -16.8 L0 -17.4 Z" fill="#2a3e8a" stroke="#141e48" stroke-width="0.25"/>
+      <path d="M2 -18.5 l0.35 0.7 0.75 0.1 -0.55 0.5 0.15 0.75 -0.7 -0.4 -0.7 0.4 0.15 -0.75 -0.55 -0.5 0.75 -0.1 Z M4.3 -18.2 l0.3 0.55 0.6 0.1 -0.45 0.4 0.1 0.6 -0.55 -0.3 -0.55 0.3 0.1 -0.6 -0.45 -0.4 0.6 -0.1 Z" fill="#f2c94a"/>
+    </g>`;
+  }
   function mapSVG() {
     const P = RH.profile;
     const r = RH.rng(7);
-    let trees = '';
-    const tree = (x, y, s, col) => `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${s.toFixed(2)})"><path d="M0 2.4 L0 0.6" stroke="#5a3a1a" stroke-width="0.5"/><path d="M-1.6 1 Q-2 -1.4 0 -2.2 Q2 -1.4 1.6 1 Z" fill="${col}" stroke="#3a2a10" stroke-width="0.25"/></g>`;
-    for (let i = 0; i < 150; i++) {
-      const x = 3 + r() * 52, y = 18 + r() * 56;
-      if ((x - 30) ** 2 / 900 + (y - 48) ** 2 / 900 > 1) continue;
-      trees += tree(x, y, 0.9 + r() * 0.8, r() < 0.15 ? '#9a6a2a' : r() < 0.5 ? '#4a6a2a' : '#3a5a22');
+    const [sx, sy] = TOWNS.Sherwood;
+    // Sherwood: a lumpy green blob of painted canopy
+    let blob = '';
+    for (let i = 0; i < 70; i++) {
+      const a = r() * Math.PI * 2, d = Math.sqrt(r());
+      const x = sx + Math.cos(a) * d * 15, y = sy + Math.sin(a) * d * 12.5;
+      blob += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(2.4 + r() * 2.2).toFixed(1)}" fill="${r() < 0.2 ? '#7a8a2a' : r() < 0.55 ? '#4e7a26' : '#3c6a1e'}" opacity="0.92"/>`;
     }
-    for (let i = 0; i < 22; i++) { const x = 62 + r() * 34, y = 56 + r() * 16; trees += tree(x, y, 0.7 + r() * 0.4, '#5a7a32'); }
-    let fields = '';
-    for (let i = 0; i < 9; i++) { const x = 64 + r() * 28, y = 30 + r() * 18; fields += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${(4 + r() * 4).toFixed(1)}" height="${(2.5 + r() * 2).toFixed(1)}" fill="${r() < 0.5 ? '#c8b06a' : '#a8a05a'}" opacity="0.55" transform="rotate(${(r() * 30 - 15).toFixed(0)} ${x.toFixed(1)} ${y.toFixed(1)})"/>`; }
+    for (let i = 0; i < 40; i++) { const a = r() * Math.PI * 2, d = 0.3 + 0.7 * Math.sqrt(r()); blob += `<circle cx="${(sx + Math.cos(a) * d * 14).toFixed(1)}" cy="${(sy + Math.sin(a) * d * 11.5).toFixed(1)}" r="${(0.8 + r()).toFixed(1)}" fill="#8fb04a" opacity="0.6"/>`; }
+    // hills: the hand-drawn wave marks
+    let hills = '';
+    for (const [hx, hy] of [[44, 12], [86, 40], [36, 64], [58, 70], [8, 26], [90, 70]]) for (let k = 0; k < 3; k++) hills += `<path d="M${hx - 4} ${hy + k * 1.4} q2 -1.6 4 0 t4 0" fill="none" stroke="#9a7a4a" stroke-width="0.35" opacity="0.7"/>`;
+    // roads from Sherwood's edge to each town
+    let roads = '';
+    for (const t of ['York', 'Lincoln', 'Derby', 'Nottingham', 'Leicester']) {
+      const [tx, ty] = TOWNS[t];
+      roads += `<path d="M${sx + (tx - sx) * 0.25} ${sy + (ty - sy) * 0.3} Q${(sx + tx) / 2 + (ty - sy) * 0.12} ${(sy + ty) / 2 - (tx - sx) * 0.08} ${tx} ${ty + 3}" stroke="#f4e6c0" stroke-width="1.5" fill="none" opacity="0.95"/><path d="M${sx + (tx - sx) * 0.25} ${sy + (ty - sy) * 0.3} Q${(sx + tx) / 2 + (ty - sy) * 0.12} ${(sy + ty) / 2 - (tx - sx) * 0.08} ${tx} ${ty + 3}" stroke="#b89a64" stroke-width="0.25" fill="none" stroke-dasharray="1 1"/>`;
+    }
+    let towns = '';
+    for (const t of ['York', 'Lincoln', 'Derby', 'Nottingham', 'Leicester']) {
+      const [tx, ty] = TOWNS[t];
+      towns += townSketch(tx, ty, t === 'Nottingham') + `<text x="${tx + (t === 'York' ? -10 : 0)}" y="${ty + 9}" text-anchor="middle" font-size="3.4" font-family="Palatino, Georgia" font-style="italic" fill="#5a3418" ${t === 'York' ? 'transform="rotate(-24 ' + (tx - 10) + ' ' + (ty + 9) + ')"' : ''}>${t}</text>`;
+    }
     let nodes = '', lines = '';
     const seal = (x, y, act, arg, fill, txt, sub, pulse) => `<g data-act="${act}" data-arg="${arg}" style="cursor:pointer">
         <circle cx="${x}" cy="${y}" r="5.6" fill="transparent"/>
-        ${pulse ? `<circle cx="${x}" cy="${y}" r="6.2" fill="none" stroke="#e8a417" stroke-width="0.8"><animate attributeName="r" values="5.2;7;5.2" dur="1.6s" repeatCount="indefinite"/></circle>` : ''}
-        <circle cx="${x}" cy="${y}" r="4.4" fill="${fill}" stroke="#3a1a08" stroke-width="0.7"/>
-        <circle cx="${x}" cy="${y}" r="3.3" fill="none" stroke="#f0c060" stroke-width="0.3"/>
-        <text x="${x}" y="${y + 1.5}" text-anchor="middle" font-size="${txt.length > 1 ? 3.4 : 4.2}" font-weight="800" font-family="Georgia" fill="#fff4d0">${txt}</text>
-        ${sub ? `<text x="${x}" y="${y + 8.8}" text-anchor="middle" font-size="2.9" fill="#7a3a08">${sub}</text>` : ''}
+        ${pulse ? `<circle cx="${x}" cy="${y}" r="5" fill="none" stroke="#e8a417" stroke-width="0.7"><animate attributeName="r" values="4.2;6;4.2" dur="1.6s" repeatCount="indefinite"/></circle>` : ''}
+        <circle cx="${x}" cy="${y}" r="3.6" fill="${fill}" stroke="#3a1a08" stroke-width="0.55"/>
+        <circle cx="${x}" cy="${y}" r="2.7" fill="none" stroke="#f0c060" stroke-width="0.25"/>
+        <text x="${x}" y="${y + 1.2}" text-anchor="middle" font-size="${txt.length > 1 ? 2.8 : 3.4}" font-weight="800" font-family="Georgia" fill="#fff4d0">${txt}</text>
+        ${sub ? `<text x="${x}" y="${y + 6.6}" text-anchor="middle" font-size="2.3" fill="#7a3a08">${sub}</text>` : ''}
       </g>`;
+    // the red shield marker on the next story mission (the original's red diamond)
+    const shield = (x, y, i) => `<g data-act="brief" data-arg="${i}" style="cursor:pointer"><circle cx="${x}" cy="${y}" r="6" fill="transparent"/>
+        <path d="M${x - 3.4} ${y - 3.6} h6.8 v3 q0 3.6 -3.4 5.2 q-3.4 -1.6 -3.4 -5.2 Z" fill="#c0281a" stroke="#4a0a04" stroke-width="0.5"/>
+        <path d="M${x - 2.2} ${y - 2.4} h4.4 v1.8 q0 2.4 -2.2 3.4 q-2.2 -1 -2.2 -3.4 Z" fill="none" stroke="#f6c860" stroke-width="0.3"/>
+        <text x="${x}" y="${y + 0.9}" text-anchor="middle" font-size="2.8" font-weight="800" font-family="Georgia" fill="#fff4d0">${i + 1}</text>
+        <animateTransform attributeName="transform" type="translate" values="0 0;0 -1.2;0 0" dur="1.4s" repeatCount="indefinite"/></g>`;
+    const perTown = {};
+    const pos = RH.MISSIONS.map((m) => {
+      const t = m.town || 'Sherwood', k = perTown[t] = (perTown[t] || 0) + 1;
+      const [tx, ty] = TOWNS[t] || m.mapPos;
+      const a = -2.4 + k * 1.05;   // seals fan out round the town
+      return [+(tx + Math.cos(a) * 11).toFixed(1), +(ty + 2 + Math.sin(a) * 8).toFixed(1)];
+    });
+    const next = Math.min(P.unlocked, RH.MISSIONS.length) - 1;
     RH.MISSIONS.forEach((m, i) => {
-      const [x, y] = m.mapPos;
-      if (i > 0) { const [px, py] = RH.MISSIONS[i - 1].mapPos; lines += `<path d="M${px} ${py} Q${(px + x) / 2 + 4} ${(py + y) / 2 + 6} ${x} ${y}" stroke="#7a1f14" stroke-width="0.7" stroke-dasharray="1.6 1.4" fill="none" opacity="${i < P.unlocked ? 0.8 : 0.2}"/>`; }
+      const [x, y] = pos[i];
+      if (i > 0 && i < P.unlocked) { const [px, py] = pos[i - 1]; lines += `<path d="M${px} ${py} Q${(px + x) / 2 + 3} ${(py + y) / 2 + 4} ${x} ${y}" stroke="#7a1f14" stroke-width="0.5" stroke-dasharray="1.2 1.2" fill="none" opacity="0.55"/>`; }
       const open = i < P.unlocked && !(m.needRansom && !RH.ransomPaid());
       const st = P.stars[i] || 0;
-      nodes += seal(x, y, open ? 'brief' : 'locked', i, open ? (st ? '#2f6a1e' : '#9a1f12') : '#8a7a5a', open ? String(i + 1) : '?', open ? '★'.repeat(st) + '☆'.repeat(3 - st) : '', open && !st);
+      if (open && i === next && !st) { nodes += shield(x, y, i); return; }
+      nodes += seal(x, y, open ? 'brief' : 'locked', i, open ? (st ? '#2f6a1e' : '#9a1f12') : '#8a7a5a', open ? String(i + 1) : '?', open && st ? '★'.repeat(st) + '☆'.repeat(3 - st) : '', false);
     });
-    const spots = [[34, 26], [38, 64], [44, 33]];
-    (P.offers || []).forEach((o, k) => { const [x, y] = spots[k % spots.length]; nodes += seal(x, y, 'amb', k, '#6a4a1a', RH.ambush.KINDS[o.kind].ic, 'today', true); });
-    if (P.defenseOpen && !P.defenseDone) nodes += seal(10, 40, 'defense', 0, '#2a3a6a', '🛡', 'defend!', true);
-    return `<svg class="map" viewBox="0 0 100 78" role="img" aria-label="Campaign map">
+    // ambushes: gold seals on the roads at the forest's edge, today only
+    const spots = [[33, 30], [57, 31], [36, 50], [55, 46]];
+    (P.offers || []).forEach((o, k) => { const [x, y] = spots[k % spots.length]; nodes += `<g data-act="amb" data-arg="${k}" style="cursor:pointer"><circle cx="${x}" cy="${y}" r="5.6" fill="transparent"/><circle cx="${x}" cy="${y}" r="3.2" fill="#e0a92a" stroke="#6a4208" stroke-width="0.6"><animate attributeName="r" values="3;3.6;3" dur="1.6s" repeatCount="indefinite"/></circle><circle cx="${x}" cy="${y}" r="2.2" fill="none" stroke="#fff0a8" stroke-width="0.3"/><text x="${x}" y="${y + 1}" text-anchor="middle" font-size="2.6">${RH.ambush.KINDS[o.kind].ic}</text><text x="${x}" y="${y + 6.2}" text-anchor="middle" font-size="2.2" fill="#7a3a08">0! today</text></g>`; });
+    if (P.defenseOpen && !P.defenseDone) { const [dx, dy] = TOWNS[P.defTown] || [10, 40]; nodes += seal(dx - 9, dy - 8, 'defense', 0, '#2a3a8a', '🛡', 'defend!', true); }
+    return `<svg class="map" viewBox="-6 0 112 78" role="img" aria-label="Map of England">
       <defs>
-        <radialGradient id="pg" cx="50%" cy="45%" r="70%"><stop offset="0" stop-color="#f0dfae"/><stop offset="0.75" stop-color="#ddc184"/><stop offset="1" stop-color="#b8945a"/></radialGradient>
-        <pattern id="hatch" width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><line x1="0" y1="0" x2="0" y2="2" stroke="#8a6a3a" stroke-width="0.25" opacity="0.5"/></pattern>
+        <radialGradient id="pg" cx="50%" cy="45%" r="70%"><stop offset="0" stop-color="#f3e3b4"/><stop offset="0.7" stop-color="#e2c992"/><stop offset="1" stop-color="#c4a066"/></radialGradient>
+        <linearGradient id="roll" x1="0" x2="1"><stop offset="0" stop-color="#9a7a4a"/><stop offset="0.35" stop-color="#f0dcae"/><stop offset="0.6" stop-color="#d8bd88"/><stop offset="1" stop-color="#7a5a32"/></linearGradient>
       </defs>
-      <rect x="0" y="0" width="100" height="78" fill="url(#pg)"/>
-      <ellipse cx="30" cy="48" rx="29" ry="29" fill="#7a9a4a" opacity="0.18"/>
-      <path d="M58 0 Q64 10 70 8 T86 16" fill="none" stroke="#9a8a6a" stroke-width="0.3"/>
-      <path d="M2 4 Q12 1 24 6 Q30 9 38 5" fill="none" stroke="url(#hatch)" stroke-width="5" opacity="0.6"/>
-      ${fields}${trees}
-      <path d="M100 26 Q84 30 76 44 Q70 56 72 66 T64 78" stroke="#4a7a98" stroke-width="2.6" fill="none" opacity="0.75"/>
-      <path d="M100 26 Q84 30 76 44 Q70 56 72 66 T64 78" stroke="#a8c8d8" stroke-width="0.6" fill="none" opacity="0.7"/>
-      <path d="M36 0 Q38 20 36 32 Q34 50 40 78" stroke="#8a6a3a" stroke-width="1" stroke-dasharray="2.4 1.2" fill="none" opacity="0.8"/>
-      <path d="M36 32 Q48 40 58 48 Q70 54 84 58" stroke="#8a6a3a" stroke-width="0.9" stroke-dasharray="2.4 1.2" fill="none" opacity="0.8"/>
-      <g transform="translate(60 58)">
-        <path d="M-9 -2 L-9 6 L9 6 L9 -2" fill="none" stroke="#5a4a3a" stroke-width="0.6"/>
-        <rect x="-7" y="-1" width="4" height="4" fill="#d8c8a0" stroke="#3a2a1a" stroke-width="0.3"/><path d="M-7.6 -1 L-5 -3.4 L-2.4 -1 Z" fill="#9a3a24" stroke="#3a2a1a" stroke-width="0.3"/>
-        <rect x="-1.5" y="-2" width="4" height="5" fill="#d8c8a0" stroke="#3a2a1a" stroke-width="0.3"/><path d="M-2.1 -2 L0.5 -4.8 L3.1 -2 Z" fill="#8a3420" stroke="#3a2a1a" stroke-width="0.3"/>
-        <rect x="4" y="0" width="3.5" height="3.5" fill="#d8c8a0" stroke="#3a2a1a" stroke-width="0.3"/><path d="M3.4 0 L5.75 -2.4 L8.1 0 Z" fill="#9a3a24" stroke="#3a2a1a" stroke-width="0.3"/>
-      </g>
-      <g transform="translate(70 17)">
-        <rect x="-7" y="-3" width="14" height="8" fill="#b8ac90" stroke="#3a2a1a" stroke-width="0.5"/>
-        <path d="M-7 -3 h2 v-1.2 h1.4 v1.2 h1.6 v-1.2 h1.4 v1.2 h1.6 v-1.2 h1.4 v1.2 h1.6 v-1.2 h1.4 v1.2 h2" fill="none" stroke="#3a2a1a" stroke-width="0.4"/>
-        <rect x="-9" y="-6" width="4" height="11" fill="#b8ac90" stroke="#3a2a1a" stroke-width="0.5"/><path d="M-9.6 -6 L-7 -9.6 L-4.4 -6 Z" fill="#6a5a7a" stroke="#3a2a1a" stroke-width="0.4"/>
-        <rect x="5" y="-6" width="4" height="11" fill="#b8ac90" stroke="#3a2a1a" stroke-width="0.5"/><path d="M4.4 -6 L7 -9.6 L9.6 -6 Z" fill="#6a5a7a" stroke="#3a2a1a" stroke-width="0.4"/>
-        <rect x="-1.4" y="1" width="2.8" height="4" fill="#3a2a1a"/>
-      </g>
-      <g transform="translate(90 60)"><rect x="-3" y="-6" width="6" height="10" fill="#a89a80" stroke="#3a2a1a" stroke-width="0.5"/><path d="M-3.6 -6 L0 -9.6 L3.6 -6 Z" fill="#6a5a7a" stroke="#3a2a1a" stroke-width="0.4"/></g>
-      <g transform="translate(9 72)"><path d="M-3.5 2.5 L0 -3 L3.5 2.5 Z" fill="#e8d8a8" stroke="#3a2a1a" stroke-width="0.4"/><path d="M1 2.5 L4 -1.5 L7 2.5 Z" fill="#d8c898" stroke="#3a2a1a" stroke-width="0.4"/><circle cx="-5" cy="2" r="0.9" fill="#e86a20"/></g>
-      <text x="21" y="16" font-size="5" font-family="Palatino, Georgia" font-style="italic" fill="#2a4a1a" opacity="0.9">Sherwood Forest</text>
-      <text x="60" y="65" text-anchor="middle" font-size="3.6" font-family="Palatino, Georgia" fill="#4a2a10">Nottingham</text>
-      <text x="70" y="26.5" text-anchor="middle" font-size="3" font-family="Palatino, Georgia" fill="#4a2a10">the Castle</text>
-      <text x="88" y="45" font-size="2.8" font-family="Palatino, Georgia" font-style="italic" fill="#2a5a7a" transform="rotate(-50 88 45)">river</text>
-      <text x="14" y="77" font-size="3" font-family="Palatino, Georgia" fill="#2a4a1a">our camp</text>
-      ${lines}${nodes}
-      <g transform="translate(93 9)"><circle r="5" fill="none" stroke="#6a4a1a" stroke-width="0.5"/><text y="-5.8" text-anchor="middle" font-size="3" fill="#6a4a1a">N</text><path d="M0 -4 L1.4 0 L0 4 L-1.4 0 Z" fill="#6a4a1a"/></g>
-      <rect x="0.6" y="0.6" width="98.8" height="76.8" fill="none" stroke="#6a4a1a" stroke-width="0.6"/>
+      <rect x="0" y="2" width="100" height="74" fill="url(#pg)"/>
+      <path d="M0 2 Q30 0 50 2.5 T100 2 M0 76 Q30 78 50 75.5 T100 76" stroke="#a88a5a" stroke-width="0.4" fill="none"/>
+      ${hills}${roads}
+      <g>${blob}</g>
+      <text x="${sx}" y="${sy - 1}" text-anchor="middle" font-size="4.2" font-family="Palatino, Georgia" font-weight="700" fill="#fffbe8" stroke="#2a3a12" stroke-width="0.25">Sherwood</text>
+      <g transform="translate(${sx} ${sy + 4})"><path d="M-3 1.5 L0 -1.8 L3 1.5 Z" fill="#c8a870" stroke="#3a2a10" stroke-width="0.3"/><circle cx="4" cy="1" r="0.8" fill="#e86a20"/></g>
+      ${towns}${lines}${nodes}
+      <rect x="-6" y="0" width="7" height="78" rx="3.5" fill="url(#roll)" stroke="#5a3a1a" stroke-width="0.4"/>
+      <rect x="99" y="0" width="7" height="78" rx="3.5" fill="url(#roll)" stroke="#5a3a1a" stroke-width="0.4"/>
     </svg>`;
+  }
+  // the line under the map, as in the original: "Money - Score - Lives saved"
+  function mapStatus() {
+    const P = RH.profile;
+    const saved = P.foes ? Math.round(100 * Math.max(0, P.foes - P.kills) / P.foes) : 100;
+    return `<div class="mapstatus">Money: £${P.gold} &nbsp;-&nbsp; Score: ${P.score | 0} &nbsp;-&nbsp; Lives saved: ${saved}%</div>`;
   }
 
   const jobName = (id) => (RH.JOBS.find((j) => j.id === id) || RH.JOBS[0]);
@@ -274,15 +306,15 @@
         <div class="popbar"><i style="width:${Math.round(100 * Math.min(1, P.ransom / RH.RANSOM))}%"></i></div>
         <div class="small-note">£ ${P.ransom} of £ ${RH.RANSOM}${RH.ransomPaid() ? ' · paid in full!' : ''}</div>
         ${RH.ransomPaid() ? '' : `<div class="alms">${[25, 50, 100].map((v) => `<button class="btn" data-act="ransom" data-arg="${v}" ${P.gold >= 1 ? '' : 'disabled'}>£ ${v}</button>`).join('')}</div>`}</div>` : '';
-    const defense = P.defenseOpen && !P.defenseDone ? `<div class="card scroll"><h2>🛡 The Defence of Sherwood</h2>
-        <p class="small-note">The Sheriff is gathering men to raid the camp. Each blazon you hold turns 2 of his men away before the fight. Buy them below, or set 3 men to 👁 Scout the roads for one a day.</p>
+    const defense = P.defenseOpen && !P.defenseDone ? `<div class="card scroll"><h2>🛡 The Defence of ${esc(P.defTown || 'Sherwood')}</h2>
+        <p class="small-note">The Prince is gathering men to take ${esc(P.defTown || 'the camp')} back. Each blazon you hold turns 2 of his men away before the fight. Buy them below, or set 3 men to 👁 Scout the roads for one a day.</p>
         <div class="small-note">Blazons: <b>${P.blazons}</b></div>
-        <button class="btn prim" data-act="defense">🛡 Defend the camp</button></div>` : '';
+        <button class="btn prim" data-act="defense">🛡 Defend ${esc(P.defTown || "the camp")}</button></div>` : '';
     const treasures = P.treasures.length ? `<div class="card"><h2>Royal treasures (${P.treasures.length}/5)</h2><div class="small-note">${P.treasures.map((t) => '👑 ' + esc(t)).join(' · ')}</div></div>` : '';
     show(`<div class="hdr"><h1>Sherwood Camp</h1><div class="pills"><div class="goldpill">£ ${P.gold}</div><div class="goldpill">♥ ${Math.floor(P.pop)}</div><div class="goldpill">Day ${P.day}</div></div></div>
       ${note ? `<div class="card"><p>${note}</p></div>` : ''}
       ${allDone ? '<div class="card"><p><b>The legend is complete!</b> Replay any mission to earn more stars and gold.</p></div>' : ''}
-      <div class="mapwrap">${mapSVG()}</div>
+      <div class="mapwrap">${mapSVG()}</div>${mapStatus()}
       <div style="margin-top:6px">${list}</div>
       ${offers ? `<div class="card"><h2>On the roads today</h2><p class="small-note">Ambushes for gold and men. They’re gone once you play the next story mission.</p>${offers}</div>` : ''}
       ${defense}${ransom}
@@ -377,20 +409,30 @@
       const reward = RH.commitWin(res);
       const stars = [0, 1, 2].map((k) => `<span class="${k < res.stars ? '' : 'off'}">★</span>`).join('');
       const outro = G.m.outro || 'The silver is shared out in the villages by nightfall, and the story of it travels faster than the Sheriff\u2019s riders.';
-      show(`<div class="card" style="text-align:center"><div class="place">${amb ? 'Ambush complete' : 'Mission complete'}</div><h2>${esc(G.m.title)}</h2>
+      // laid out like the original's "Mission won" scroll: raised, money, lives spared, new men, losses, score, duration
+      const n = G.campNews || { joined: [], volunteers: [] };
+      const men = (n.joined || []).concat(n.volunteers || []).map((r) => r.name).concat((G.joined || []).map((k) => RH.HEROES[k] && RH.HEROES[k].name).filter(Boolean));
+      const livesN = Math.max(0, (st.foes || 0) - st.kills);
+      show(`<div class="card endscroll"><div class="won">${amb ? 'Ambush won' : G.kind === 'defense' ? 'Town held' : 'Mission won'}</div><h2>${esc(G.m.title)}</h2>
         ${amb ? '' : `<div class="stars">${stars}</div>`}
-        <div style="text-align:left">
-        <div class="stat big"><span>Money</span><b>£ ${st.gold}</b></div>
-        <div class="stat big"><span>Spared lives</span><b>${st.spared != null ? st.spared : 100}%</b></div>
-        <div class="stat big"><span>Time</span><b>${fmtTime(st.time)}</b></div>
-        ${st.alms ? `<div class="stat"><span>Given to beggars</span><b>£ ${st.alms}</b></div>` : ''}
-        <div class="stat"><span>Knocked out / slain</span><b>${st.ko} / ${st.kills}</b></div>
-        ${amb ? '' : `<div class="stat"><span>Finished</span><b>★</b></div>
-        <div class="stat"><span>Never spotted, no alarm</span><b>${!st.spotted && !st.alarm ? '★' : '—'}</b></div>
-        <div class="stat"><span>Nobody killed</span><b>${st.kills === 0 ? '★' : '—'}</b></div>`}
-        ${st.hidden ? `<div class="stat"><span>Bodies hidden indoors</span><b>${st.hidden}</b></div>` : ''}${st.snared ? `<div class="stat"><span>Hoisted in snares</span><b>${st.snared}</b></div>` : ''}${st.reinf ? `<div class="stat"><span>Reinforcements called</span><b>${st.reinf}</b></div>` : ''}
-        <div class="stat"><span>${amb ? 'Into the camp chest' : 'Reward'}</span><b>£ ${reward}</b></div>
-        </div>${newsHTML(G.campNews)}<p style="text-align:left">${esc(outro)}</p></div>
+        <div class="ledger">
+        <div>You have raised: <b>£${reward}</b>.</div>
+        <div>Money in this level: <b>£${st.gold}</b>${st.alms ? ` <i>(£${st.alms} given to beggars)</i>` : ''}</div>
+        <div class="gap">Lives spared: <b>${livesN}</b> (<b>${st.spared != null ? st.spared : 100}%</b>).</div>
+        <div>New men: <b>${men.length}</b>.</div>
+        ${men.map((nm) => `<div>${esc(nm)} has joined the band!</div>`).join('')}
+        <div>Merry men lost in combat: <b>${st.lost | 0}</b>.</div>
+        <div class="gap">Score for this mission: <b>${st.score | 0}</b>.</div>
+        <div>Duration of the mission: <b>${fmtTime(st.time)}</b>.</div>
+        </div>
+        <details class="more"><summary>More</summary>
+        <div class="stat"><span>Knocked out / tied / slain</span><b>${st.ko} / ${st.tied} / ${st.kills}</b></div>
+        ${amb ? '' : `<div class="stat"><span>★ Never spotted, no alarm</span><b>${!st.spotted && !st.alarm ? '★' : '—'}</b></div>
+        <div class="stat"><span>★ Nobody killed</span><b>${st.kills === 0 ? '★' : '—'}</b></div>`}
+        ${st.hidden ? `<div class="stat"><span>Bodies hidden indoors</span><b>${st.hidden}</b></div>` : ''}${st.snared ? `<div class="stat"><span>Hoisted in snares</span><b>${st.snared}</b></div>` : ''}${st.reinf ? `<div class="stat"><span>Reinforcements called</span><b>${st.reinf}</b></div>` : ''}${st.clovers ? `<div class="stat"><span>Four-leaf clovers found</span><b>${st.clovers}</b></div>` : ''}
+        </details>
+        ${newsHTML(G.campNews)}<p class="outro">${esc(outro)}</p>
+        <div class="seals"><button class="seal teal" data-act="camp" aria-label="Back to camp">✔</button></div></div>
         <button class="btn" data-act="camp">🏕 Back to camp</button>
         ${amb || G.kind === 'defense' ? '' : '<button class="btn sec" data-act="retry">↻ Play again for more stars</button>'}`, true);
     } else {
@@ -543,6 +585,7 @@
     // money readout + minimap
     const money = RH.game.money();
     const mv = $('moneyv'); if (mv.textContent !== String(money)) mv.textContent = money;
+    const cv = $('cloverv'); if (cv && cv.textContent !== String(G.inv.clovers | 0)) cv.textContent = G.inv.clovers | 0;
     RH.render.drawMinimap($('minimap'));
     // objectives
     const objs = RH.game.objectives();

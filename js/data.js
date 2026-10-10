@@ -8,10 +8,11 @@
     john:    { name: 'Little John', hp: 9, speed: 2.3, dmg: 2, weapon: 'staff', tunic: '#5b6fa8', trim: '#c9b27a', hat: null,      hair: '#4a2c14', skin: '#e2b48a', icon: '💪', abil: ['sweep', 'net', 'snare', 'whistle'], blurb: 'Huge and strong. His staff sweep floors everyone around him; one-blow knockouts on anyone, carries fast, throws nets, sets net snares, whistles to lure.', big: true },
     marian:  { name: 'Marian',      hp: 5, speed: 2.8, dmg: 1, weapon: 'sword', tunic: '#9c2a3a', trim: '#e8c46a', hat: null,      hair: '#b0522a', skin: '#f3d0ae', icon: '🌹', abil: ['charm', 'bow'], social: true, blurb: 'Walks freely among the guards, as long as they don\u2019t see her fight or carry a body. Charms a guard so he sees only her. A fine shot too.' },
     tuck:    { name: 'Friar Tuck',  hp: 7, speed: 2.1, dmg: 1, weapon: 'staff', tunic: '#7a5634', trim: '#d9c08a', hat: null,      hair: '#c8a070', skin: '#eab896', icon: '✚', abil: ['heal', 'hive', 'ale'], blurb: 'Heals and revives. Beehives send a group running in panic; a mug of his ale puts any guard to sleep.', round: true },
+    stutely: { name: 'Will Stutely', hp: 5, speed: 2.7, dmg: 1, weapon: 'staff', tunic: '#8a6a2a', trim: '#4a3a1a', hat: '#5a4a1e', hair: '#6a4020', skin: '#efc39c', icon: '🍎', abil: ['apple', 'net'], quickTie: true, blurb: 'Robin\u2019s old lieutenant. Ties a man up in a blink, throws apples to turn heads and nets to pin a guard. His cudgel knocks out rather than kills.' },
     scarlet: { name: 'Will Scarlet', hp: 6, speed: 2.8, dmg: 2, weapon: 'sword', tunic: '#c0362c', trim: '#2a2a2a', hat: '#7d1d18', hair: '#2b1a10', skin: '#efc39c', icon: '🪨', abil: ['sling', 'apple'], blurb: 'Fast blade. His sling knocks a guard out from afar; an apple turns a guard\u2019s head.' },
     hob:     { name: 'Hob',         hp: 4, speed: 2.4, dmg: 0, weapon: null,    tunic: '#8a7a5a', trim: '#5a4a2a', hat: null,      hair: '#9a6a3a', skin: '#efc39c', icon: '🙂', blurb: 'Little John\u2019s cousin.', npc: true },
   };
-  RH.HERO_ORDER = ['robin', 'john', 'marian', 'tuck', 'scarlet'];
+  RH.HERO_ORDER = ['robin', 'stutely', 'scarlet', 'john', 'marian', 'tuck'];
 
   // ---------- Generic outlaws (recruits) ----------
   RH.OUTLAW_NAMES = ['Alan Ashdown', 'Hal Thatcher', 'Piers Cooper', 'Ned Fletcher', 'Tom Wainwright', 'Jack Shepherd', 'Cobb Turner', 'Simkin Reeve', 'Dickon Hale', 'Osric Fenn', 'Rafe Tanner', 'Gib Mossop', 'Wyn Carter', 'Hugh Lathe', 'Bennet Rowe', 'Jory Swale'];
