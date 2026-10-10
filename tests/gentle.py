@@ -78,14 +78,15 @@ with sync_playwright() as p:
     c = E("(() => { const t={x:0,y:0}; const r=__sherwood.G.heroes[0]; __sherwood.RH.render.toScreen(r.x,r.y,t); return t; })()")
     x0, y0 = c['x'] - 110, c['y'] - 110
     cdp = None
-    # long press on empty ground then drag (dispatch real touch events)
-    E(f"""(() => {{ const cv=document.getElementById('cv'); const mk=(type,x,y)=>{{ const t=new Touch({{identifier:7,target:cv,clientX:x,clientY:y}}); cv.dispatchEvent(new TouchEvent(type,{{touches:type==='touchend'?[]:[t],changedTouches:[t],cancelable:true,bubbles:true}})); }};
-      window.__mk=mk; mk('touchstart',{x0},{y0}); }})()""")
-    pg.wait_for_timeout(650)
-    E(f"__mk('touchmove',{x0+120},{y0+120}); __mk('touchmove',{x0+230},{y0+230})")
-    shot('box_select'); pg.wait_for_timeout(100)
-    E(f"__mk('touchend',{x0+230},{y0+230})"); pg.wait_for_timeout(300)
-    ok('long-press drag box selects the group', E("__sherwood.G.sel.length") >= 2, E("__sherwood.G.sel.map(h=>h.key)"))
+    if eng == 'chromium':  # WebKit can't synthesise Touch objects; real taps cover it on device
+        # long press on empty ground then drag (dispatch real touch events)
+        E(f"""(() => {{ const cv=document.getElementById('cv'); const mk=(type,x,y)=>{{ const t=new Touch({{identifier:7,target:cv,clientX:x,clientY:y}}); cv.dispatchEvent(new TouchEvent(type,{{touches:type==='touchend'?[]:[t],changedTouches:[t],cancelable:true,bubbles:true}})); }};
+          window.__mk=mk; mk('touchstart',{x0},{y0}); }})()""")
+        pg.wait_for_timeout(650)
+        E(f"__mk('touchmove',{x0+120},{y0+120}); __mk('touchmove',{x0+230},{y0+230})")
+        shot('box_select'); pg.wait_for_timeout(100)
+        E(f"__mk('touchend',{x0+230},{y0+230})"); pg.wait_for_timeout(300)
+        ok('long-press drag box selects the group', E("__sherwood.G.sel.length") >= 2, E("__sherwood.G.sel.map(h=>h.key)"))
     if 'john' in hs:
         E("(() => { const G=__sherwood.G; const j=G.heroes.find(h=>h.key==='john'); G.sel=[j]; let n=0; for (const g of G.guards) if (__sherwood.RH.game.isActive(g) && n<3) { g.x=j.x+30*Math.cos(n*2); g.y=j.y+30*Math.sin(n*2); n++; } j.cd=0; })()")
         pg.wait_for_timeout(300)

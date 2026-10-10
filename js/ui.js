@@ -132,8 +132,12 @@
     show(`<div class="card scroll"><h2>How to play</h2><ul class="help">
       <li><b>Tap a portrait</b> to choose an outlaw. Tap it again (or 👥 All) to move the whole band.</li>
       <li><b>Tap the ground</b> to walk. <b>Drag</b> to look around, <b>pinch</b> to zoom.</li>
+      <li><b>Hold, then drag</b> on open ground to draw a box around several outlaws; tap the ground and the group follows together. The camera follows whoever you’ve picked until you drag it yourself.</li>
+      <li><b>Arrows at the screen edge</b> point to guards who are onto you (yellow ?, red !) and to your next goal (gold).</li>
+      <li><b>Hurt?</b> In the early missions your outlaws slowly heal once nobody is chasing them. If the band falls you can <b>retry from the last checkpoint</b> (saved each time you complete a goal).</li>
       <li><b>Green wedges</b> are what guards see; they sweep as the guard turns his head. Yellow means suspicious (?), flashing red means you’ve been spotted (!). On the minimap your band are green dots, guards red.</li>
       <li><b>🦶 Sneak</b> makes you much harder to spot. <b>Bushes and hay</b> hide you.</li>
+      <li><b>🌀 Little John’s staff sweep</b> floors everyone standing around him at once.</li>
       <li><b>Tap a guard</b> from behind to knock him out. <b>Tap the body</b> to tie him up, or a guard who finds him will shake him awake. Then <b>tap the body again</b> to carry it, and <b>tap a house door</b> to stuff it inside, out of sight for good.</li>
       <li><b>🏠 Houses:</b> tap a door to hide inside (the roof fades so you can see who’s in). Tap ‘Come out’ or the ground to leave.</li>
       <li><b>🌿 Ivy</b> on a house wall leads to the roof. Robin, Marian and Will climb it; walk along the rooftops, shoot from above, and jump down onto an unwary guard to flatten him.</li>
