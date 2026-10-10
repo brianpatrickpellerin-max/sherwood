@@ -1805,8 +1805,8 @@
       if (!active(g) || d2(g, h) > (1.6 * TILE) ** 2) continue;
       n++;
       if (g.boss || g.sheriff || g.type === 'knight') { g.stagger = 1.4; g.hp -= 1; fx('text', g.x, g.y - 40, 'Staggered!', '#ffe6a0', 0.9); if (g.hp <= 0) defeat(g, false); continue; }
-      if (passive(g) || g.state !== 'alert' || g.hp <= 2) { knockOut(g, 30); fx('text', g.x, g.y - 40, 'Swept!', '#ffe6a0', 0.9); }
-      else { g.hp -= 2; g.stagger = 1.6; g.state = g.state === 'alert' ? 'alert' : g.state; fx('text', g.x, g.y - 40, 'Swept off his feet!', '#ffe6a0', 0.9); if (g.hp <= 0) knockOut(g, 30); }
+      // floored: out cold if he never saw it coming, dazed for a shorter while in a brawl
+      knockOut(g, g.state === 'alert' ? 14 : 30); fx('text', g.x, g.y - 40, 'Swept off his feet!', '#ffe6a0', 0.9);
     }
     if (!n) fx('text', h.x, h.y - 40, 'Whoosh!', '#fff6c0', 0.8);
     return n;
