@@ -202,7 +202,7 @@
     c.translate(X, Y);
     if (!flat) { c.fillStyle = 'rgba(0,0,0,0.32)'; c.beginPath(); c.ellipse(1, 0.5, 7 * sc, 3 * sc, 0, 0, 7); c.fill(); }
     c.scale(side * sc, sc);
-    c.lineWidth = 0.75; c.strokeStyle = OUT; c.lineJoin = 'round'; c.lineCap = 'round';
+    c.lineWidth = 0.9; c.strokeStyle = OUT; c.lineJoin = 'round'; c.lineCap = 'round';
     // legs
     if (!L.dress && !L.round) {
       c.strokeStyle = OUT; c.lineWidth = 3.4;
@@ -217,7 +217,7 @@
       c.beginPath(); c.ellipse(1.8 - walk, -0.6, 1.8, 1, 0, 0, 7); c.fill();
     }
     c.translate(0, -bob);
-    c.lineWidth = 0.75; c.strokeStyle = OUT;
+    c.lineWidth = 0.9; c.strokeStyle = OUT;
     // cloak / quiver behind
     if (L.cloak) { c.fillStyle = L.cloak; c.beginPath(); c.moveTo(-3.5, -23); c.lineTo(3, -23); c.lineTo(-1 - walk, -5); c.lineTo(-6.5 - walk, -6); c.closePath(); c.fill(); c.stroke(); }
     if (L.quiver && !back) { c.fillStyle = '#6a4222'; c.save(); c.translate(-3.6, -19); c.rotate(-0.35); c.fillRect(-1.4, -6, 2.8, 9); c.fillStyle = '#e8e0c8'; c.fillRect(-1.2, -8, 0.8, 2.4); c.fillRect(0.3, -8.4, 0.8, 2.6); c.restore(); }
@@ -238,6 +238,11 @@
       c.fillStyle = L.tabard; c.beginPath(); c.moveTo(-2.6, -22.6); c.lineTo(2.6, -22.6); c.lineTo(3, -9.5); c.lineTo(-3, -9.5); c.closePath(); c.fill(); c.stroke();
       if (!back) { c.fillStyle = L.emblem; c.fillRect(-0.5, -20.5, 1, 6.5); c.fillRect(-2, -18.4, 4, 1); }
     }
+    // sunlit near side, folds and a darker hem so the cloth reads as cloth, not flat colour
+    c.fillStyle = 'rgba(255,238,200,0.2)'; c.beginPath(); c.moveTo(-3.6, -22.8); c.lineTo(-1.6, -22.8); c.lineTo(L.dress ? -3.2 : -2.6, L.dress ? -1.8 : -10.8); c.lineTo(L.dress ? -5.2 : -4.4, L.dress ? -1.8 : -10.8); c.closePath(); c.fill();
+    c.strokeStyle = 'rgba(20,12,6,0.28)'; c.lineWidth = 0.45; c.beginPath(); c.moveTo(-0.8, -20); c.lineTo(-1.2, L.dress ? -2 : -11); c.moveTo(1.6, -19); c.lineTo(2, L.dress ? -2 : -11); c.stroke();
+    c.fillStyle = 'rgba(20,12,6,0.25)'; if (L.dress) c.fillRect(-5.3, -3.2, 10.6, 1.6); else c.fillRect(-4.5, -11.9, 9, 1.3);
+    c.lineWidth = 0.75; c.strokeStyle = OUT;
     // shading on the far side
     c.fillStyle = 'rgba(0,0,0,0.16)'; c.beginPath(); c.moveTo(1.2, -23); c.lineTo(3.8, -23); c.lineTo(L.dress ? 5.4 : 4.6, L.dress ? -1.5 : -10.5); c.lineTo(1.6, L.dress ? -1.5 : -10.5); c.closePath(); c.fill();
     // belt
@@ -245,6 +250,7 @@
     // head
     const hy = -26.6;
     c.fillStyle = L.skin; c.beginPath(); c.arc(0.4, hy, 3.3, 0, 7); c.fill(); c.stroke();
+    c.fillStyle = 'rgba(60,30,10,0.22)'; c.beginPath(); c.arc(0.4, hy, 3.3, -0.6, 1.4); c.lineTo(0.9, hy); c.fill();
     // hair & face
     c.fillStyle = L.hair;
     const k = L.key;

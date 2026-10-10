@@ -47,8 +47,8 @@
   const COB = ['#8e8472', '#9a907c', '#80786a', '#a49a84', '#776e60'];
   const FLAG = ['#9c9282', '#a89e8c', '#908676', '#b0a690'];
   const WATER = '#4a6658';
-  const STONE_W = ['#8f8268', '#857a62', '#9c8f74', '#7a705c', '#968a6e'];
-  const STONE_C = ['#8c887c', '#7e7a6e', '#989282', '#726e64', '#908878'];
+  const STONE_W = ['#a0927a', '#94866c', '#ad9f84', '#887b63', '#b3a586', '#9a8a6a'];
+  const STONE_C = ['#a29a88', '#968e7c', '#b0a894', '#8a8372', '#bbb19b', '#9c927c'];
   const ROOF_CLAY = ['#9a4a2c', '#8a4228', '#a85a34', '#7e3c26'];
   const ROOF_BROWN = ['#6e5644', '#7a604a', '#5e4a3c'];
   const ROOF_THATCH = ['#a8864a', '#9a7a40', '#b8955a'];
@@ -98,6 +98,10 @@
         if (k === 'grass' && r() < 0.18) splat(c, '#a09a50', px + (r() - 0.5) * 30, py + (r() - 0.5) * 30, 8 + r() * 12, 0.35);
       } else if (k === 'dirt') {
         for (let i = 0; i < 6; i++) splat(c, pick(r, DIRT), px + (r() - 0.5) * 30, py + (r() - 0.5) * 30, 12 + r() * 14, 0.5 + r() * 0.4);
+        for (let i = 0; i < 7; i++) { const ex = px - 16 + r() * T, ey = py - 16 + r() * T, rr = 0.7 + r() * 1.6;
+          c.fillStyle = 'rgba(40,28,16,0.45)'; c.beginPath(); c.ellipse(ex + 0.5, ey + 0.6, rr, rr * 0.75, 0, 0, 7); c.fill();
+          c.fillStyle = pick(r, ['#a08a68', '#8e7a5c', '#b4a07c', '#7a6a52']); c.beginPath(); c.ellipse(ex, ey, rr, rr * 0.75, 0, 0, 7); c.fill(); }
+        if (r() < 0.3) { c.strokeStyle = 'rgba(50,34,18,0.35)'; c.lineWidth = 0.6; c.beginPath(); const ex = px - 16 + r() * T, ey = py - 16 + r() * T; c.moveTo(ex, ey); c.lineTo(ex + (r() - 0.5) * 12, ey + (r() - 0.5) * 12); c.lineTo(ex + (r() - 0.5) * 16, ey + (r() - 0.5) * 16); c.stroke(); }
       } else if (k === 'mud') {
         for (let i = 0; i < 6; i++) splat(c, pick(r, ['#7a6244', '#6a5438', '#8a7050', '#5e4a32', '#7e6a4e']), px + (r() - 0.5) * 30, py + (r() - 0.5) * 30, 12 + r() * 14, 0.5 + r() * 0.4);
         if (r() < 0.25) splat(c, pick(r, GRASS), px + (r() - 0.5) * 30, py + (r() - 0.5) * 30, 8 + r() * 10, 0.45);
@@ -123,6 +127,17 @@
     c.globalAlpha = 0.55; c.drawImage(nz, 0, 0, W, H);
     c.globalAlpha = 0.35; c.drawImage(nz, 0, 0, 12, 12, 0, 0, W, H);
     c.restore();
+    // fine grain (1-2 px speckle) and mid-scale blotches so no patch of ground reads as flat colour
+    {
+      const gn = cv(96, 96), gx = gn.getContext('2d'), gd = gx.createImageData(96, 96);
+      for (let i = 0; i < 96 * 96; i++) { const v = 128 + (r() - 0.5) * 150; gd.data[i * 4] = gd.data[i * 4 + 1] = gd.data[i * 4 + 2] = v; gd.data[i * 4 + 3] = 255; }
+      gx.putImageData(gd, 0, 0);
+      c.save(); c.globalCompositeOperation = 'overlay';
+      c.globalAlpha = 0.32; c.fillStyle = c.createPattern(gn, 'repeat'); c.fillRect(0, 0, W, H);
+      const mid = noiseCanvas(32, r); c.globalAlpha = 0.4; c.imageSmoothingEnabled = true;
+      for (let yy = 0; yy < H; yy += 256) for (let xx = 0; xx < W; xx += 256) c.drawImage(mid, xx, yy, 256, 256);
+      c.restore();
+    }
     // cobbles / flagstones / planks
     for (let y = 0; y < g.h; y++) for (let x = 0; x < g.w; x++) {
       const k = cl(x, y), px = x * T, py = y * T;
@@ -137,15 +152,23 @@
           c.fillStyle = 'rgba(255,245,220,0.22)'; c.beginPath(); c.ellipse(sx + 2.3, sy + 2.2, 1.5, 1.1, 0, 0, 7); c.fill();
         }
       } else if (k === 'flag') {
-        c.strokeStyle = 'rgba(50,44,36,0.55)'; c.lineWidth = 0.9;
-        const n = 2;
-        for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
-          const sx = px + i * 16 + ((j + y) % 2) * 8, sy = py + j * 16;
-          c.fillStyle = pick(r, FLAG); c.fillRect(sx + 0.6, sy + 0.6, 15, 15);
-          c.strokeRect(sx + 0.5, sy + 0.5, 15.5, 15.5);
-          c.fillStyle = 'rgba(255,250,230,0.12)'; c.fillRect(sx + 1, sy + 1, 14, 2);
-          if (r() < 0.2) { c.beginPath(); c.moveTo(sx + r() * 16, sy); c.lineTo(sx + r() * 16, sy + 16); c.stroke(); }
+        c.fillStyle = 'rgba(52,46,36,0.75)'; c.fillRect(px, py, T, T);
+        const rows = [0, 9 + r() * 4, 20 + r() * 3, T];
+        for (let j = 0; j < 3; j++) {
+          let u = px - ((y * 7 + j * 5) % 11);
+          while (u < px + T) {
+            const bw = 8 + r() * 9, x0 = Math.max(px, u), x1 = Math.min(px + T, u + bw), y0 = py + rows[j], y1 = py + rows[j + 1];
+            if (x1 - x0 < 2) { u += bw; continue; }
+            const col = sh(pick(r, FLAG), 0.88 + r() * 0.22);
+            c.fillStyle = col; c.fillRect(x0 + 0.6, y0 + 0.6, x1 - x0 - 1.2, y1 - y0 - 1.2);
+            c.fillStyle = 'rgba(255,250,230,0.16)'; c.fillRect(x0 + 0.6, y0 + 0.6, x1 - x0 - 1.2, 1); c.fillRect(x0 + 0.6, y0 + 0.6, 1, y1 - y0 - 1.2);
+            c.fillStyle = 'rgba(30,26,18,0.25)'; c.fillRect(x0 + 0.6, y1 - 1.6, x1 - x0 - 1.2, 1);
+            if (r() < 0.25) { c.fillStyle = 'rgba(40,34,24,0.18)'; c.beginPath(); c.ellipse((x0 + x1) / 2, (y0 + y1) / 2, (x1 - x0) * 0.35, (y1 - y0) * 0.3, 0, 0, 7); c.fill(); }
+            if (r() < 0.12) { c.strokeStyle = 'rgba(30,26,18,0.4)'; c.lineWidth = 0.5; c.beginPath(); c.moveTo(x0 + r() * (x1 - x0), y0); c.lineTo(x0 + r() * (x1 - x0), y1); c.stroke(); }
+            u += bw;
+          }
         }
+        if (r() < 0.35) for (let i = 0; i < 4; i++) { c.fillStyle = 'rgba(80,100,40,0.5)'; c.fillRect(px + r() * T, py + rows[1 + (i % 2)] - 0.8, 2 + r() * 3, 1.2); }
       } else if (k === 'wood') {
         for (let j = 0; j < 4; j++) {
           c.fillStyle = sh('#7a5636', 0.85 + r() * 0.3); c.fillRect(px, py + j * 8, T + 0.5, 8);
@@ -191,7 +214,7 @@
       const k = cl(x, y), px = x * T, py = y * T;
       if (k === 'grass' || k === 'forest') {
         c.lineWidth = 0.8;
-        for (let i = 0; i < 7; i++) {
+        for (let i = 0; i < 16; i++) {
           const gx = px + r() * T, gy = py + r() * T;
           c.strokeStyle = r() < 0.5 ? 'rgba(170,190,90,0.5)' : 'rgba(40,55,20,0.45)';
           c.beginPath(); c.moveTo(gx, gy); c.lineTo(gx - 1.2, gy - 3.5); c.moveTo(gx + 1, gy); c.lineTo(gx + 2, gy - 3.2); c.stroke();
@@ -228,25 +251,53 @@
 
   // Draw stone courses on a face in local coords (u along edge 0..L, v up 0..H)
   function stoneFace(c, L, H, pal, lit, r, opts) {
-    c.fillStyle = sh(pal[0], lit); c.fillRect(0, 0, L, H);
-    const ch = opts && opts.course || 6.5;
-    for (let v = 0, row = 0; v < H; v += ch, row++) {
-      let u = -((row * 5.3) % 11);
+    // ashlar courses: every block bevelled (lit top/left lip, dark bottom/right lip), speckled, some chipped,
+    // pale mortar between, rain streaks and grime at the foot, moss and the odd ivy tendril
+    c.fillStyle = sh('#6e6656', lit * 0.9); c.fillRect(0, 0, L, H);
+    const ch0 = opts && opts.course || 6.2;
+    for (let v = 0, row = 0; v < H; row++) {
+      const ch = Math.min(H - v, ch0 * (0.8 + r() * 0.45));
+      let u = -r() * 9;
       while (u < L) {
-        const bw = 8 + r() * 7;
-        c.fillStyle = sh(pick(r, pal), lit * (0.9 + r() * 0.18));
-        c.fillRect(u + 0.5, v + 0.5, bw - 1, Math.min(ch, H - v) - 1);
-        c.fillStyle = `rgba(255,245,215,${0.12 * lit})`; c.fillRect(u + 0.5, v + Math.min(ch, H - v) - 1.6, bw - 1, 1);
+        const bw = (row % 3 === 0 ? 10 : 7) + r() * 8;
+        const k = lit * (0.86 + r() * 0.24);
+        const col = pick(r, pal);
+        c.fillStyle = sh(col, k); c.fillRect(u + 0.6, v + 0.6, bw - 1.2, ch - 1.2);
+        // bevel: top lip (v high = up on screen) catches the sun, bottom and right edges fall in shadow
+        c.fillStyle = `rgba(255,248,225,${0.26 * lit})`; c.fillRect(u + 0.6, v + ch - 1.7, bw - 1.2, 1.1); c.fillRect(u + 0.6, v + 0.6, 0.9, ch - 1.2);
+        c.fillStyle = 'rgba(28,22,14,0.32)'; c.fillRect(u + 0.6, v + 0.6, bw - 1.2, 0.9); c.fillRect(u + bw - 1.5, v + 0.6, 0.9, ch - 1.2);
+        // speckle and pits
+        for (let i = 0; i < 3; i++) { c.fillStyle = r() < 0.5 ? 'rgba(40,32,22,0.28)' : `rgba(255,245,220,${0.18 * lit})`; c.fillRect(u + 1 + r() * (bw - 3), v + 1 + r() * (ch - 2.5), 0.9, 0.7); }
+        if (r() < 0.08) { c.fillStyle = 'rgba(30,24,16,0.45)'; c.beginPath(); c.moveTo(u + bw - 1, v + ch - 1); c.lineTo(u + bw - 4, v + ch - 1); c.lineTo(u + bw - 1, v + ch - 4); c.fill(); }
+        if (r() < 0.07) { c.strokeStyle = 'rgba(30,24,16,0.4)'; c.lineWidth = 0.5; c.beginPath(); c.moveTo(u + bw * 0.3, v + ch - 1); c.lineTo(u + bw * 0.45, v + ch * 0.4); c.lineTo(u + bw * 0.4, v + 1); c.stroke(); }
         u += bw;
       }
+      v += ch;
     }
-    c.fillStyle = 'rgba(30,24,16,0.25)';
-    for (let v = 0; v < H; v += ch) c.fillRect(0, v, L, 0.7);
+    // vertical rain streaks
+    for (let i = 0; i < L / 9; i++) {
+      const x = r() * L, len = H * (0.25 + r() * 0.5);
+      const g = c.createLinearGradient(0, H, 0, H - len); g.addColorStop(0, 'rgba(40,34,24,0.22)'); g.addColorStop(1, 'rgba(40,34,24,0)');
+      c.fillStyle = g; c.fillRect(x, H - len, 1.5 + r() * 2.5, len);
+    }
     // grime at the foot, moss
-    const gr = c.createLinearGradient(0, 0, 0, Math.min(14, H));
-    gr.addColorStop(0, 'rgba(40,34,20,0.45)'); gr.addColorStop(1, 'rgba(40,34,20,0)');
-    c.fillStyle = gr; c.fillRect(0, 0, L, Math.min(14, H));
-    if (r() < 0.35) splat(c, '#4a6024', r() * L, r() * H * 0.6, 4 + r() * 6, 0.5);
+    const gr = c.createLinearGradient(0, 0, 0, Math.min(16, H));
+    gr.addColorStop(0, 'rgba(46,40,22,0.55)'); gr.addColorStop(1, 'rgba(46,40,22,0)');
+    c.fillStyle = gr; c.fillRect(0, 0, L, Math.min(16, H));
+    for (let i = 0; i < L / 6; i++) if (r() < 0.5) { c.fillStyle = pick(r, ['rgba(74,96,36,0.55)', 'rgba(96,110,44,0.45)', 'rgba(56,72,28,0.5)']); c.beginPath(); c.ellipse(r() * L, r() * 4, 1.5 + r() * 3, 1 + r() * 1.5, 0, 0, 7); c.fill(); }
+    if (r() < 0.35) splat(c, '#4a6024', r() * L, r() * H * 0.6, 4 + r() * 6, 0.45);
+    if (!(opts && opts.noIvy) && H > 20 && r() < 0.22) ivyPatch(c, r() * L, 0, 6 + r() * 10, H * (0.4 + r() * 0.5), r);
+  }
+  // a hanging ivy patch on a face (local u right, v up)
+  function ivyPatch(c, u, v, w, h, r) {
+    c.strokeStyle = 'rgba(40,52,20,0.8)'; c.lineWidth = 0.7;
+    for (let i = 0; i < 3; i++) { const x = u + r() * w; c.beginPath(); c.moveTo(x, v); c.quadraticCurveTo(x + (r() - 0.5) * 6, v + h / 2, x + (r() - 0.5) * 4, v + h); c.stroke(); }
+    const n = Math.floor(w * h / 9);
+    for (let i = 0; i < n; i++) {
+      const y = v + Math.pow(r(), 0.7) * h, x = u + r() * w * (1 - (y - v) / h * 0.4);
+      c.fillStyle = pick(r, ['#2e4a1a', '#3e5e22', '#557a2c', '#6c8c34', '#2a3e16']);
+      c.beginPath(); c.ellipse(x, y, 1.6 + r() * 0.8, 1.1 + r() * 0.5, r() * 3, 0, 7); c.fill();
+    }
   }
   // affine helpers for faces of a tile-sized block (anchor = tile centre)
   // SW face: u from left corner (-32,0) to bottom (0,16); v up.  SE face: from bottom (0,16) to right (32,0).
@@ -257,23 +308,34 @@
   function wallBlock(s, H, sw, se, cren, style, seed) {
     const r = RH.rng(seed);
     const pal = style === 'castle' ? STONE_C : STONE_W;
-    return sprite(s, -33, -18 - H - 8, 66, 36 + H + 10, (c) => {
+    return sprite(s, -33, -H - 34, 66, H + 52, (c) => {
       if (sw) withFace(c, FACE_SW, () => stoneFace(c, 32, H, pal, 1.0, r));
       if (se) withFace(c, FACE_SE, () => stoneFace(c, 32, H, pal, 0.68, r));
       // top
       c.beginPath(); c.moveTo(0, -16 - H); c.lineTo(32, -H); c.lineTo(0, 16 - H); c.lineTo(-32, -H); c.closePath();
       c.fillStyle = sh(pal[2], 0.94); c.fill();
+      c.save(); c.clip(); c.transform(1, 0.5, -1, 0.5, 0, -H);
+      for (let j = 0; j < 4; j++) for (let i = 0; i < 3; i++) {
+        const fx = -16 + i * 11 + (j % 2) * 5 - 5, fy = -16 + j * 8;
+        c.fillStyle = sh(pick(r, pal), 0.92 + r() * 0.16); c.fillRect(fx + 0.6, fy + 0.6, 10, 6.8);
+        c.fillStyle = 'rgba(255,250,230,0.15)'; c.fillRect(fx + 0.6, fy + 0.6, 10, 0.9);
+      }
+      c.restore();
       c.strokeStyle = 'rgba(40,34,26,0.1)'; c.lineWidth = 0.7; c.stroke();
       for (let k = 0; k < 5; k++) { c.fillStyle = `rgba(${r() < 0.5 ? '60,50,34' : '230,220,190'},0.12)`; c.beginPath(); c.ellipse((r() - 0.5) * 30, -H + (r() - 0.5) * 12, 3 + r() * 5, 1.5 + r() * 2, 0, 0, 7); c.fill(); }
       if (cren) {
-        const merl = (m, lit) => withFace(c, m, () => {
-          for (let i = 0; i < 3; i++) {
-            const u = 3 + i * 11;
-            c.fillStyle = sh(pal[1], lit); c.fillRect(u, H, 6, 7);
-            c.fillStyle = `rgba(255,245,220,${0.2 * lit})`; c.fillRect(u, H + 6, 6, 1);
-          }
-        });
-        if (sw) merl(FACE_SW, 1); if (se) merl(FACE_SE, 0.7);
+        // a parapet lip along the outer edges, then square merlons standing on it (drawn back to front)
+        if (sw) box(c, 0, 14.5, H, 32, 3, 3, pal[1], 0.7);
+        if (se) box(c, 14.5, 0, H, 3, 32, 3, pal[1], 0.7);
+        const ms = [];
+        if (sw) for (let i = 0; i < 2; i++) ms.push([-8 + i * 16, 14.5]);
+        if (se) for (let i = 0; i < 2; i++) ms.push([14.5, 8 - i * 16]);
+        ms.sort((a, b) => (a[0] + a[1]) - (b[0] + b[1]));
+        for (const [mx, my] of ms) {
+          const P = box(c, mx, my, H + 3, mx === 14.5 ? 3.6 : 9, my === 14.5 ? 3.6 : 9, 8, pick(r, pal), 0.66);
+          const t = P(mx - 4.5, my + 1.8, H + 11), t2 = P(mx + 4.5, my + 1.8, H + 11);
+          c.strokeStyle = 'rgba(255,248,225,0.35)'; c.lineWidth = 0.7; c.beginPath(); c.moveTo(t[0], t[1]); c.lineTo(t2[0], t2[1]); c.stroke();
+        }
       }
       // edge lines
       c.strokeStyle = 'rgba(30,24,16,0.45)'; c.lineWidth = 0.8;
@@ -312,11 +374,17 @@
     }
     // weathering streaks
     for (let i = 0; i < 4; i++) splat(c, r() < 0.5 ? '#3a3020' : '#b0a080', r() * L, r() * V, 6 + r() * 10, 0.18);
+    // moss and lichen on old shingles, darker at the eaves
+    for (let i = 0; i < L * V / 220; i++) splat(c, pick(r, ['#5a6a2a', '#6e7a34', '#4a5424']), r() * L, r() * V * 0.6, 2 + r() * 5, 0.35);
+    const eg = c.createLinearGradient(0, 0, 0, Math.min(10, V)); eg.addColorStop(0, 'rgba(20,10,4,0.35)'); eg.addColorStop(1, 'rgba(20,10,4,0)'); c.fillStyle = eg; c.fillRect(0, 0, L, Math.min(10, V));
   }
 
   function timberFace(c, L, H, lit, r, opts) {
     const pl = pick(r, PLASTER);
     c.fillStyle = sh(pl, lit); c.fillRect(0, 0, L, H);
+    // rough lime plaster: blotches, speckle, and a few patches where it has fallen off the wattle
+    for (let i = 0; i < L * H / 14; i++) { c.fillStyle = r() < 0.5 ? `rgba(120,96,60,${0.12 + r() * 0.1})` : `rgba(255,248,225,${0.14 * lit})`; c.fillRect(r() * L, r() * H, 0.8 + r() * 1.6, 0.7 + r()); }
+    for (let i = 0; i < 2; i++) if (r() < 0.5) { const u = r() * (L - 8), v = 9 + r() * (H - 18); c.fillStyle = sh('#8a6a48', lit * 0.85); c.beginPath(); c.ellipse(u + 3, v, 3 + r() * 2, 1.8 + r(), 0, 0, 7); c.fill(); c.strokeStyle = sh('#5a4028', lit); c.lineWidth = 0.4; for (let k = -2; k <= 2; k++) { c.beginPath(); c.moveTo(u + 3 + k * 1.2, v - 1.5); c.lineTo(u + 3 + k * 1.2, v + 1.5); c.stroke(); } }
     // grime gradient
     const gr = c.createLinearGradient(0, 0, 0, H);
     gr.addColorStop(0, 'rgba(70,50,30,0.35)'); gr.addColorStop(0.3, 'rgba(70,50,30,0.05)'); gr.addColorStop(1, 'rgba(70,50,30,0.12)');
@@ -509,6 +577,9 @@
           c.fillStyle = sh(pick(r, pal), 0.9 + r() * 0.2);
           c.beginPath(); c.moveTo(rx * Math.cos(p0), y + ry * Math.sin(p0)); c.lineTo(rx * Math.cos(p1), y + ry * Math.sin(p1));
           c.lineTo(rx * Math.cos(p1), y - ch + 0.8 + ry * Math.sin(p1)); c.lineTo(rx * Math.cos(p0), y - ch + 0.8 + ry * Math.sin(p0)); c.closePath(); c.fill();
+          c.strokeStyle = 'rgba(255,248,225,0.22)'; c.lineWidth = 0.7; c.beginPath(); c.moveTo(rx * Math.cos(p0) * 0.99, y - ch + 1.3 + ry * Math.sin(p0)); c.lineTo(rx * Math.cos(p1) * 0.99, y - ch + 1.3 + ry * Math.sin(p1)); c.stroke();
+          c.strokeStyle = 'rgba(28,22,14,0.35)'; c.beginPath(); c.moveTo(rx * Math.cos(p1), y - 0.4 + ry * Math.sin(p1)); c.lineTo(rx * Math.cos(p1), y - ch + 1 + ry * Math.sin(p1)); c.stroke();
+          if (r() < 0.25) { c.fillStyle = 'rgba(40,32,22,0.3)'; c.fillRect(rx * Math.cos((p0 + p1) / 2) - 0.5, y - ch * 0.5 + ry * Math.sin((p0 + p1) / 2), 1, 0.8); }
         }
       }
       // shading: lit from the left
@@ -526,6 +597,9 @@
       c.strokeStyle = 'rgba(30,24,16,0.45)'; c.lineWidth = 0.8;
       c.beginPath(); c.moveTo(-rx, -H); c.lineTo(-rx, 0); c.ellipse(0, 0, rx, ry, 0, Math.PI, 0, true); c.lineTo(rx, -H); c.stroke();
       let y = -H;
+      // corbel ring: a row of little brackets under the top
+      for (let j = 0; j < 12; j++) { const a = (j + 0.5) / 12 * Math.PI, px = rx * 1.02 * Math.cos(a), py = ry * Math.sin(a); c.fillStyle = sh(pal[1], a < 1.6 ? 0.95 : 0.6); c.fillRect(px - 1.6, y + py, 3.2, 4); c.fillStyle = 'rgba(20,16,10,0.4)'; c.fillRect(px - 1.6, y + py + 3.4, 3.2, 0.8); }
+      c.fillStyle = 'rgba(20,16,10,0.35)'; c.beginPath(); c.ellipse(0, y + 0.5, rx * 1.03, ry * 1.03, 0, 0, Math.PI); c.lineTo(-rx * 1.03, y + 2); c.ellipse(0, y + 2, rx * 1.03, ry * 1.03, 0, Math.PI, 0, true); c.fill();
       if (hoard) {
         // timber hoarding gallery
         const hx = rx * 1.08;
@@ -596,23 +670,27 @@
         cl.push([Math.cos(a) * d * R * 0.82, cy + Math.sin(a) * d * R * 0.66, R * (0.28 + r() * 0.18)]);
       }
       cl.sort((a, b) => a[1] - b[1]);
-      for (const [x, y, rc] of cl) { c.fillStyle = pal[0]; c.beginPath(); c.arc(x + 1.5, y + 2.5, rc, 0, 7); c.fill(); }
-      for (const [x, y, rc] of cl) { c.fillStyle = r() < 0.15 ? pal[0] : pal[1]; c.beginPath(); c.arc(x, y, rc * 0.92, 0, 7); c.fill(); }
+      // dark under-mass and drop shadow inside the crown
+      for (const [x, y, rc] of cl) { c.fillStyle = 'rgba(10,16,6,0.55)'; c.beginPath(); c.arc(x + 2, y + 3, rc, 0, 7); c.fill(); }
+      for (const [x, y, rc] of cl) { c.fillStyle = pal[0]; c.beginPath(); c.arc(x, y, rc, 0, 7); c.fill(); }
+      // every clump is a heap of small leaves, lit from the upper left, darker underneath
       for (const [x, y, rc] of cl) {
-        const lit = (-(x / R) - (y - cy) / R) * 0.5 + 0.5;
-        if (lit < 0.42) continue;
-        c.globalAlpha = Math.min(1, lit); c.fillStyle = pal[2];
-        c.beginPath(); c.arc(x - rc * 0.28, y - rc * 0.3, rc * 0.55, 0, 7); c.fill();
+        const n = Math.floor(rc * rc * 0.35) + 10;
+        for (let i = 0; i < n; i++) {
+          const a = r() * Math.PI * 2, d = Math.sqrt(r()) * rc;
+          const lx = x + Math.cos(a) * d, ly = y + Math.sin(a) * d * 0.9;
+          const lit = (-(lx - x) / rc - (ly - y) / rc) * 0.42 + 0.5 + (-(x / R) - (y - cy) / R) * 0.22 + (r() - 0.5) * 0.3;
+          c.fillStyle = lit > 0.78 ? pal[3] : lit > 0.52 ? pal[2] : lit > 0.28 ? pal[1] : pal[0];
+          c.beginPath(); c.ellipse(lx, ly, 1.3 + r() * 1.1, 0.8 + r() * 0.6, r() * 3, 0, 7); c.fill();
+        }
       }
-      c.globalAlpha = 1;
-      // leaf speckles
-      for (let i = 0; i < 170; i++) {
+      // sunlit leaf tips on the crown's upper left
+      for (let i = 0; i < 90; i++) {
         const a = r() * Math.PI * 2, d = Math.sqrt(r());
-        const x = Math.cos(a) * d * R * 0.95, y = cy + Math.sin(a) * d * R * 0.78;
-        const lit = (-(x / R) - (y - cy) / R) * 0.5 + 0.5 + (r() - 0.5) * 0.4;
-        c.fillStyle = lit > 0.62 ? pal[3] : lit > 0.4 ? pal[2] : lit > 0.2 ? pal[1] : pal[0];
-        c.globalAlpha = 0.85;
-        c.beginPath(); c.ellipse(x, y, 1.6 + r(), 1 + r() * 0.6, r() * 3, 0, 7); c.fill();
+        const x = Math.cos(a) * d * R * 0.9, y = cy + Math.sin(a) * d * R * 0.74;
+        if (-(x / R) - (y - cy) / R < 0.2) continue;
+        c.fillStyle = pal[3]; c.globalAlpha = 0.9;
+        c.beginPath(); c.ellipse(x, y, 1 + r() * 0.8, 0.7 + r() * 0.4, r() * 3, 0, 7); c.fill();
       }
       c.globalAlpha = 1;
       // a few dark holes
