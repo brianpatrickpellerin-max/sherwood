@@ -279,12 +279,12 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-user
 #coachmin { min-width: 40px; min-height: 40px; border-radius: 8px; border: 1px solid #8a6a2a; background: rgba(90,60,20,0.15); font-size: 20px; font-weight: 800; color: #5a3a10; }
 #coach.min #coachtext { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
 .hascoach #tip { top: calc(var(--sat) + 214px); }
-.hascoach #toasts { top: calc(var(--sat) + 216px); }
+.hascoach #toasts { top: auto; bottom: calc(var(--sab) + 200px); }
 #selbox { position: absolute; border: 2px dashed #9dff7a; background: rgba(120,230,90,0.12); pointer-events: none; z-index: 5; }
 .act.pulse { animation: actpulse 1s ease-in-out infinite; }
 @keyframes actpulse { 0%,100% { box-shadow: 0 0 0 0 rgba(255,216,74,0.9); } 50% { box-shadow: 0 0 0 7px rgba(255,216,74,0.25); transform: scale(1.06); } }
 @media (orientation: landscape) and (max-height: 500px) {
   #coach { top: calc(var(--sat) + 62px); left: calc(var(--sal) + 140px); right: calc(var(--sar) + 70px); font-size: 13px; padding: 4px 4px 4px 10px; }
   .hascoach #tip { top: calc(var(--sat) + 122px); }
-  .hascoach #toasts { top: calc(var(--sat) + 124px); }
+  .hascoach #toasts { top: auto; bottom: calc(var(--sab) + 96px); }
 }
