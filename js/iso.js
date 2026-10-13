@@ -1420,6 +1420,15 @@
           for (let dy = -6; dy <= 6; dy++) for (let dx = -6; dx <= 6; dx++) { const qx = x + dx, qy = y + dy; if (qx >= 0 && qy >= 0 && qx < W && qy < H) avoid[qy * W + qx] = 1; }
           wells++;
         }
+        // market stalls with cloth awnings around the open squares
+        let stalls = 0;
+        for (let y = 2; y < H - 2 && stalls < 4; y++) for (let x = 2; x < W - 2 && stalls < 4; x++) {
+          let ok = true; for (let dy = -1; dy <= 1 && ok; dy++) for (let dx = -1; dx <= 1 && ok; dx++) if (!open(x + dx, y + dy)) ok = false;
+          if (!ok || dr() > 0.12) continue;
+          const [ax, ay] = tc(x, y); add(stall(s, 6100 + stalls * 17), ax, ay, (x + y + 1) * T, x, y, 38); castShadow(x * T + 4, y * T + 6, 24, 20, 26);
+          for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) { const qx = x + dx, qy = y + dy; if (qx >= 0 && qy >= 0 && qx < W && qy < H) avoid[qy * W + qx] = 1; }
+          stalls++;
+        }
       }
     }
     // torches (posts)
