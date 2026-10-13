@@ -263,6 +263,12 @@
     const bob = u.moving ? Math.abs(Math.cos(u.anim)) * 0.9 : 0;
     c.save();
     c.translate(X, Y);
+    if (!flat) {
+      u._fallAt = null;
+      // attack lunge: lean into the blow while the swing plays
+      if (u.swingT > 0) { const k = Math.sin(Math.min(1, u.swingT / 0.35) * Math.PI) * 3; c.translate(f.sx * k, f.sy * k * 0.5); }
+      if (u.flash > 0) c.translate(Math.sin(now * 70) * 1.2, 0);
+    }
     if (!flat) { c.fillStyle = 'rgba(0,0,0,0.32)'; c.beginPath(); c.ellipse(1, 0.5, 7 * sc, 3 * sc, 0, 0, 7); c.fill(); }
     c.scale(side * sc, sc);
     c.lineWidth = 0.9; c.strokeStyle = OUT; c.lineJoin = 'round'; c.lineCap = 'round';
@@ -402,7 +408,11 @@
   function lying(c, X, Y, u, L, kind) {
     c.save(); c.translate(X, Y);
     c.fillStyle = 'rgba(0,0,0,0.3)'; c.beginPath(); c.ellipse(0, 0, 13, 5, 0, 0, 7); c.fill();
-    c.scale(1, 0.62); c.rotate(-Math.PI / 2 + 0.15); c.translate(0, 13);
+    // topple over when first knocked down (0.45 s), then lie still
+    if (u._fallAt == null) u._fallAt = now;
+    const fk = Math.min(1, (now - u._fallAt) / 0.45), e = fk * fk * (3 - 2 * fk);
+    const bounce = fk >= 1 ? 0 : 0;
+    c.scale(1, 1 - 0.38 * e); c.rotate((-Math.PI / 2 + 0.15) * e); c.translate(0, 13 * e + bounce);
     if (kind === 'dead') c.globalAlpha = 0.8;
     figure(c, 0, 0, FAKE, kind === 'dead' ? deadLook(L) : noWeapon(L), true);
     c.restore();
@@ -571,6 +581,20 @@
     // heroes hiding indoors show through the faded roof
     for (const hs of G.houses || []) {
       if (!hs.occ) continue;
+      // the original cuts the house open to show a lamp-lit room: warm plank floor, a table and a hearth
+      {
+        const P = (x, y) => [(x - y) * TILE, (x + y) * TILE / 2];
+        const a = P(hs.x, hs.y), b = P(hs.x + hs.w, hs.y), d = P(hs.x + hs.w, hs.y + hs.h), e = P(hs.x, hs.y + hs.h);
+        ctx.save(); ctx.globalAlpha = 0.92;
+        ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.lineTo(d[0], d[1]); ctx.lineTo(e[0], e[1]); ctx.closePath();
+        const gr = ctx.createRadialGradient((a[0] + d[0]) / 2, (a[1] + d[1]) / 2, 4, (a[0] + d[0]) / 2, (a[1] + d[1]) / 2, hs.w * TILE);
+        gr.addColorStop(0, '#a8703a'); gr.addColorStop(1, '#4a2c16'); ctx.fillStyle = gr; ctx.fill(); ctx.clip();
+        ctx.strokeStyle = 'rgba(40,20,8,0.45)'; ctx.lineWidth = 0.8;
+        for (let k = 0; k <= hs.h * 4; k++) { const p = P(hs.x, hs.y + k / 4), q = P(hs.x + hs.w, hs.y + k / 4); ctx.beginPath(); ctx.moveTo(p[0], p[1]); ctx.lineTo(q[0], q[1]); ctx.stroke(); }
+        const t = P(hs.x + hs.w * 0.35, hs.y + hs.h * 0.35); ctx.fillStyle = '#5a3a1e'; ctx.fillRect(t[0] - 9, t[1] - 8, 18, 6); ctx.fillStyle = '#3a2412'; ctx.fillRect(t[0] - 8, t[1] - 2, 2, 5); ctx.fillRect(t[0] + 6, t[1] - 2, 2, 5);
+        const hx = P(hs.x + 0.4, hs.y + hs.h * 0.5), hg = ctx.createRadialGradient(hx[0], hx[1], 1, hx[0], hx[1], 22); hg.addColorStop(0, 'rgba(255,190,90,0.9)'); hg.addColorStop(1, 'rgba(255,140,40,0)'); ctx.fillStyle = hg; ctx.fillRect(hx[0] - 22, hx[1] - 22, 44, 44);
+        ctx.restore();
+      }
       const ins = G.heroes.filter((h) => h.inside === hs);
       ins.forEach((h, i) => {
         const ox = h.x, oy = h.y, om = h.moving;
@@ -812,6 +836,21 @@
         const k = f.t / f.life;
         ctx.globalAlpha = 1 - k * k;
         label(ctx, f.text, tmp.x, tmp.y - 10 * z - k * 26, 15, f.color);
+        ctx.globalAlpha = 1;
+      } else if (f.type === 'say') {
+        // parchment speech bubble with a tail, pops in and fades out
+        if (!inView(f.x, f.y, 80)) continue;
+        R.toScreen(f.x, f.y, tmp);
+        const k = f.t / f.life, pop = Math.min(1, f.t / 0.12);
+        ctx.globalAlpha = k > 0.8 ? (1 - k) / 0.2 : 1;
+        ctx.font = '600 12px Georgia, serif';
+        const tw = ctx.measureText(f.text).width, bw = tw + 14, bh = 20, bx = tmp.x - bw / 2, by = tmp.y - 58 * z - bh - (1 - pop) * 6;
+        ctx.fillStyle = 'rgba(30,18,8,0.35)'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(bx + 2, by + 2, bw, bh, 7) : ctx.rect(bx + 2, by + 2, bw, bh); ctx.fill();
+        ctx.fillStyle = '#efe0b8'; ctx.strokeStyle = '#6a4a26'; ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.roundRect ? ctx.roundRect(bx, by, bw, bh, 7) : ctx.rect(bx, by, bw, bh); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(tmp.x - 5, by + bh - 0.6); ctx.lineTo(tmp.x, by + bh + 7); ctx.lineTo(tmp.x + 3, by + bh - 0.6); ctx.closePath(); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(tmp.x - 5, by + bh); ctx.lineTo(tmp.x, by + bh + 7); ctx.lineTo(tmp.x + 3, by + bh); ctx.stroke();
+        ctx.fillStyle = f.color; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(f.text, tmp.x, by + bh / 2 + 0.5);
         ctx.globalAlpha = 1;
       } else if (f.type === 'stars') {
         R.toScreen(f.x, f.y, tmp);

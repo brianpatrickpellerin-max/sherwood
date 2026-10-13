@@ -109,6 +109,7 @@
   }
 
   ui.showTitle = function () {
+    RH.audio.stopAmbient && RH.audio.stopAmbient();
     screenName = 'title';
     $('hud').classList.add('hidden');
     const has = RH.hasSave();
@@ -268,6 +269,7 @@
   const jobName = (id) => (RH.JOBS.find((j) => j.id === id) || RH.JOBS[0]);
   const jobsFor = () => RH.JOBS.filter((j) => !j.need || RH.profile.heroes.includes(j.need));
   ui.showCamp = function (note) {
+    RH.audio.stopAmbient && RH.audio.stopAmbient();
     screenName = 'camp';
     $('hud').classList.add('hidden');
     const P = RH.profile;

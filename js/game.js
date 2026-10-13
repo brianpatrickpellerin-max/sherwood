@@ -287,6 +287,25 @@
     return s;
   }
 
+  // speech bubbles over a unit (original lines; the 2002 game has guards and villagers call out like this)
+  const BARKS = {
+    alert: ['Halt!', 'Seize him!', 'Outlaws!', 'To arms!', 'Hood\u2019s men!', 'On guard!'],
+    suspect: ['Who goes there?', 'Hm? Who\u2019s that?', 'Show yourself!', 'Did you hear that?', 'Is someone there?'],
+    lost: ['Where did he go?', 'Gone\u2026 blast it.', 'Must have been the wind.', 'Back to my post.'],
+    body: ['What\u2019s he doing lying there?', 'Wake up, you lout!', 'On your feet, man!'],
+    victory: ['Victory!', 'That\u2019s one less outlaw.', 'Not so sharp now!'],
+    help: ['Help! Help!', 'Run!', 'Mercy!', 'Outlaws! Flee!'],
+    thanks: ['Bless you, my lord!', 'God keep you, Robin!', 'Thank you, kind sir!'],
+    hurt: ['I\u2019m done for\u2026', 'Help me, lads!', 'Ugh\u2026'],
+  };
+  function bark(e, kind, force) {
+    if (!e || (!force && G.time < (e.barkT || 0)) || (!force && G.time < (G.barkG || 0))) return;
+    const L = BARKS[kind]; if (!L) return;
+    e.barkT = G.time + 7; G.barkG = G.time + 0.9;
+    G.fx.push({ type: 'say', e, x: e.x, y: e.y, text: L[((e.id | 0) * 7 + Math.floor(G.time * 3)) % L.length], color: kind === 'alert' || kind === 'victory' ? '#7a1a10' : '#2a1a0a', t: 0, life: 2.3 });
+    RH.audio.play(kind === 'help' || kind === 'thanks' ? 'voiceHi' : 'voice');
+  }
+  game.bark = bark;
   function fx(type, x, y, text, color, life) {
     G.fx.push({ type, x, y, text: text || '', color: color || '#fff', t: 0, life: life || 1 });
   }
@@ -841,7 +860,7 @@
 
   function payBeggar(b) {
     if (game.money() < b.price) { toast(`You need £${b.price} for him`); return; }
-    G.spent += b.price; G.stats.alms += b.price; b.paid++; sfx('coin');
+    G.spent += b.price; G.stats.alms += b.price; b.paid++; sfx('coin'); bark(b, 'thanks', true);
     fx('text', b.x, b.y - 30, '-£' + b.price, '#ffd84a');
     const line = b.say[Math.min(b.paid - 1, b.say.length - 1)] || 'Bless you, master. Look about you: we beggars see more than the guards think.';
     RH.ui && RH.ui.tip('🪙 ' + line);
@@ -962,7 +981,7 @@
     toast('It\u2019s a trap! The Sheriff\u2019s men close in. Find John and Tuck and get out!', 'bad');
     const robin = G.heroes.find((h) => h.key === 'robin') || G.heroes[0];
     for (const g of G.guards) if (g.state === 'watch') { g.state = 'investigate'; g.lx = robin.x; g.ly = robin.y; g.sus = 0.7; g.icon = '!'; g.iconT = 3; g.path = null; }
-    for (const c of G.civs) if (!c.noble) { c.flee = 8; }
+    for (const c of G.civs) if (!c.noble) { c.flee = 8; bark(c, 'help'); }
     G.alarmT = 20; G.alarmed = true;
   }
   function netGuard(g, t) {
@@ -1101,6 +1120,7 @@
       h.hp = 0; h.down = true; h.task = null; h.path = null; h.busy = 0; h.sneak = false;
       if (h.carry) dropCarry(h);
       sfx('down');
+      { let gb = null, bd = 1e12; for (const q of G.guards) { if (q.state === 'ko' || q.state === 'dead' || q.state === 'gone') continue; const d = (q.x - h.x) ** 2 + (q.y - h.y) ** 2; if (d < bd) { bd = d; gb = q; } } if (gb && bd < (4 * TILE) ** 2) bark(gb, 'victory', true); }
       if (h.kind === 'ally') return;
       toast(h.name + ' is down!', 'bad');
       if (h.npc) G.failPending = G.failPending || { t: 1.2, reason: h.name + ' was recaptured.' };
@@ -1158,7 +1178,7 @@
     g.lx = h.x; g.ly = h.y;
     if (h.kind !== 'ally') G.stats.spotted = true;
     sfx('alert');
-    fx('text', g.x, g.y - 44, SHOUTS[(g.id + Math.floor(G.time)) % SHOUTS.length], '#ffb08a', 1.4);
+    bark(g, 'alert', true);
     if (!silentToast && h.kind !== 'ally') toast(`Spotted! ${h.name} has been seen!`, 'bad');
     for (const o of G.guards) {
       if (o === g || !active(o) || o.state === 'alert' || passive(o) || o.coward) continue;
@@ -1230,7 +1250,7 @@
       g.lx = bh.x; g.ly = bh.y;
       if (g.sus >= 1) { spot(g, bh); return; }
       if (g.sus >= 0.6 && (st === 'look' || st === 'patrol' || st === 'lured')) { g.state = 'investigate'; g.path = null; }
-      else if (g.sus >= 0.28 && (st === 'patrol' || st === 'lured')) { g.state = 'look'; g.stateT = 0; g.path = null; g.icon = '?'; g.iconT = 99; sfx('suspect'); }
+      else if (g.sus >= 0.28 && (st === 'patrol' || st === 'lured')) { g.state = 'look'; g.stateT = 0; g.path = null; g.icon = '?'; g.iconT = 99; sfx('suspect'); bark(g, 'suspect'); }
     } else g.sus = Math.max(0, g.sus - 0.16 * dt);
     // bodies: raise the alarm, then go and wake or untie the fallen man
     if (G.kind === 'defense') return;
@@ -1302,7 +1322,7 @@
             if (RH.isWalk(G.grid, tx, ty)) setPath(g, tx, ty);
           }
         } else follow(g, g.walk, dt, 6);
-        if (g.searchT <= 0 && g.sus < 0.6) resumePatrol(g);
+        if (g.searchT <= 0 && g.sus < 0.6) { bark(g, 'lost'); resumePatrol(g); }
         break;
       }
       case 'flee': {
@@ -1327,7 +1347,7 @@
         if (!t || t.down || g.lostT > 5 || t.inside) {
           if (g.seeing) { g.target = g.seeing; break; }
           if (G.kind === 'defense' && g.raider) { g.state = 'raid'; g.path = null; g.target = null; break; }
-          g.state = 'search'; g.searchT = 10; g.path = null; g.icon = '?'; g.iconT = 3; g.target = null; break;
+          g.state = 'search'; g.searchT = 10; g.path = null; g.icon = '?'; g.iconT = 3; g.target = null; bark(g, 'lost', true); break;
         }
         const dd = d2(t, g);
         if (g.ranged && dd > (TILE * 2.5) ** 2 && dd < (7 * TILE) ** 2 && g.seeing === t) {
@@ -1397,7 +1417,7 @@
     const b = g.rescue;
     g.rescue = null;
     if (b && b.state === 'ko' && !b.carried && !b.hoisted && !b.inPit && d2(g, b) < (TILE * 1.6) ** 2) {
-      g.state = 'shaking'; g.stateT = b.tied ? 3.2 : 2.2; g.rescueB = b; g.path = null; g.moving = false;
+      bark(g, 'body'); g.state = 'shaking'; g.stateT = b.tied ? 3.2 : 2.2; g.rescueB = b; g.path = null; g.moving = false;
       g.dir = Math.atan2(b.y - g.y, b.x - g.x);
       fx('text', g.x, g.y - 44, b.tied ? 'Hold still, I\u2019ll cut you loose!' : 'Wake up, man!', '#ffb08a', 1.6);
       return;
@@ -1701,7 +1721,7 @@
         sfx('buzz'); fx('bees', p.tx, p.ty, '', '#ffd23a', 2.5);
         G.swarms.push({ x: p.tx, y: p.ty, t: 9, r: 2.3 * TILE });
         for (const g of G.guards) if (active(g) && d2(g, at) < (2.3 * TILE) ** 2) panic(g, 7);
-        for (const c of G.civs) if (c.state !== 'ko' && !c.carter && d2(c, at) < (3 * TILE) ** 2) c.flee = 6;
+        for (const c of G.civs) if (c.state !== 'ko' && !c.carter && d2(c, at) < (3 * TILE) ** 2) { c.flee = 6; bark(c, 'help'); }
         break;
       case 'net':
         sfx('net'); fx('net', p.tx, p.ty, '', '#d8c890', 2);
@@ -2287,11 +2307,11 @@
     updListen(dt);
     updWorld(dt);
     updCoach(dt);
-    for (let i = G.fx.length - 1; i >= 0; i--) { const f = G.fx[i]; f.t += dt; if (f.t >= f.life) G.fx.splice(i, 1); }
+    for (let i = G.fx.length - 1; i >= 0; i--) { const f = G.fx[i]; f.t += dt; if (f.e) { f.x = f.e.x; f.y = f.e.y; } if (f.t >= f.life) G.fx.splice(i, 1); }
     for (let i = G.coins.length - 1; i >= 0; i--) { const c = G.coins[i]; if (c.t != null) { c.t -= dt; if (c.t <= 0) c.gone = true; } if (c.gone) G.coins.splice(i, 1); }
     updTips();
     checkEnd(dt);
-    RH.audio.ambient(dt, G.night);
+    RH.audio.ambient(dt, G.night, G);
   };
 
   game.computeCone = function (g) {

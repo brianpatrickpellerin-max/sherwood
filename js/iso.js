@@ -525,7 +525,7 @@
     }
   }
   function timberStorey(c, L, H, lit, r, o) {
-    const pl = o.pl, tb = sh(TIMBER, lit);
+    const pl = o.pl, tb = sh(o.tb || TIMBER, lit);
     if (o.lower && o.stone) {
       stoneFace(c, L, H, STONE_W, lit * 0.95, r, { course: 5, noIvy: true });
       if (o.door != null) { const u = Math.max(7, Math.min(L - 7, o.doorU)); c.fillStyle = sh('#3a2616', lit); c.beginPath(); c.moveTo(u - 4.5, 0); c.lineTo(u - 4.5, 9); c.arc(u, 9, 4.5, Math.PI, 0, true); c.lineTo(u + 4.5, 0); c.closePath(); c.fill(); c.strokeStyle = sh('#b0a490', lit); c.lineWidth = 0.9; c.stroke(); }
@@ -579,6 +579,8 @@
   function townHouse(c, P, x0, y0, x1, y1, r, frontWalk, roofPal, roofKind, D) {
     const { alongX, floors, h1, hu, J, Hw, lean, Rh, ov } = D;
     const pl = pick(r, PLASTER), stone = r() < 0.42, frame = Math.floor(r() * 3);
+    // painted frames like the original's towns: dark oak, moss green, ox-blood, near black
+    const tbc = pick(r, ['#4a3020', '#4a3020', '#3a4a2a', '#5e2a1c', '#2e2a26']);
     const face = (o, a, bv, fn) => { c.save(); c.transform(a[0], a[1], bv[0], bv[1], o[0], o[1]); fn(); c.restore(); };
     const unit = (p, q, len) => [(q[0] - p[0]) / len, (q[1] - p[1]) / len];
     const up = [0, -1];
@@ -591,7 +593,7 @@
         const ax = sx + nx * j - tx * j, ay = sy + ny * j - ty * j, bx = ex + nx * j + tx * j, by = ey + ny * j + ty * j;
         const L = len + 2 * j, o = P(ax, ay, z), q = P(bx, by, z);
         face(o, unit(o, q, L), up, () => {
-          timberStorey(c, L, H, lit, r, { pl, lower: f === 0, stone: f === 0 && stone, door: f === 0 && front ? (stone ? 1 : Math.floor(L / 10 / 2)) : null, doorU: L / 2, frame, step: f === 0 ? 10 : null });
+          timberStorey(c, L, H, lit, r, { pl, tb: tbc, lower: f === 0, stone: f === 0 && stone, door: f === 0 && front ? (stone ? 1 : Math.floor(L / 10 / 2)) : null, doorU: L / 2, frame, step: f === 0 ? 10 : null });
           if (f > 0) { // joist ends under the jetty
             c.fillStyle = sh('#3a2614', lit); for (let u = 2; u < L - 1; u += 4) c.fillRect(u, 0, 1.6, 1.8);
           }
@@ -601,8 +603,8 @@
           if (gable && f === floors - 1 && !lean) {
             c.save(); c.beginPath(); c.moveTo(0, H); c.lineTo(L / 2, H + Rh); c.lineTo(L, H); c.closePath(); c.clip();
             c.fillStyle = sh(pl, lit); c.fillRect(0, H, L, Rh);
-            c.fillStyle = sh(TIMBER, lit); c.fillRect(L / 2 - 1, H, 2, Rh); c.fillRect(0, H + Rh * 0.42, L, 1.8);
-            c.strokeStyle = sh(TIMBER, lit); c.lineWidth = 1.4; c.beginPath(); c.moveTo(L * 0.25, H); c.lineTo(L / 2, H + Rh * 0.42); c.lineTo(L * 0.75, H); c.stroke();
+            c.fillStyle = sh(tbc, lit); c.fillRect(L / 2 - 1, H, 2, Rh); c.fillRect(0, H + Rh * 0.42, L, 1.8);
+            c.strokeStyle = sh(tbc, lit); c.lineWidth = 1.4; c.beginPath(); c.moveTo(L * 0.25, H); c.lineTo(L / 2, H + Rh * 0.42); c.lineTo(L * 0.75, H); c.stroke();
             window1(c, L / 2 + 5, H + Rh * 0.22, lit, r);
             c.restore();
           }
